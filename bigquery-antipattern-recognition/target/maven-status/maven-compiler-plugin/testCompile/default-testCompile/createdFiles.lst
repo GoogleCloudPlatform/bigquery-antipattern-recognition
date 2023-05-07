@@ -1,0 +1,9 @@
+com/google/zetasql/toolkit/antipattern/parser/IdentifyCTEsEvalMultipleTimesTest.class
+com/google/zetasql/toolkit/antipattern/analyzer/IdentidySelectedColumnsTest.class
+com/google/zetasql/toolkit/antipattern/analyzer/IdentifyCrossJoinTest.class
+com/google/zetasql/toolkit/antipattern/analyzer/IdentifySubqueryInWhereTest.class
+com/google/zetasql/toolkit/antipattern/parser/IdentifyOrderByWithoutLimitTest.class
+com/google/zetasql/toolkit/antipattern/parser/IdentifyInSubqueryWithoutAggTest.class
+com/google/zetasql/toolkit/antipattern/parser/IdentifyCrossJoinTest.class
+com/google/zetasql/toolkit/antipattern/parser/IdentifySimpleSelectStarTest.class
+com/google/zetasql/toolkit/antipattern/parser/IdentifySingleRowInsertsTest.class
