@@ -48,7 +48,7 @@
         <dependency>
             <groupId>com.google.zetasql</groupId>
             <artifactId>zetasql-client</artifactId>
-            <version>2023.03.2</version>
+            <version>2023.04.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>

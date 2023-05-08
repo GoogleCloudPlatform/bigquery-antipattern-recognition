@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.google.zetasql.toolkit.catalog.spanner.SpannerCatalogTest
--------------------------------------------------------------------------------
-Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 sec
