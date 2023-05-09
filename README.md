@@ -282,3 +282,5 @@ Output:
 ```
 You are using an IN filter with a subquery without a DISTINCT on the following columns: project.dataset.table1.col2
 ```
+# Disclaimer
+This is not an officially supported Google product.
