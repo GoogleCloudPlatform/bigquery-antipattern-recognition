@@ -36,41 +36,41 @@ public class IdentifyCrossJoinTest {
 
   @Test
   public void simpleCrossJoin() {
-    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t2.";
+    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t2. At join starting in line: 4.";
     String query =
-        "SELECT "
-            + "   t1.col1 "
-            + "FROM "
-            + "   `project.dataset.table1` t1 "
-            + "CROSS JOIN "
-            + "    `project.dataset.table2` t2 "
-            + "WHERE "
+        "SELECT \n"
+            + "   t1.col1 \n"
+            + "FROM \n"
+            + "   `project.dataset.table1` t1 \n"
+            + "CROSS JOIN \n"
+            + "    `project.dataset.table2` t2 \n"
+            + "WHERE \n"
             + "   t1.col1 = t2.col1 ";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyCrossJoin()).run(parsedQuery);
+    String recommendations = (new IdentifyCrossJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendations);
   }
 
   @Test
   public void crossJoinTwoCrossJoinsTest() {
     String expected =
-        "CROSS JOIN instead of INNER JOIN between t1 and t3.\n"
-            + "CROSS JOIN instead of INNER JOIN between t1 and t2.";
+        "CROSS JOIN instead of INNER JOIN between t1 and t3. At join starting in line: 4.\n"
+            + "CROSS JOIN instead of INNER JOIN between t1 and t2. At join starting in line: 4.";
     String query =
-        "SELECT "
-            + "   t1.col1 "
-            + "FROM "
-            + "   `project.dataset.table1` t1 "
-            + "CROSS JOIN "
-            + "    `project.dataset.table2` t2 "
-            + "CROSS JOIN "
-            + "    `project.dataset.table3` t3 "
-            + "WHERE "
-            + "   t1.col1 = t2.col1 "
-            + "   AND t1.col1 = t3.col1 ";
+        "SELECT \n"
+            + "   t1.col1 \n"
+            + "FROM \n"
+            + "   `project.dataset.table1` t1 \n"
+            + "CROSS JOIN \n"
+            + "    `project.dataset.table2` t2 \n"
+            + "CROSS JOIN \n"
+            + "    `project.dataset.table3` t3 \n"
+            + "WHERE \n"
+            + "   t1.col1 = t2.col1 \n"
+            + "   AND t1.col1 = t3.col1 \n";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery);
+    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
@@ -78,119 +78,119 @@ public class IdentifyCrossJoinTest {
   public void crossJoinTwoTablesNoFilterTest() {
     String expected = "";
     String query =
-        "SELECT "
-            + "   t1.col1 "
-            + "FROM "
-            + "   `project.dataset.table1` t1 "
-            + "CROSS JOIN "
-            + "    `project.dataset.table2` t2 ";
+        "SELECT \n"
+            + "   t1.col1 \n"
+            + "FROM \n"
+            + "   `project.dataset.table1` t1 \n"
+            + "CROSS JOIN \n"
+            + "    `project.dataset.table2` t2 \n";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery);
+    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
   @Test
   public void crossJoinTableSubqueryTest() {
-    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t2.";
+    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t2. At join starting in line: 4.";
     String query =
-        "SELECT "
-            + "   t1.col1 "
-            + "FROM "
-            + "   (SELECT * FROM `project.dataset.table1`) t1 "
-            + "CROSS JOIN "
-            + "    `project.dataset.table2` t2 "
-            + "WHERE "
-            + "   t1.col1 = t2.col1 ";
+        "SELECT \n"
+            + "   t1.col1 \n"
+            + "FROM \n"
+            + "   (SELECT * FROM `project.dataset.table1`) t1 \n"
+            + "CROSS JOIN \n"
+            + "    `project.dataset.table2` t2 \n"
+            + "WHERE \n"
+            + "   t1.col1 = t2.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery);
+    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
   @Test
   public void crossJoinTwoSubqueries() {
-    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t2.";
+    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t2. At join starting in line: 4.";
     String query =
-        "SELECT "
-            + "   t1.col1 "
-            + "FROM "
-            + "   (SELECT * FROM `project.dataset.table1`) t1 "
-            + "CROSS JOIN "
-            + "    (SELECT * FROM `project.dataset.table2`) t2 "
-            + "WHERE "
-            + "   t1.col1 = t2.col1 ";
+        "SELECT \n"
+            + "   t1.col1 \n"
+            + "FROM \n"
+            + "   (SELECT * FROM `project.dataset.table1`) t1 \n"
+            + "CROSS JOIN \n"
+            + "    (SELECT * FROM `project.dataset.table2`) t2 \n"
+            + "WHERE \n"
+            + "   t1.col1 = t2.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery);
+    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
   @Test
   public void crossJoinSeveralJoins() {
-    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t3.";
+    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t3. At join starting in line: 4.";
     String query =
-        "SELECT "
-            + "   t1.col1 "
-            + "FROM "
-            + "   `project.dataset.table1` t1 "
-            + "INNER JOIN "
-            + "    `project.dataset.table2` t2 ON t1.col2 = t2.col2 "
-            + "CROSS JOIN "
-            + "    `project.dataset.table3` t3  "
-            + "WHERE "
-            + "   t1.col1 = t3.col1 ";
+        "SELECT \n"
+            + "   t1.col1 \n"
+            + "FROM \n"
+            + "   `project.dataset.table1` t1 \n"
+            + "INNER JOIN \n"
+            + "    `project.dataset.table2` t2 ON t1.col2 = t2.col2 \n"
+            + "CROSS JOIN \n"
+            + "    `project.dataset.table3` t3  \n"
+            + "WHERE \n"
+            + "   t1.col1 = t3.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery);
+    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
   @Test
   public void crossJoinSeveralJoinsAndSubquery() {
-    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t3.";
+    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t3. At join starting in line: 4.";
     String query =
-        "SELECT "
-            + "   t1.col1 "
-            + "FROM "
-            + "   `project.dataset.table1` t1 "
-            + "INNER JOIN "
-            + "    `project.dataset.table2` t2 ON t1.col2 = t2.col2 "
-            + "CROSS JOIN "
-            + "    (SELECT * FROM  `project.dataset.table3`) t3  "
-            + "WHERE "
-            + "   t1.col1 = t3.col1 ";
+        "SELECT \n"
+            + "   t1.col1 \n"
+            + "FROM \n"
+            + "   `project.dataset.table1` t1 \n"
+            + "INNER JOIN \n"
+            + "    `project.dataset.table2` t2 ON t1.col2 = t2.col2 \n"
+            + "CROSS JOIN \n"
+            + "    (SELECT * FROM  `project.dataset.table3`) t3  \n"
+            + "WHERE \n"
+            + "   t1.col1 = t3.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery);
+    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
   @Test
   public void crossJoinNestedCrossJoin() {
-    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t2.";
+    String expected = "CROSS JOIN instead of INNER JOIN between t1 and t2. At join starting in line: 14.";
     String query =
-        "SELECT "
-            + "   t1.col1 "
-            + "FROM "
-            + "   `project.dataset.table1` t1 "
-            + "INNER JOIN "
-            + "    `project.dataset.table2` t2 ON t1.col2 = t2.col2 "
-            + "INNER JOIN "
-            + "    `project.dataset.table3` t3 ON t1.col1 = t3.col1 "
-            + "INNER JOIN "
-            + " ( "
-            + "   SELECT "
-            + "      t1.col1 "
-            + "    FROM "
-            + "       `project.dataset.table1` t1 "
-            + "    INNER JOIN "
-            + "       `project.dataset.table3` t3 ON t1.col1 = t3.col1 "
-            + "    CROSS JOIN "
-            + "       `project.dataset.table2` t2 "
-            + "    WHERE "
-            + "        t1.col1 = t2.col1 "
-            + " ) t11 ON t1.col1 = t11.col1 "
-            + "WHERE "
-            + "   t1.col1 = t3.col1 ";
+        "SELECT \n"
+            + "   t1.col1 \n"
+            + "FROM \n"
+            + "   `project.dataset.table1` t1 \n"
+            + "INNER JOIN \n"
+            + "    `project.dataset.table2` t2 ON t1.col2 = t2.col2 \n"
+            + "INNER JOIN \n"
+            + "    `project.dataset.table3` t3 ON t1.col1 = t3.col1 \n"
+            + "INNER JOIN \n"
+            + " ( \n"
+            + "   SELECT \n"
+            + "      t1.col1 \n"
+            + "    FROM \n"
+            + "       `project.dataset.table1` t1 \n"
+            + "    INNER JOIN \n"
+            + "       `project.dataset.table3` t3 ON t1.col1 = t3.col1 \n"
+            + "    CROSS JOIN \n"
+            + "       `project.dataset.table2` t2 \n"
+            + "    WHERE \n"
+            + "        t1.col1 = t2.col1 \n"
+            + " ) t11 ON t1.col1 = t11.col1 \n"
+            + "WHERE \n"
+            + "   t1.col1 = t3.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery);
+    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 }

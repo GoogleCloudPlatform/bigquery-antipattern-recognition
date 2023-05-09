@@ -21,8 +21,8 @@ import com.google.zetasql.toolkit.antipattern.parser.visitors.crossjoin.Identify
 import java.util.stream.Collectors;
 
 public class IdentifyCrossJoin implements BasePatternDetector {
-  public String run(ASTStatement parsedQuery) {
-    IdentifyCrossJoinVisitor visitor = new IdentifyCrossJoinVisitor();
+  public String run(ASTStatement parsedQuery, String query) {
+    IdentifyCrossJoinVisitor visitor = new IdentifyCrossJoinVisitor(query);
     parsedQuery.accept(visitor);
 
     return visitor.getResult().stream().distinct().collect(Collectors.joining("\n"));

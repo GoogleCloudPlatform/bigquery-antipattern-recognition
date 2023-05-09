@@ -18,20 +18,27 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 
 public class OrderByWithoutLimitVisitor extends ParseTreeVisitor {
 
-  private final String ORDER_BY_SUGGESTION_MESSAGE = "ORDER BY clause without LIMIT.";
+  private final String ORDER_BY_SUGGESTION_MESSAGE = "ORDER BY clause without LIMIT at line %d.";
 
   private ArrayList<String> result = new ArrayList<String>();
   private ArrayList<String> resultToReturn = new ArrayList<String>();
   private Boolean LimitExist = Boolean.FALSE;
+  private String query;
+
+  public OrderByWithoutLimitVisitor(String query) {
+    this.query = query;
+  }
 
   @Override
   public void visit(ASTNodes.ASTQuery node) {
     if (!(node.getOrderBy() == null) && (node.getLimitOffset() == null)) {
-      result.add(ORDER_BY_SUGGESTION_MESSAGE);
+      int lineNum = ZetaSQLStringParsingHelper.countLine(query, node.getOrderBy().getParseLocationRange().start());
+      result.add(String.format(ORDER_BY_SUGGESTION_MESSAGE, lineNum));
     }
     super.visit(node);
   }

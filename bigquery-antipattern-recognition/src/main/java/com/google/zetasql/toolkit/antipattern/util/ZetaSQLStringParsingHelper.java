@@ -32,4 +32,14 @@ public class ZetaSQLStringParsingHelper {
     }
     return null;
   }
+
+  public static int countLine(String query, int start) {
+    int count = 0;
+    for (int i = 0; i < start; i++) {
+      if (query.charAt(i) == '\n') {
+        count++;
+      }
+    }
+    return count+1;
+  }
 }

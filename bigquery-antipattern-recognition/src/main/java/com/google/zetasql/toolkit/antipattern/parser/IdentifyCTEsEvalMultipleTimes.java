@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 public class IdentifyCTEsEvalMultipleTimes implements BasePatternDetector {
 
   @Override
-  public String run(ASTStatement parsedQuery) {
-    IdentifyCTEsEvalMultipleTimesVisitor visitor = new IdentifyCTEsEvalMultipleTimesVisitor();
+  public String run(ASTStatement parsedQuery, String query) {
+    IdentifyCTEsEvalMultipleTimesVisitor visitor = new IdentifyCTEsEvalMultipleTimesVisitor(query);
     parsedQuery.accept(visitor);
     return visitor.getResult().stream().distinct().collect(Collectors.joining("\n"));
   }

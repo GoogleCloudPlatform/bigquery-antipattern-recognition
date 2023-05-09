@@ -20,6 +20,7 @@ import com.google.zetasql.parser.ASTNodes.ASTSelect;
 import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
 import com.google.zetasql.parser.ASTNodes.ASTWithClause;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
 
   // A string template to be used for generating the suggestion message.
   private final String MULTIPLE_CTE_SUGGESTION_MESSAGE =
-      "CTE with multiple references: alias %s is referenced %d times.";
+      "CTE with multiple references: alias %s defined at line %d is referenced %d times.";
 
   // An array list to store the suggestions.
   private ArrayList<String> result = new ArrayList<String>();
@@ -36,6 +37,14 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
   // A map to keep track of the number of times each CTE is evaluated.
   private Map<String, Integer> cteCountMap = new HashMap<>();
 
+  // A map to keep track of the number of times each CTE is evaluated.
+  private Map<String, Integer> cteStartPositionMap = new HashMap<>();
+
+  private String query;
+
+  public IdentifyCTEsEvalMultipleTimesVisitor(String query) {
+    this.query = query;
+  }
   @Override
   public void visit(ASTWithClause withClause) {
 
@@ -47,6 +56,7 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
 
               // Add the CTE name to the count map with initial count 0.
               cteCountMap.put(alias.getAlias().getIdString().toLowerCase(), 0);
+              cteStartPositionMap.put(alias.getAlias().getIdString().toLowerCase(), alias.getParseLocationRange().start());
 
               // If the query expression is a SELECT statement, visit the FROM clause.
               if (alias.getQuery().getQueryExpr() instanceof ASTSelect) {
@@ -87,7 +97,8 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
 
       // If the CTE count is greater than 1, add the suggestion message to the list.
       if (count > 1) {
-        result.add(String.format(MULTIPLE_CTE_SUGGESTION_MESSAGE, cteName, count));
+        int lineNum = ZetaSQLStringParsingHelper.countLine(query, cteStartPositionMap.get(cteName));
+        result.add(String.format(MULTIPLE_CTE_SUGGESTION_MESSAGE, cteName, lineNum, count));
       }
     }
   }

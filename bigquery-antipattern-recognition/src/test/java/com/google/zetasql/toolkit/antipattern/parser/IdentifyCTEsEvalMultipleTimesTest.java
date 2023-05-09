@@ -37,7 +37,7 @@ public class IdentifyCTEsEvalMultipleTimesTest {
   // Test with a query that uses two CTEs aliased (b,c) referencing CTE aliased (a) multiple times
   @Test
   public void withThreeCTEsTest() {
-    String expected = "CTE with multiple references: alias a is referenced 2 times.";
+    String expected = "CTE with multiple references: alias a defined at line 2 is referenced 2 times.";
     String query =
         "WITH\n"
             + "    a AS (\n"
@@ -65,7 +65,7 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "    b, c;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery);
+    String recommendations = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
     assertEquals(expected, recommendations);
   }
 
@@ -73,7 +73,7 @@ public class IdentifyCTEsEvalMultipleTimesTest {
   // subquery
   @Test
   public void withOneCTETest() {
-    String expected = "CTE with multiple references: alias a is referenced 2 times.";
+    String expected = "CTE with multiple references: alias a defined at line 2 is referenced 2 times.";
     String query =
         "WITH\n"
             + "  a AS (\n"
@@ -99,7 +99,7 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "  t2.col1 = a.col2;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery);
+    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
@@ -129,7 +129,7 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "    c;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery);
+    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 }

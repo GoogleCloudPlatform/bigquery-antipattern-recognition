@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 public class IdentifyInSubqueryWithoutAgg implements BasePatternDetector {
 
   @Override
-  public String run(ASTStatement parsedQuery) {
-    InSubqueryWithoutAggVisitor visitor = new InSubqueryWithoutAggVisitor();
+  public String run(ASTStatement parsedQuery, String query) {
+    InSubqueryWithoutAggVisitor visitor = new InSubqueryWithoutAggVisitor(query);
     parsedQuery.accept(visitor);
 
     return visitor.getResult().stream().distinct().collect(Collectors.joining("\n"));

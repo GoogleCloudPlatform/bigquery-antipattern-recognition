@@ -19,6 +19,7 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors.crossjoin;
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTWhereClause;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -26,7 +27,13 @@ public class IdentifyCrossJoinVisitor extends ParseTreeVisitor {
 
   private static final String JOIN_TYPE_CROSS = "CROSS";
   private static final String CROSS_JOIN_MESSAGE =
-      "CROSS JOIN instead of INNER JOIN between %s and %s.";
+      "CROSS JOIN instead of INNER JOIN between %s and %s. At join starting in line: %d.";
+
+  private String query;
+
+  public IdentifyCrossJoinVisitor(String query) {
+    this.query = query;
+  }
 
   private Stack<ASTWhereClause> filterStack = new Stack<ASTWhereClause>();
 
@@ -35,6 +42,7 @@ public class IdentifyCrossJoinVisitor extends ParseTreeVisitor {
   public ArrayList<String> getResult() {
     return result;
   }
+
 
   @Override
   public void visit(ASTNodes.ASTJoin joinNode) {
@@ -49,10 +57,13 @@ public class IdentifyCrossJoinVisitor extends ParseTreeVisitor {
       if (!filterStack.empty()) {
         filterStack.peek().accept(crossJoinFilterChecker);
         if (crossJoinFilterChecker.result()) {
+          int lineNum = ZetaSQLStringParsingHelper.countLine(query, joinNode.getParseLocationRange().start());
           result.add(
               String.format(
                   CROSS_JOIN_MESSAGE,
-                  crossJoin.getNamesTablesUsedOnFilter().toArray(new String[0])));
+                  crossJoin.getNamesTablesUsedOnFilter().get(0),
+                  crossJoin.getNamesTablesUsedOnFilter().get(1),
+                  lineNum));
         }
       }
     }

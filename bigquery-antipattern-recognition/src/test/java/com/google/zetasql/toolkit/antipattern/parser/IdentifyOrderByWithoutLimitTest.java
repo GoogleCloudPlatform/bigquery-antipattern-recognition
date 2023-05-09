@@ -37,10 +37,14 @@ public class IdentifyOrderByWithoutLimitTest {
 
   @Test
   public void OrderByWithoutLimitTest() {
-    String expected = "ORDER BY clause without LIMIT.";
-    String query = "SELECT t1.col1 FROM `project.dataset.table1` t1 ORDER BY t1.col1;";
+    String expected = "ORDER BY clause without LIMIT at line 5.";
+    String query = "SELECT \n"
+        + "t1.col1 \n"
+        + "FROM \n"
+        + "`project.dataset.table1` t1 \n"
+        + "ORDER BY t1.col1;";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery);
+    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
@@ -49,13 +53,13 @@ public class IdentifyOrderByWithoutLimitTest {
     String expected = "";
     String query = "SELECT t1.col1 FROM `project.dataset.table1` t1 ORDER BY t1.col1 LIMIT 5;";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery);
+    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 
   @Test
   public void OrderByWithoutLimitOuterLayerTest() {
-    String expected = "ORDER BY clause without LIMIT.";
+    String expected = "ORDER BY clause without LIMIT at line 13.";
     String query =
         "SELECT \n"
             + "  t1.col1, t1.col2, t2.col1\n"
@@ -72,7 +76,7 @@ public class IdentifyOrderByWithoutLimitTest {
             + "ORDER BY\n"
             + "  t1.col1";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery);
+    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
     assertEquals(expected, recommendation);
   }
 }

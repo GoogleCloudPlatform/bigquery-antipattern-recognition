@@ -20,5 +20,12 @@ import com.google.zetasql.parser.ASTNodes.ASTStatement;
 
 public interface BasePatternDetector {
 
-  public String run(ASTStatement parsedQuery);
+  default public String run(ASTStatement parsedQuery) {
+    return null;
+  }
+
+  default public String run(ASTStatement parsedQuery, String query) {
+    return null;
+  }
+
 }
