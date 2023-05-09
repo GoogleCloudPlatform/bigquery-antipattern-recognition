@@ -94,7 +94,7 @@ public class Main {
 
   private static String getRecommendations(ASTStatement parsedQuery, String query) {
     ArrayList<String> recommendation = new ArrayList<>();
-    recommendation.add(new IdentifySimpleSelectStar().run(parsedQuery));
+    recommendation.add(new IdentifySimpleSelectStar().run(parsedQuery, query));
     recommendation.add(new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query));
     recommendation.add(new IdentifyCrossJoin().run(parsedQuery, query));
     recommendation.add(new IdentifyCTEsEvalMultipleTimes().run(parsedQuery, query));
