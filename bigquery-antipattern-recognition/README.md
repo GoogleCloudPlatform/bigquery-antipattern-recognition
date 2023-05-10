@@ -56,7 +56,9 @@ Read from information schema and write to output table:
 CREATE TABLE dataset.antipattern_output_table (
   job_id STRING,
   query STRING,
-  recommendation STRING,
+  recommendation ARRAY<STRUCT<
+    name STRING,
+    description STRING>>,
   slot_hours FLOAT64,
   process_timestamp TIMESTAMP
 );
