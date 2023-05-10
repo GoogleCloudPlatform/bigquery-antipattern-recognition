@@ -32,7 +32,7 @@ public class PrintDebugString {
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
     System.out.println(parsedQuery);
-    System.out.println(new IdentifySimpleSelectStar().run(parsedQuery));
+//    System.out.println(new IdentifySimpleSelectStar().run(parsedQuery));
     // System.out.println(new IdentifyInSubqueryWithoutAgg().run(parsedQuery));
     // System.out.println(new IdentifyCrossJoin().run(parsedQuery));
 
