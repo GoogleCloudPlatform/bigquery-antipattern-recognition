@@ -17,7 +17,8 @@ FROM
 
 Output:
 ```
-All columns on table: project.dataset.table1 are being selected. Please be sure that all columns are needed
+All columns on table: project.dataset.table1 are being selected. 
+Please be sure that all columns are needed
 ```
 
 
