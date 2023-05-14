@@ -15,7 +15,7 @@ import org.apache.commons.cli.ParseException;
 public class PrintAnalyzerDebugString {
 
   public static void main(String[] args) throws ParseException {
-    String processingProject = "pso-dev-whaite";
+    String processingProject = "bigquery-public-data";
 
     // setup analyzer
     AnalyzerOptions options = new AnalyzerOptions();
@@ -31,13 +31,16 @@ public class PrintAnalyzerDebugString {
     BigQueryCatalog catalog = new BigQueryCatalog(processingProject, resourceProvider);
 
     //what about a view
-    String query = "SELECT t1.* \n"
-        + "        FROM \n"
-        + "         `dataset.tbl1` t1 \n"
-        + "        join \n"
-        + "         (select * from `pso-dev-whaite.dataset.tbl2`) t2 ON t1.a=t2.a \n"
-        + "        join \n"
-        + "          `pso-dev-whaite.dataset.tbl3` t3 ON t1.a=t3.a ";
+    String query = "SELECT  \n"
+        + "  t1.station_id,\n"
+        + "  COUNT(1) num_trips_started\n"
+        + "FROM\n"
+        + "  `bigquery-public-data.austin_bikeshare.bikeshare_stations` t1\n"
+        + "JOIN\n"
+        + "  `bigquery-public-data.austin_bikeshare.bikeshare_trips` t2 ON t1.station_id = t2.start_station_id\n"
+        + "GROUP BY\n"
+        + "  t1.station_id\n"
+        + ";";
 
     catalog.addAllTablesUsedInQuery(query, options);
     Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
