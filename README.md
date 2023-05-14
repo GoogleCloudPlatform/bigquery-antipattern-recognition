@@ -17,8 +17,7 @@ FROM
 
 Output:
 ```
-All columns on table: project.dataset.table1 are being selected. 
-Please be sure that all columns are needed
+All columns on table: project.dataset.table1 are being selected. Please be sure that all columns are needed
 ```
 
 
@@ -51,6 +50,32 @@ docker run \
   --query "SELECT * FROM \`project.dataset.table1\`" 
 ```
 
+Read from file and write output to terminal
+```
+docker run \
+  -v $(pwd)/samples/queries:/samples/queries \
+  -i bigquery-antipattern-recognition \
+  --input_file_path /samples/queries/input/multipleCTEs.sql 
+```
+
+Read from folder and write output to csv
+```
+docker run \
+  -v $(pwd)/samples/queries:/samples/queries \
+  -i bigquery-antipattern-recognition \
+  --input_folder_path /samples/queries/input \
+  --output_file_path /samples/queries/output/results.csv
+```
+
+Read from csv and output to csv 
+```
+docker run \
+  -v $(pwd)/samples/csv:/samples/csv \
+  -i bigquery-antipattern-recognition \
+  --input_csv_file_path /samples/csv/input/input_queries.csv \
+  --output_file_path /samples/csv/output/results.csv
+```
+
 Read from information schema and write to output table:
 1) Create a table with the following DDL:
 ```
@@ -68,7 +93,7 @@ CREATE TABLE dataset.antipattern_output_table (
 gcloud auth login
 ```
 
-3) Run
+3) Read from INFORMATION_SCHEMA write to table in BigQuery
 ```
 docker run \
   -v ~/.config:/root/.config \
@@ -77,6 +102,17 @@ docker run \
   --read_from_info_schema_days 1 \
   --processing_project_id <my-project> \
   --output_table "my-project.dataset.antipattern_output_table" 
+```
+
+Run using advenced analytics 
+```
+docker run \
+  -v $(pwd)/samples/queries:/samples/queries \
+  -v ~/.config:/root/.config \
+  -i bigquery-antipattern-recognition \
+  --advanced_analysis \
+  --analyzer_default_project bigquery-public-data \
+  --input_file_path /samples/queries/input/joinOrder.sql 
 ```
 
 # Deploy to Cloud Run Jobs
