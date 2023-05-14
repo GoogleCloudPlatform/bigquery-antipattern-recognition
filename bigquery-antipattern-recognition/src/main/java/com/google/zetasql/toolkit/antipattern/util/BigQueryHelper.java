@@ -40,7 +40,7 @@ public class BigQueryHelper {
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
-  public static TableResult getQueries(String projectId, String daysBack, String ISTable)
+  public static TableResult getQueriesFromIS(String projectId, String daysBack, String ISTable)
       throws InterruptedException {
     logger.info(
         "Running job on project {}, reading from: {}, scanning last {} days.",
@@ -70,7 +70,8 @@ public class BigQueryHelper {
                     + "  AND total_slot_ms > 0\n"
                     + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
                     + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
-                    + "ORDER BY\n"
+                    + "  AND query not like '%INFORMATION_SCHEMA%' \n"
+                    + "ORDER BY \n"
                     + "  project_id, start_time desc\n")
             .setUseLegacySql(false)
             .build();

@@ -43,6 +43,8 @@ public class BQAntiPatternCMDParser {
   public static final String READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME = "info_schema_table_name";
   public static final String PROCESSING_PROJECT_ID_OPTION_NAME = "processing_project_id";
   public static final String OUTPUT_TABLE_OPTION_NAME = "output_table";
+  public static final String USE_ANALYZER_FLAG_NAME = "advanced_analysis";
+  public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
 
   private Options options;
   private CommandLine cmd;
@@ -69,12 +71,20 @@ public class BQAntiPatternCMDParser {
     return cmd.hasOption(OUTPUT_FILE_OPTION_NAME);
   }
 
+  public boolean useAnalyzer() {
+    return cmd.hasOption(USE_ANALYZER_FLAG_NAME);
+  }
+
   public boolean isReadingFromInfoSchema() {
     return cmd.hasOption(READ_FROM_INFO_SCHEMA_FLAG_NAME);
   }
 
   public boolean hasOutputTable() {
     return cmd.hasOption(OUTPUT_TABLE_OPTION_NAME);
+  }
+
+  public String getAnalyzerDefaultProject() {
+    return cmd.getOptionValue(ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME);
   }
 
   public Options getOptions() {
@@ -168,6 +178,23 @@ public class BQAntiPatternCMDParser {
             .build();
     options.addOption(infoSchemaTable);
 
+    Option useAnalyzerFlag =
+        Option.builder(USE_ANALYZER_FLAG_NAME)
+            .argName(USE_ANALYZER_FLAG_NAME)
+            .required(false)
+            .desc("flag specifying if the analyzer should be used")
+            .build();
+    options.addOption(useAnalyzerFlag);
+
+    Option anaLyzerDefaultProjectId =
+        Option.builder(ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME)
+            .argName(ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME)
+            .hasArg()
+            .required(false)
+            .desc("project id used by analyzer by default")
+            .build();
+    options.addOption(anaLyzerDefaultProjectId);
+
     return options;
   }
 
@@ -211,7 +238,7 @@ public class BQAntiPatternCMDParser {
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {
     logger.info("Using inline query as input source");
-    InputQuery inputQuery = new InputQuery(queryStr, "inline query");
+    InputQuery inputQuery = new InputQuery(queryStr, "query provided by cli:");
     return (new ArrayList<>(Arrays.asList(inputQuery))).iterator();
   }
 
