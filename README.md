@@ -104,7 +104,7 @@ docker run \
   --output_table "my-project.dataset.antipattern_output_table" 
 ```
 
-Run using advenced analytics 
+Run using advanced analytics 
 ```
 docker run \
   -v $(pwd)/samples/queries:/samples/queries \
