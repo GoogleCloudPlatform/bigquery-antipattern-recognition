@@ -37,27 +37,20 @@ public class IdentifySimpleSelectStarTest {
   @Test
   public void simpleSelectStarTest() {
     String expected =
-            "SELECT * on table: project.dataset.table1. Check that all columns are needed at line 2.";
-    String query = "SELECT \n"
-            + "* \n"
-            + "FROM \n"
-            + "`project.dataset.table1` t1";
+        "SELECT * on table: project.dataset.table1. Check that all columns are needed.";
+    String query = "SELECT * FROM `project.dataset.table1`";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery, query);
+    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
     assertEquals(expected, recommendations);
   }
 
   @Test
   public void simpleSelectStarWithLimitTest() {
     String expected =
-            "SELECT * on table: project.dataset.table1. Check that all columns are needed at line 2.";
-    String query = "SELECT \n"
-            + "* \n"
-            + "FROM \n"
-            + "`project.dataset.table1` \n"
-            + "LIMIT 1000";
+        "SELECT * on table: project.dataset.table1. Check that all columns are needed.";
+    String query = "SELECT * FROM `project.dataset.table1` LIMIT 1000";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery, query);
+    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
     assertEquals(expected, recommendations);
   }
 
@@ -66,7 +59,7 @@ public class IdentifySimpleSelectStarTest {
     String expected = "";
     String query = "SELECT * FROM `project.dataset.table1` GROUP BY col1";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery, query);
+    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
     assertEquals(expected, recommendations);
   }
 
@@ -75,7 +68,7 @@ public class IdentifySimpleSelectStarTest {
     String expected = "";
     String query = "SELECT * FROM table1, table2";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery, query);
+    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
     assertEquals(expected, recommendations);
   }
 }

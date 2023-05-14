@@ -20,22 +20,17 @@ import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
 import com.google.zetasql.parser.ParseTreeVisitor;
 import java.util.ArrayList;
-import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 
 public class IdentifySimpleSelectStarVisitor extends ParseTreeVisitor {
 
   private final String SUGGESTION_MESSAGE =
-          "SELECT * on table: %s. Check that all columns are needed at line %d.";
+      "SELECT * on table: %s. Check that all columns are needed.";
 
   private final String SELECT_STAR_NODE_KIND_STRING = "Star";
   private boolean foundFrom = false;
   private boolean foundJoin = false;
   private boolean isSimpleSelect = true;
   private ArrayList<String> result = new ArrayList<String>();
-  private String query;
-  public IdentifySimpleSelectStarVisitor(String query) {
-    this.query = query;
-  }
 
   @Override
   public void visit(ASTNodes.ASTSelect selectNode) {
@@ -56,8 +51,7 @@ public class IdentifySimpleSelectStarVisitor extends ParseTreeVisitor {
                           .getNames()
                           .get(0)
                           .getIdString();
-                  int lineNum = ZetaSQLStringParsingHelper.countLine(query, selectColumnNode.getParseLocationRange().start());
-                  result.add(String.format(SUGGESTION_MESSAGE, idString, lineNum));
+                  result.add(String.format(SUGGESTION_MESSAGE, idString));
                 }
               }
             });
