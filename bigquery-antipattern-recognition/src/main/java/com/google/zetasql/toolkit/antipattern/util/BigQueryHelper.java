@@ -21,6 +21,7 @@ import com.google.api.gax.rpc.HeaderProvider;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.InsertAllRequest;
+import com.google.cloud.bigquery.InsertAllResponse;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.QueryJobConfiguration;
@@ -90,6 +91,7 @@ public class BigQueryHelper {
             .setHeaderProvider(headerProvider)
             .build()
             .getService();
-    bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+    InsertAllResponse r = bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+    System.out.println(r.getInsertErrors().toString());
   }
 }

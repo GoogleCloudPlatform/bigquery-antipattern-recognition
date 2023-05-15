@@ -31,8 +31,10 @@ import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
@@ -70,14 +72,15 @@ public class Main {
     while (inputQueriesIterator.hasNext()) {
       inputQuery = inputQueriesIterator.next();
       String query = inputQuery.getQuery();
-      List<String[]> outputData = new ArrayList<>();
+      List<Object[]> outputData = new ArrayList<>();
+      List<Map<String, String>> rec = new ArrayList<>();
       try {
-        String rec = getRecommendationsParser(parserLanguageOptions, query);
-        if(cmdParser.useAnalyzer()) {
-          rec += getRecommendationsAnalyzer(inputQuery, catalog, analyzer, service);
+        getRecommendations(parserLanguageOptions, query, rec);
+        if (cmdParser.useAnalyzer()) {
+          getRecommendationsAnalyzer(inputQuery, catalog, analyzer, service, rec);
         }
 
-        if (rec.length() > 0) {
+        if (rec.size() > 0) {
           addRecToOutput(cmdParser, outputData, inputQuery, rec);
           OutputGenerator.writeOutput(cmdParser, outputData);
           countAntiPatterns += 1;
@@ -106,27 +109,6 @@ public class Main {
     return new ZetaSQLToolkitAnalyzer(options);
   }
 
-  private static String getRecommendationsAnalyzer(InputQuery inputQuery, BigQueryCatalog catalog,
-      ZetaSQLToolkitAnalyzer analyzer, BigQueryService service) {
-
-    String query = inputQuery.getQuery();
-    String currentProject;
-    if(inputQuery.getProjectId() == null) {
-      currentProject = cmdParser.getAnalyzerDefaultProject();
-    } else {
-      currentProject = inputQuery.getProjectId();
-    }
-    if((analyzerProject == null || !analyzerProject.equals(currentProject))) {
-      analyzerProject = inputQuery.getProjectId();
-      catalog = new BigQueryCatalog(analyzerProject, resourceProvider);
-      catalog.addAllTablesUsedInQuery(query, analyzerOptions);
-    }
-    String rec = (new IdentifyJoinOrder()).run(query, catalog, analyzer, service);
-    System.out.println(rec);
-    return rec;
-  }
-
-
   private static LanguageOptions getParserLanguageOptions() {
     LanguageOptions languageOptions = new LanguageOptions();
     languageOptions.enableMaximumLanguageFeatures();
@@ -136,31 +118,72 @@ public class Main {
 
   private static void addRecToOutput(
       BQAntiPatternCMDParser cmdParser,
-      List<String[]> outputData,
+      List<Object[]> outputData,
       InputQuery inputQuery,
-      String rec) {
+      List<Map<String, String>> rec) {
     if (cmdParser.isReadingFromInfoSchema()) {
       outputData.add(
-          new String[]{
+          new Object[] {
               inputQuery.getQueryId(),
               inputQuery.getQuery(),
               Float.toString(inputQuery.getSlotHours()),
-              "\"" + rec + "\"",
+              rec,
           });
     } else {
-      outputData.add(new String[]{inputQuery.getQueryId(), "\"" + rec + "\""});
+      String output = rec.stream().map(m -> m.get("name") + ": \"" + m.getOrDefault("description", "") + "\"\n").collect(Collectors.joining());
+      outputData.add(new String[] {inputQuery.getQueryId(), output});
     }
   }
 
-  private static String getRecommendationsParser(LanguageOptions parserLanguageOptions,
-      String query) {
+  private static void getRecommendations(LanguageOptions parserLanguageOptions,
+      String query, List<Map<String, String>> recommendation) {
     ASTStatement parsedQuery = Parser.parseStatement(query, parserLanguageOptions);
-    ArrayList<String> recommendation = new ArrayList<>();
-    recommendation.add(new IdentifySimpleSelectStar().run(parsedQuery));
-    recommendation.add(new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query));
-    recommendation.add(new IdentifyCTEsEvalMultipleTimes().run(parsedQuery, query));
-    recommendation.add(new IdentifyOrderByWithoutLimit().run(parsedQuery, query));
-    recommendation.add(new IdentifyRegexpContains().run(parsedQuery, query));
-    return recommendation.stream().filter(x -> x.length() > 0).collect(Collectors.joining("\n"));
+    recommendation.add(new HashMap<>() {{
+      put("name", "SelectStar");
+      put("description", new IdentifySimpleSelectStar().run(parsedQuery));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "SubqueryWithoutAgg");
+      put("description", new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "CTEsEvalMultipleTimes");
+      put("description", new IdentifyCTEsEvalMultipleTimes().run(parsedQuery, query));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "OrderByWithoutLimit");
+      put("description", new IdentifyOrderByWithoutLimit().run(parsedQuery, query));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "StringComparison");
+      put("description", new IdentifyRegexpContains().run(parsedQuery, query));
+    }});
+    recommendation.removeIf(m -> m.get("description").isEmpty());
   }
+
+  private static String getRecommendationsAnalyzer(InputQuery inputQuery, BigQueryCatalog catalog,
+      ZetaSQLToolkitAnalyzer analyzer, BigQueryService service,
+      List<Map<String, String>> recommendation) {
+
+    String query = inputQuery.getQuery();
+    String currentProject;
+    if (inputQuery.getProjectId() == null) {
+      currentProject = cmdParser.getAnalyzerDefaultProject();
+    } else {
+      currentProject = inputQuery.getProjectId();
+    }
+    if ((analyzerProject == null || !analyzerProject.equals(currentProject))) {
+      analyzerProject = inputQuery.getProjectId();
+      catalog = new BigQueryCatalog(analyzerProject, resourceProvider);
+      catalog.addAllTablesUsedInQuery(query, analyzerOptions);
+    }
+    String rec = (new IdentifyJoinOrder()).run(query, catalog, analyzer, service);
+    recommendation.add(new HashMap<>() {{
+      put("name", "JoinOrder");
+      put("description", rec);
+    }});
+    return rec;
+  }
+
+
 }

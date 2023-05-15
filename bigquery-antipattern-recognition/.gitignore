@@ -37,7 +37,7 @@ node_modules/
 .coverage
 htmlcov/
 *.iml
-*.csv
+results.csv
 target/
 
 # Terraform
