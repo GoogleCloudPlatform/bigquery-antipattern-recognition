@@ -1,0 +1,54 @@
+id,query
+1,select * from table1;
+2,"WITH A AS (
+ SELECT
+   reference_bases,
+   start_position,
+   count(1) ct
+ FROM
+   `bigquery-public-data.human_genome_variants.1000_genomes_phase_3_optimized_schema_variants_20150220`
+ WHERE
+   reference_bases in ('AT', 'TA', 'AT')
+ GROUP BY
+   1, 2
+),
+B as (
+ SELECT
+   reference_bases, 
+   count(1) ct
+ FROM
+   A
+ GROUP BY
+   1
+)
+SELECT
+ A.*,
+ A.ct / B.ct
+FROM
+ A
+JOIN
+ B ON B.reference_bases = A.reference_bases
+"
+3,"select
+	col1
+from
+	table1 
+where
+	col2 not in (select col2 from table2)
+;
+
+"
+4,"select
+	col1
+from
+	table1
+order by
+	col1;
+"
+5,"select
+  t1.title
+from
+  `bigquery-public-data.samples.wikipedia` t1
+where
+  regexp_contains(title, '.*shakespeare.*')
+"

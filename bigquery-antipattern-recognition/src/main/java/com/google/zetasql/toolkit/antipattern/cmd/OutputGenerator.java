@@ -28,21 +28,21 @@ import java.util.Map;
 
 public class OutputGenerator {
 
-  public static void writeOutput(BQAntiPatternCMDParser cmdParser, List<String[]> outputData)
+  public static void writeOutput(BQAntiPatternCMDParser cmdParser, List<Object[]> outputData)
       throws IOException {
     if (cmdParser.hasOutputFileOptionName()) {
       writeOutputToCSV(outputData, cmdParser);
     } else if (cmdParser.isReadingFromInfoSchema() && cmdParser.hasOutputTable()) {
       writeOutputToBQTable(outputData, cmdParser);
     } else {
-      for (String[] row : outputData) {
+      for (Object[] row : outputData) {
         System.out.println("----------------------------------------");
-        System.out.println(String.join("\n", row));
+        System.out.println(String.join("\n", (String[]) row));
       }
     }
   }
 
-  private static void writeOutputToCSV(List<String[]> outputData, BQAntiPatternCMDParser cmdParser)
+  private static void writeOutputToCSV(List<Object[]> outputData, BQAntiPatternCMDParser cmdParser)
       throws IOException {
 
     FileWriter csvWriter;
@@ -54,17 +54,16 @@ public class OutputGenerator {
       csvWriter.write(String.join(",", new String[] {"id", "query\n"}));
     }
 
-    for (String[] row : outputData) {
-      csvWriter.write(String.join(",", row));
-      csvWriter.write("\n");
+    for (Object[] row : outputData) {
+      csvWriter.write(String.join(",", (String[]) row));
     }
     csvWriter.close();
   }
 
   private static void writeOutputToBQTable(
-      List<String[]> outputData, BQAntiPatternCMDParser cmdParser) {
+      List<Object[]> outputData, BQAntiPatternCMDParser cmdParser) {
     DateTime date = new DateTime(new Date());
-    for (String[] row : outputData) {
+    for (Object[] row : outputData) {
       Map<String, Object> rowContent = new HashMap<>();
       rowContent.put("job_id", row[0]);
       rowContent.put("query", row[1]);

@@ -20,6 +20,7 @@ public class InputQuery {
 
   private String query;
   private String queryIdentifier;
+  private String projectId;
   private float slotHours;
 
   public InputQuery(String query, String queryIdentifier) {
@@ -31,6 +32,17 @@ public class InputQuery {
     this.query = query;
     this.queryIdentifier = jobId;
     this.slotHours = slotHours;
+  }
+
+  public InputQuery(String query, String jobId, String projectId, float slotHours) {
+    this.projectId = projectId;
+    this.query = query;
+    this.queryIdentifier = jobId;
+    this.slotHours = slotHours;;
+  }
+
+  public String getProjectId() {
+    return projectId;
   }
 
   public String getQuery() {

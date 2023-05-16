@@ -21,6 +21,7 @@ import com.google.api.gax.rpc.HeaderProvider;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.InsertAllRequest;
+import com.google.cloud.bigquery.InsertAllResponse;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.QueryJobConfiguration;
@@ -40,7 +41,7 @@ public class BigQueryHelper {
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
-  public static TableResult getQueries(String projectId, String daysBack, String ISTable)
+  public static TableResult getQueriesFromIS(String projectId, String daysBack, String ISTable)
       throws InterruptedException {
     logger.info(
         "Running job on project {}, reading from: {}, scanning last {} days.",
@@ -70,7 +71,8 @@ public class BigQueryHelper {
                     + "  AND total_slot_ms > 0\n"
                     + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
                     + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
-                    + "ORDER BY\n"
+                    + "  AND query not like '%INFORMATION_SCHEMA%' \n"
+                    + "ORDER BY \n"
                     + "  project_id, start_time desc\n")
             .setUseLegacySql(false)
             .build();
@@ -89,6 +91,7 @@ public class BigQueryHelper {
             .setHeaderProvider(headerProvider)
             .build()
             .getService();
-    bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+    InsertAllResponse r = bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+    System.out.println(r.getInsertErrors().toString());
   }
 }

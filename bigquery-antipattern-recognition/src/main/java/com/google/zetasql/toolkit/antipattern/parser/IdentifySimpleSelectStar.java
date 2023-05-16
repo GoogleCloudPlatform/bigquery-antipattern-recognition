@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
  */
 public class IdentifySimpleSelectStar {
 
-  public String run(ASTStatement parsedQuery, String query) {
-    IdentifySimpleSelectStarVisitor visitor = new IdentifySimpleSelectStarVisitor(query);
+  public String run(ASTStatement parsedQuery) {
+    IdentifySimpleSelectStarVisitor visitor = new IdentifySimpleSelectStarVisitor();
     parsedQuery.accept(visitor);
 
     return visitor.getResult().stream().distinct().collect(Collectors.joining("\n"));
