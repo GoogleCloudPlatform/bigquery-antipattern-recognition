@@ -56,7 +56,6 @@ public class OutputGenerator {
 
     for (Object[] row : outputData) {
       csvWriter.write(String.join(",", (String[]) row));
-      csvWriter.write("\n");
     }
     csvWriter.close();
   }
