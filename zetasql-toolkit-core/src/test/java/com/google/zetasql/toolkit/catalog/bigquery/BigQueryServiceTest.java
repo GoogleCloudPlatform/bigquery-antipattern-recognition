@@ -124,7 +124,7 @@ public class BigQueryServiceTest {
   @Test
   void testFetchTable() {
     Table mockTable = mock(Table.class);
-    when(bigqueryClientMock.getTable(any(TableId.class), any())).thenReturn(mockTable);
+    when(bigqueryClientMock.getTable(any(TableId.class))).thenReturn(mockTable);
 
     Result<Table> fetchTableResult = bigQueryService.fetchTable("project", "dataset.table");
 
@@ -146,7 +146,7 @@ public class BigQueryServiceTest {
   @Test
   void testAPIError() {
     when(bigqueryClientMock.listDatasets(anyString(), any())).thenThrow(BigQueryException.class);
-    when(bigqueryClientMock.getTable(any(TableId.class), any())).thenThrow(BigQueryException.class);
+    when(bigqueryClientMock.getTable(any(TableId.class))).thenThrow(BigQueryException.class);
 
     assertThrows(
         BigQueryAPIError.class,
@@ -162,7 +162,7 @@ public class BigQueryServiceTest {
   @Test
   void testCache() {
     Table mockTable = mock(Table.class);
-    when(bigqueryClientMock.getTable(any(TableId.class), any())).thenReturn(mockTable);
+    when(bigqueryClientMock.getTable(any(TableId.class))).thenReturn(mockTable);
 
     Routine mockRoutine = mock(Routine.class);
     when(bigqueryClientMock.getRoutine(any(RoutineId.class))).thenReturn(mockRoutine);
@@ -171,7 +171,7 @@ public class BigQueryServiceTest {
     bigQueryService.fetchTable("project", "dataset.table");
     bigQueryService.fetchTable("project", "dataset.table");
 
-    verify(bigqueryClientMock, times(1)).getTable(any(TableId.class), any());
+    verify(bigqueryClientMock, times(1)).getTable(any(TableId.class));
 
     // Fetch the same table routine, expect the second call to have been cached
     bigQueryService.fetchRoutine("project", "dataset.routine");

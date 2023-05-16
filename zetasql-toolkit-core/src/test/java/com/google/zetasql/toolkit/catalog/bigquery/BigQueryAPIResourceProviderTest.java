@@ -16,6 +16,7 @@
 
 package com.google.zetasql.toolkit.catalog.bigquery;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -234,13 +235,13 @@ public class BigQueryAPIResourceProviderTest {
 
     FunctionSignature expectedSignatureForMockUDF = expectedSignatureForMockUDF();
 
-    List<Function> functions =
+    List<FunctionInfo> functions =
         bigqueryResourceProvider.getFunctions("project", List.of("reference"));
 
     assertEquals(1, functions.size());
     assertTrue(
         CatalogTestUtils.functionSignatureEquals(
-            expectedSignatureForMockUDF, functions.get(0).getSignatureList().get(0)));
+            expectedSignatureForMockUDF, functions.get(0).getSignatures().get(0)));
   }
 
   Routine createMockTVF() {
@@ -312,7 +313,9 @@ public class BigQueryAPIResourceProviderTest {
     assertTrue(
         CatalogTestUtils.functionSignatureEquals(
             expectedSignatureForMockTVF, functions.get(0).getSignature()));
-    assertEquals(expectedOutputSchemaForMockTVF, functions.get(0).getOutputSchema());
+
+    TVFRelation outputSchema = assertDoesNotThrow(() -> functions.get(0).getOutputSchema().get());
+    assertEquals(expectedOutputSchemaForMockTVF, outputSchema);
   }
 
   Routine createMockProcedure() {

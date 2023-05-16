@@ -1,4 +1,3 @@
-
 grammar ZetaSQLTypeGrammar;
 
 // Parser rules

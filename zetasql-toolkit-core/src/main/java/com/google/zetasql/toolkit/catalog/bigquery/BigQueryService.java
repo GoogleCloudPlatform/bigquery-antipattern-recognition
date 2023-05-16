@@ -43,7 +43,7 @@ import java.util.stream.StreamSupport;
  *
  * <p>Makes API calls using the zetasql-toolkit user agent
  */
-class BigQueryService {
+public class BigQueryService {
 
   private final BigQuery client;
   private final Map<String, Table> cachedTables = new HashMap<>();
@@ -166,14 +166,7 @@ class BigQueryService {
    * @throws BigQueryException if an API error occurs
    */
   private Table fetchTableFromAPI(BigQueryReference reference) {
-    return this.client.getTable(
-        reference.toTableId(),
-        TableOption.fields(
-            TableField.ID,
-            TableField.ETAG,
-            TableField.TABLE_REFERENCE,
-            TableField.SCHEMA,
-            TableField.TIME_PARTITIONING));
+    return this.client.getTable(reference.toTableId());
   }
 
   /**
