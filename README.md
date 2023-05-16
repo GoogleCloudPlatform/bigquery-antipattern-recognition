@@ -30,17 +30,18 @@ Prerequisites:
 
 Build ZetaSQL Toolkit
 ```
-cd ../zetasql-toolkit-core
-mvn clean
-mvn install
+git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
+cd bigquery-antipattern-recognition
+(cd zetasql-toolkit-core && mvn clean)
+(cd zetasql-toolkit-core &&  mvn install)
 ```
 
 Build utility
 ```
-cd ../bigquery-antipattern-recognition
+cd bigquery-antipattern-recognition
 mvn clean
-mvn install
-mvn compile jib:dockerBuild
+mvn install -DskipTests
+mvn compile jib:dockerBuild -DskipTests
 ```
 
 Run simple inline query
@@ -79,7 +80,7 @@ docker run \
 Read from information schema and write to output table:
 1) Create a table with the following DDL:
 ```
-CREATE TABLE dataset.antipattern_output_table (
+CREATE TABLE <my-project>.<my-dateset>.antipattern_output_table (
   job_id STRING,
   query STRING,
   recommendation STRING,
@@ -101,7 +102,7 @@ docker run \
   --read_from_info_schema \
   --read_from_info_schema_days 1 \
   --processing_project_id <my-project> \
-  --output_table "my-project.dataset.antipattern_output_table" 
+  --output_table "<my-project>.<my-dateset>.antipattern_output_table" 
 ```
 
 Run using advanced analytics 
