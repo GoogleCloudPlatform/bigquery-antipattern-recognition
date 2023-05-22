@@ -19,8 +19,8 @@ limitations under the License.
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.google.zetasql</groupId>
-    <artifactId>zetasql-helper</artifactId>
+    <groupId>com.google.cloud.tools</groupId>
+    <artifactId>bigquery-antipattern-recognition-tool</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -33,7 +33,7 @@ limitations under the License.
 
     <modules>
         <module>zetasql-toolkit-core</module>
-        <module>zetasql-toolkit-examples</module>
+        <module>bigquery-antipattern-recognition</module>
     </modules>
 
     <build>
