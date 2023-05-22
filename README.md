@@ -28,20 +28,10 @@ Prerequisites:
 * [gcloud CLI](https://cloud.google.com/sdk/gcloud)
 * Docker
 
-Build ZetaSQL Toolkit
-```
-git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
-cd bigquery-antipattern-recognition
-(cd zetasql-toolkit-core && mvn clean)
-(cd zetasql-toolkit-core &&  mvn install)
-```
 
 Build utility
 ```
-cd bigquery-antipattern-recognition
-mvn clean
-mvn install -DskipTests
-mvn compile jib:dockerBuild -DskipTests
+mvn clean package jib:dockerBuild -DskipTests
 ```
 
 Run simple inline query
@@ -157,7 +147,7 @@ In order to deploy the tool to Cloud Run Jobs, you'll need to:
     ``` bash
     gcloud auth configure-docker $REGION-docker.pkg.dev
 
-    mvn clean compile jib:build \
+    mvn clean package jib:build \
         -DskipTests \
         -Djib.to.image=$CONTAINER_IMAGE
     ```
