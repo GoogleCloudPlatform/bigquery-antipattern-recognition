@@ -32,7 +32,6 @@ limitations under the License.
     </properties>
 
     <modules>
-        <module>zetasql-toolkit-core</module>
         <module>bigquery-antipattern-recognition</module>
     </modules>
 
