@@ -31,7 +31,7 @@ public class IdentifyLatestRecordRowNumVisitor extends ParseTreeVisitor {
         String whereClauseAlias = "" ;
         String rowNumAlias = "";
         int rowNumLineNum = 0;
-        // Goto first from clause of the query and check if rownumber is present or not
+        // Goto first subquery of from clause to check if rownumber is present or not
         if(fromClause instanceof ASTNodes.ASTTableSubquery){
             ASTNodes.ASTQueryExpression queryExpr = ((ASTNodes.ASTTableSubquery) fromClause).getSubquery().getQueryExpr();
             if(queryExpr instanceof ASTNodes.ASTSelect){
@@ -110,5 +110,3 @@ public class IdentifyLatestRecordRowNumVisitor extends ParseTreeVisitor {
     }
 
 }
-
-// select col1 as r1 ,col2,col3 from ( select col1,col2, row_number() over( partition by id order by created_at desc) rn from `dataset.table` t where r2 < 200 ) where rm = 1 and r1 > 100 and rn = 1 and col2 < 300
