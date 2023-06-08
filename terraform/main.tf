@@ -92,6 +92,10 @@ resource "null_resource" "build_and_push_docker" {
   #    triggers = {
   #     always_run = "${timestamp()}"
   #     }
+  depends_on = [
+    module.docker_artifact_registry,
+    resource.google_project_service.project_service
+  ]
   provisioner "local-exec" {
     command = <<-EOF
       gcloud builds submit .. --config cloudbuild.yaml --substitutions=_REGION=${var.region},_PROJECT_ID=${var.project_id},_REPOSITORY=${var.repository}
@@ -130,7 +134,8 @@ resource "google_cloud_run_v2_job" "default" {
 resource "google_cloud_scheduler_job" "job" {
   count = var.apply_scheduler == true ? 1 : 0
   depends_on = [
-    resource.google_project_service.project_service
+    resource.google_project_service.project_service,
+    resource.google_cloud_run_v2_job.default
   ]
   name     = var.cloud_run_job_name
   schedule = var.scheduler_frequency
