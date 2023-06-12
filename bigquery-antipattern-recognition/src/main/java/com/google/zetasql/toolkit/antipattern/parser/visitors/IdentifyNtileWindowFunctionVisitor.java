@@ -42,13 +42,11 @@ public class IdentifyNtileWindowFunctionVisitor extends ParseTreeVisitor {
   @Override
   public void visit(ASTNodes.ASTFunctionCall node) {
     ImmutableList<ASTNodes.ASTIdentifier> identifiers = node.getFunction().getNames();
-
-    for (ASTNodes.ASTIdentifier identifier : identifiers) {
-      if (identifier.getIdString().equals(NTILE_FUNCTION_STRING)) {
-        int lineNum = ZetaSQLStringParsingHelper.countLine(query,
-            identifier.getParseLocationRange().start());
-        result.add(String.format(SUGGESTION_MESSAGE, lineNum));
-      }
+    if(identifiers.size()==1 && identifiers.get(0).getIdString().equalsIgnoreCase(NTILE_FUNCTION_STRING))
+    {
+      int lineNum = ZetaSQLStringParsingHelper.countLine(query,
+          identifiers.get(0).getParseLocationRange().start());
+      result.add(String.format(SUGGESTION_MESSAGE, lineNum));
     }
   }
 

@@ -43,7 +43,7 @@ public class IdentifyNtileWindowFunctionTest {
     String query = "SELECT taxi_id,\n"
         + " fare,\n"
         + " payment_type,\n"
-        + " NTILE(4) OVER (PARTITION BY payment_type ORDER BY fare ASC) AS fare_rank,\n"
+        + " NTILE(4) OVER (PARTITION BY payment_type ORDER BY fare ASC) AS fare_rank\n"
         + " FROM `taxi_trips` trips\n"
         + " where EXTRACT(YEAR FROM trips.trip_start_timestamp AT TIME ZONE \"UTC\") = 2013;";
 
@@ -82,6 +82,23 @@ public class IdentifyNtileWindowFunctionTest {
         + " NTILE(4) OVER (PARTITION BY payment_type ORDER BY fare ASC) AS fare_rank\n"
         + " FROM `taxi_trips`\n"
         + " ) t;";
+
+    ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+    String recommendations = (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
+    assertEquals(expected, recommendations);
+  }
+
+  @Test
+  public void withTwoWindowFunctionsTest() {
+    String expected = "Use of NTILE window function detected at line 4. Prefer APPROX_QUANTILE if approximate bucketing is sufficient.";
+
+    String query = "SELECT taxi_id,\n"
+        + " fare,\n"
+        + " payment_type,\n"
+        + " NTILE(4) OVER (PARTITION BY payment_type ORDER BY fare ASC) AS fare_rank,\n"
+        + " DENSE_RANK() OVER (PARTITION BY payment_type ORDER BY fare ASC) AS rank_dense\n"
+        + " FROM `taxi_trips` trips\n"
+        + " where EXTRACT(YEAR FROM trips.trip_start_timestamp AT TIME ZONE \"UTC\") = 2013;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
     String recommendations = (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
