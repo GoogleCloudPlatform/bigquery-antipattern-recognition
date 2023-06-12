@@ -28,19 +28,10 @@ Prerequisites:
 * [gcloud CLI](https://cloud.google.com/sdk/gcloud)
 * Docker
 
-Build ZetaSQL Toolkit
-```
-cd ../zetasql-toolkit-core
-mvn clean
-mvn install
-```
 
 Build utility
 ```
-cd ../bigquery-antipattern-recognition
-mvn clean
-mvn install
-mvn compile jib:dockerBuild
+mvn clean package jib:dockerBuild -DskipTests
 ```
 
 Run simple inline query
@@ -79,10 +70,10 @@ docker run \
 Read from information schema and write to output table:
 1) Create a table with the following DDL:
 ```
-CREATE TABLE dataset.antipattern_output_table (
+CREATE TABLE <my-project>.<my-dateset>.antipattern_output_table (
   job_id STRING,
   query STRING,
-  recommendation STRING,
+  recommendation ARRAY<STRUCT<name STRING, description STRING>>,
   slot_hours FLOAT64,
   process_timestamp TIMESTAMP
 );
@@ -101,7 +92,7 @@ docker run \
   --read_from_info_schema \
   --read_from_info_schema_days 1 \
   --processing_project_id <my-project> \
-  --output_table "my-project.dataset.antipattern_output_table" 
+  --output_table "<my-project>.<my-dateset>.antipattern_output_table" 
 ```
 
 Run using advanced analytics 
@@ -156,7 +147,7 @@ In order to deploy the tool to Cloud Run Jobs, you'll need to:
     ``` bash
     gcloud auth configure-docker $REGION-docker.pkg.dev
 
-    mvn clean compile jib:build \
+    mvn clean package jib:build \
         -DskipTests \
         -Djib.to.image=$CONTAINER_IMAGE
     ```

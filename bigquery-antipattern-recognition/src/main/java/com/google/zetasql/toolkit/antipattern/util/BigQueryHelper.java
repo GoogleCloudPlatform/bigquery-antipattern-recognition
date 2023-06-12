@@ -91,7 +91,6 @@ public class BigQueryHelper {
             .setHeaderProvider(headerProvider)
             .build()
             .getService();
-    InsertAllResponse r = bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
-    System.out.println(r.getInsertErrors().toString());
+    bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
   }
 }
