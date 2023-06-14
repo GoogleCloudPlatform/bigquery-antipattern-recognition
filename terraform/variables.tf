@@ -57,6 +57,12 @@ variable "apply_scheduler" {
   default = false
 }
 
+// This is a Boolean variable used to determine if an output table should be created in the BigQuery Dataset.
+variable "create_output_table" {
+  type    = bool
+  default = true
+}
+
 // Variable that holds the Scheduler frequency for Cloud Scheduler in cron format
 variable "scheduler_frequency" {
   type    = string

@@ -22,3 +22,4 @@ output_table          = ""   // The BigQuery table that will be used for storing
 apply_scheduler       = true // Determines if a Cloud Scheduler job should be applied, default is false
 scheduler_frequency   = ""   // Schedule frequency for the Cloud Scheduler job, in cron format
 bigquery_dataset_name = ""   // Name of the existing BigQuery dataset where output table will be created
+create_output_table   = true // Determines whether the output table is created in the BigQuery Dataset. The default value is true.

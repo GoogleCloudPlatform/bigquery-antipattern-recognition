@@ -22,9 +22,10 @@ variable "services" {
 
 // Enables the Google Cloud services listed in the "services" variable for the project specified.
 resource "google_project_service" "project_service" {
-  for_each = { for service in var.services : service => service }
-  project  = var.project_id
-  service  = each.value
+  for_each           = { for service in var.services : service => service }
+  project            = var.project_id
+  service            = each.value
+  disable_on_destroy = false
 }
 
 // Creates a service account for Google Cloud Scheduler.
@@ -75,6 +76,17 @@ resource "google_project_iam_member" "bigquery_admin" {
   member  = "serviceAccount:${google_service_account.cloud_run_job_sa.email}"
 }
 
+// Creates a output Table in existing BigQuery Dataset
+resource "google_bigquery_table" "bq_table" {
+  count = var.create_output_table == true ? 1 : 0
+  depends_on = [
+    google_project_iam_member.bigquery_admin
+  ]
+  dataset_id          = var.bigquery_dataset_name
+  table_id            = var.output_table
+  deletion_protection = false
+}
+
 // Sets up an Artifact Registry repository to store Docker images.
 module "docker_artifact_registry" {
   source = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/artifact-registry"
@@ -98,7 +110,8 @@ resource "null_resource" "build_and_push_docker" {
   ]
   provisioner "local-exec" {
     command = <<-EOF
-      gcloud builds submit .. --config cloudbuild.yaml --substitutions=_REGION=${var.region},_PROJECT_ID=${var.project_id},_REPOSITORY=${var.repository}
+        gcloud config set project ${var.project_id}
+        gcloud builds submit .. --config cloudbuild.yaml --substitutions=_REGION=${var.region},_PROJECT_ID=${var.project_id},_REPOSITORY=${var.repository}
     EOF
   }
 }
