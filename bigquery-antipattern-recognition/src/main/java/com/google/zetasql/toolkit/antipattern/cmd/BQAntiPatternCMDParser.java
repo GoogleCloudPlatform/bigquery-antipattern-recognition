@@ -174,7 +174,7 @@ public class BQAntiPatternCMDParser {
             .argName(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME)
             .hasArg()
             .required(false)
-            .desc("Specifies how many days back should INFORMATION SCHEMA be queried for")
+            .desc("Specifies the table INFORMATION SCHEMA be queried for")
             .build();
     options.addOption(infoSchemaTable);
 
