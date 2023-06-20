@@ -117,6 +117,14 @@ In order to deploy the tool to Cloud Run Jobs, you'll need to:
 * Create the Cloud Run job using the container and your desired configuration
 * Trigger the job, either manually or on a schedule
 
+## Deploy using Terraform
+
+Terraform module builds and deploys the BigQuery Antipattern Recognition tool to Cloud Run Jobs. The tool will be configured to, in each execution, perform antipattern recognition of all jobs run during the previous 24 hours and write the results to a BigQuery table. Optionally, it can deploy a Cloud Scheduler cron to run the job on a schedule.
+
+[Click here](./terraform/) to access the Terraform code and for instructions on deploying using Terraform.
+
+To deploy using the **gcloud CLI** follow the instructions below.
+
 ## Walkthrough
 
 1. Setup deployment configuration
