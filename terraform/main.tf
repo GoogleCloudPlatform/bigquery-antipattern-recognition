@@ -85,6 +85,49 @@ resource "google_bigquery_table" "bq_table" {
   dataset_id          = var.bigquery_dataset_name
   table_id            = var.output_table
   deletion_protection = false
+
+  schema = <<EOF
+[
+    {
+        "name": "job_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
+        "name": "query",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
+        "name": "recommendation",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "fields": [
+            {
+                "name": "name",
+                "type": "STRING",
+                "mode": "NULLABLE"
+            },
+            {
+                "name": "description",
+                "type": "STRING",
+                "mode": "NULLABLE"
+            }
+        ]
+    },
+    {
+        "name": "slot_hours",
+        "type": "FLOAT",
+        "mode": "NULLABLE"
+    },
+    {
+        "name": "process_timestamp",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE"
+    }
+]
+EOF
+
 }
 
 // Sets up an Artifact Registry repository to store Docker images.
@@ -101,6 +144,7 @@ module "docker_artifact_registry" {
 
 // Builds and pushes a Docker image to the Artifact Registry repository.
 resource "null_resource" "build_and_push_docker" {
+  # Uncomment below lines to re-run build
   #    triggers = {
   #     always_run = "${timestamp()}"
   #     }

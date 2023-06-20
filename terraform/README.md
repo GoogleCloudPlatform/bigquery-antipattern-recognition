@@ -75,7 +75,7 @@ Before you begin, ensure you have met the following requirements:
     region = "us-central1"
     repository = "bigquery-antipattern-recognition"
     cloud_run_job_name = "bigquery-antipattern-recognition"
-    output_table = "demo"
+    output_table = "antipattern_output_table"
     apply_scheduler = true
     scheduler_frequency   = "0 5 * * *"
     bigquery_dataset_name = "antipattern"
