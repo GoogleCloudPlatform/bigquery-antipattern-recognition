@@ -25,6 +25,7 @@ import com.google.zetasql.toolkit.antipattern.analyzer.IdentifyJoinOrder;
 import com.google.zetasql.toolkit.antipattern.cmd.BQAntiPatternCMDParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import com.google.zetasql.toolkit.antipattern.cmd.OutputGenerator;
+import com.google.zetasql.toolkit.antipattern.cmd.OutputResult;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryAPIResourceProvider;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService;
@@ -35,7 +36,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,14 +72,13 @@ public class Main {
     while (inputQueriesIterator.hasNext()) {
       inputQuery = inputQueriesIterator.next();
       String query = inputQuery.getQuery();
-      List<Object[]> outputData = new ArrayList<>();
+      List<OutputResult> outputData = new ArrayList<>();
       List<Map<String, String>> rec = new ArrayList<>();
       try {
         getRecommendations(parserLanguageOptions, query, rec);
         if (cmdParser.useAnalyzer()) {
           getRecommendationsAnalyzer(inputQuery, catalog, analyzer, service, rec);
         }
-
         if (rec.size() > 0) {
           addRecToOutput(cmdParser, outputData, inputQuery, rec);
           OutputGenerator.writeOutput(cmdParser, outputData);
@@ -118,21 +117,18 @@ public class Main {
 
   private static void addRecToOutput(
       BQAntiPatternCMDParser cmdParser,
-      List<Object[]> outputData,
+      List<OutputResult> outputData,
       InputQuery inputQuery,
       List<Map<String, String>> rec) {
-    if (cmdParser.isReadingFromInfoSchema()) {
-      outputData.add(
-          new Object[] {
-              inputQuery.getQueryId(),
-              inputQuery.getQuery(),
-              Float.toString(inputQuery.getSlotHours()),
-              rec,
-          });
-    } else {
-      String output = rec.stream().map(m -> m.get("name") + ": \"" + m.getOrDefault("description", "") + "\"\n").collect(Collectors.joining());
-      outputData.add(new String[] {inputQuery.getQueryId(), output});
-    }
+      if (cmdParser.isReadingFromInfoSchema()) {
+        OutputResult result = new OutputResult(inputQuery.getQueryId(),inputQuery.getQuery(),inputQuery.getSlotHours(),rec);
+        outputData.add(result);
+      }
+      else {
+        // run ad-hoc
+        OutputResult result = new OutputResult("adhoc","adhoc",0.0f,rec);
+        outputData.add(result);
+      }
   }
 
   private static void getRecommendations(LanguageOptions parserLanguageOptions,

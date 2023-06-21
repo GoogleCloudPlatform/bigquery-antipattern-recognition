@@ -27,22 +27,24 @@ import java.util.List;
 import java.util.Map;
 
 public class OutputGenerator {
-
-  public static void writeOutput(BQAntiPatternCMDParser cmdParser, List<Object[]> outputData)
+  
+  public static void writeOutput(BQAntiPatternCMDParser cmdParser, List<OutputResult> outputData)
       throws IOException {
     if (cmdParser.hasOutputFileOptionName()) {
       writeOutputToCSV(outputData, cmdParser);
     } else if (cmdParser.isReadingFromInfoSchema() && cmdParser.hasOutputTable()) {
-      writeOutputToBQTable(outputData, cmdParser);
+        writeOutputToBQTable(outputData, cmdParser);
     } else {
-      for (Object[] row : outputData) {
-        System.out.println("----------------------------------------");
-        System.out.println(String.join("\n", (String[]) row));
+      for (OutputResult result : outputData) {
+        for (RecommendOutput RecOut : result.getListRecommend()) {
+          System.out.println("--------------------------------------");
+          System.out.println(String.join(";", new String[] {result.getJobId(),result.getQuery(),String.valueOf(result.getSlotHours()),RecOut.getName(),RecOut.getDescription()}));
+        }
       }
-    }
+  }
   }
 
-  private static void writeOutputToCSV(List<Object[]> outputData, BQAntiPatternCMDParser cmdParser)
+  private static void writeOutputToCSV(List<OutputResult> outputData, BQAntiPatternCMDParser cmdParser)
       throws IOException {
 
     FileWriter csvWriter;
@@ -51,27 +53,36 @@ public class OutputGenerator {
       csvWriter = new FileWriter(file, true);
     } else {
       csvWriter = new FileWriter(file);
-      csvWriter.write(String.join(",", new String[] {"id", "query\n"}));
+      csvWriter.write(String.join(";", new String[] {"id", "query", "slotHours", "recommend_name", "recommend_description\n"}));
     }
 
-    for (Object[] row : outputData) {
-      csvWriter.write(String.join(",", (String[]) row));
+    for (OutputResult result : outputData) {
+        try {
+              for (RecommendOutput RecOut : result.getListRecommend()) {
+                  csvWriter.write(String.join(";", new String[] {result.getJobId(),result.getQuery(),String.valueOf(result.getSlotHours()),RecOut.getName(),RecOut.getDescription()}));
+              }
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
     }
     csvWriter.close();
   }
 
   private static void writeOutputToBQTable(
-      List<Object[]> outputData, BQAntiPatternCMDParser cmdParser) {
+      List<OutputResult> outputData, BQAntiPatternCMDParser cmdParser) {
     DateTime date = new DateTime(new Date());
-    for (Object[] row : outputData) {
-      Map<String, Object> rowContent = new HashMap<>();
-      rowContent.put("job_id", row[0]);
-      rowContent.put("query", row[1]);
-      rowContent.put("slot_hours", row[2]);
-      rowContent.put("recommendation", row[3]);
-      rowContent.put("process_timestamp", date);
-      BigQueryHelper.writeResults(
-          cmdParser.getProcessingProject(), cmdParser.getOutputTable(), rowContent);
+    for (OutputResult result : outputData) {
+      for (RecommendOutput RecOut : result.getListRecommend()) {
+        Map<String, Object> rowContent = new HashMap<>();
+        rowContent.put("job_id", result.getJobId());
+        rowContent.put("query", result.getQuery());
+        rowContent.put("slot_hours", result.getSlotHours());
+        rowContent.put("recommendation_name", RecOut.getName());
+        rowContent.put("recommendation_description", RecOut.getDescription());
+        rowContent.put("process_timestamp", date.toString());
+        BigQueryHelper.writeResults(cmdParser.getProcessingProject(), cmdParser.getOutputTable(), rowContent);
+      }
     }
   }
 }
