@@ -19,6 +19,8 @@ package com.google.zetasql.toolkit.antipattern.util;
 import com.google.api.gax.rpc.FixedHeaderProvider;
 import com.google.api.gax.rpc.HeaderProvider;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryError;
+import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.InsertAllRequest;
 import com.google.cloud.bigquery.InsertAllResponse;
@@ -28,6 +30,7 @@ import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableResult;
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,14 +86,24 @@ public class BigQueryHelper {
 
   public static void writeResults(
       String processingProject, String outputTable, Map<String, Object> rowContent) {
-    String[] tableName = outputTable.split("\\.");
-    TableId tableId = TableId.of(tableName[0], tableName[1], tableName[2]);
-    BigQuery bigquery =
-        BigQueryOptions.newBuilder()
-            .setProjectId(processingProject)
-            .setHeaderProvider(headerProvider)
-            .build()
-            .getService();
-    bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
-  }
+        try {
+            String[] tableName = outputTable.split("\\.");
+            TableId tableId = TableId.of(tableName[0], tableName[1], tableName[2]);
+            BigQuery bigquery =
+                BigQueryOptions.newBuilder()
+                    .setProjectId(processingProject)
+                    .setHeaderProvider(headerProvider)
+                    .build()
+                    .getService();
+            InsertAllResponse response = bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+        if (response.hasErrors()) {
+            // If any of the insertions failed, this lets you inspect the errors
+            for (Map.Entry<Long, List<BigQueryError>> entry : response.getInsertErrors().entrySet()) {
+            System.out.println("Response error: \n" + entry.getValue());
+            }
+        System.out.println("Rows successfully inserted into table without row ids");} 
+        } catch (BigQueryException e) {
+            System.out.println("Insert operation not performed \n" + e.toString());
+    }
+    }
 }
