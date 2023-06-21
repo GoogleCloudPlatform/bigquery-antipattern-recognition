@@ -96,6 +96,8 @@ public class BigQueryHelper {
                     .build()
                     .getService();
             InsertAllResponse response = bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+        
+        // handle error
         if (response.hasErrors()) {
             // If any of the insertions failed, this lets you inspect the errors
             for (Map.Entry<Long, List<BigQueryError>> entry : response.getInsertErrors().entrySet()) {
