@@ -91,6 +91,7 @@ docker run \
   -i bigquery-antipattern-recognition \
   --read_from_info_schema \
   --read_from_info_schema_days 1 \
+  --info_schema_table_name" \`region-us\`.INFORMATION_SCHEMA.JOBS" \
   --processing_project_id <my-project> \
   --output_table "<my-project>.<my-dateset>.antipattern_output_table" 
 ```
@@ -163,6 +164,7 @@ In order to deploy the tool to Cloud Run Jobs, you'll need to:
         --task-timeout=15m \
         --args="--read_from_info_schema" \
         --args="--read_from_info_schema_days" --args="1" \
+        --args="--info_schema_table_name" --args="\`region-eu\`.INFORMATION_SCHEMA.JOBS" \
         --args="--processing_project_id" --args="$PROJECT_ID" \
         --args="--output_table" --args="\\\`$OUTPUT_TABLE\\\`" \
         --service-account=$CLOUD_RUN_JOB_SA \
@@ -215,7 +217,7 @@ Must be set along with `--read_from_info_schema`. <br>
 Defaults to 1.
 </ul>
 
-``--read_from_info_schema_table="\`region-us\`.INFORMATION_SCHEMA.JOBS"``
+``--info_schema_table_name" \`region-eu\`.INFORMATION_SCHEMA.JOBS" \``
 <ul>
 Specifies what variant of INFORMATION_SCHEMA.JOBS to read from.
 </ul>
