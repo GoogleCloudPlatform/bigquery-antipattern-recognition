@@ -136,7 +136,7 @@ In order to deploy the tool to Cloud Run Jobs, you'll need to:
         --task-timeout=15m \
         --args="--read_from_info_schema" \
         --args="--read_from_info_schema_days" --args="1" \
-        --args="--info_schema_table_name" --args="\`region-eu\`.INFORMATION_SCHEMA.JOBS" \
+        --args="--info_schema_table_name" --args="\`region-us\`.INFORMATION_SCHEMA.JOBS" \
         --args="--processing_project_id" --args="$PROJECT_ID" \
         --args="--output_table" --args="\\\`$OUTPUT_TABLE\\\`" \
         --service-account=$CLOUD_RUN_JOB_SA \
