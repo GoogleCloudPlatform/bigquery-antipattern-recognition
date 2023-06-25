@@ -25,7 +25,7 @@ public class IdentifyLatestRecordRowNumVisitor extends ParseTreeVisitor {
     boolean rowNum = false ;
     String rowNumAlias = "";
     int rowNumLineNum = 0;
-    List<String> alias_list = new ArrayList<String>();
+    List<String> alias_list = new ArrayList<>();
 
 
     @Override
