@@ -1,0 +1,4 @@
+steps:
+  - name: 'maven:3.6.0-jdk-11-slim'
+    entrypoint: 'mvn'
+    args: ['clean', 'package', 'jib:build', '-DskipTests', '-Djib.to.image=$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPOSITORY/recognizer:0.1.1-SNAPSHOT']
