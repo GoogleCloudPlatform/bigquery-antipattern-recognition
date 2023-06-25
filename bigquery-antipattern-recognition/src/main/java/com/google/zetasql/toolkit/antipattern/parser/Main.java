@@ -159,8 +159,8 @@ public class Main {
       put("description", new IdentifyRegexpContains().run(parsedQuery, query));
     }});
     recommendation.add(new HashMap<>() {{
-      put("name", "NtileWindowFunction");
-      put("description", new IdentifyNtileWindowFunction().run(parsedQuery, query));
+      put("name", "IdentifyLatestRecordsRowNum");
+      put("description", new IdentifyLatestRecordsRowNum().run(parsedQuery, query));
     }});
     recommendation.removeIf(m -> m.get("description").isEmpty());
   }
