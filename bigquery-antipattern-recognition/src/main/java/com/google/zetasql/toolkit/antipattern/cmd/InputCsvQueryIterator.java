@@ -22,10 +22,12 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public class InputCsvQueryIterator implements Iterator<InputQuery> {
+  // TODO: This should use an actual csv reading tool that handles encoding and escaping properly
 
   private Iterator<String[]> reader;
 
   public InputCsvQueryIterator(String csvPath) throws IOException {
+    // TODO: a constructor should probably not throw IOException
     reader = (new CSVReader(new FileReader(csvPath))).iterator();
     // pop header
     reader.next();
@@ -38,6 +40,7 @@ public class InputCsvQueryIterator implements Iterator<InputQuery> {
 
   @Override
   public InputQuery next() {
+    // TODO: This needs validation
     String[] next = reader.next();
     return new InputQuery(next[1].replace("\"\"", "\""), next[0]);
   }
