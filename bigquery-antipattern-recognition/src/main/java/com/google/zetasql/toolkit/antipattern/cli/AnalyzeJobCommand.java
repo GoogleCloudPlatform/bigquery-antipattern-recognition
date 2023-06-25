@@ -16,10 +16,39 @@
 
 package com.google.zetasql.toolkit.antipattern.cli;
 
+import com.google.api.client.util.DateTime;
+import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.FieldValueList;
+import com.google.cloud.bigquery.InsertAllRequest;
+import com.google.cloud.bigquery.JobId;
+import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.TableResult;
+import com.google.common.base.Preconditions;
+import com.google.zetasql.Parser;
+import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyCTEsEvalMultipleTimes;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyInSubqueryWithoutAgg;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyNtileWindowFunction;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyOrderByWithoutLimit;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyRegexpContains;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifySimpleSelectStar;
+import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
+import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
+import java.time.Instant;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -56,7 +85,7 @@ public class AnalyzeJobCommand implements Callable<Integer> {
         names = "--job-id",
         description = "The Job ID for the BigQuery Job that should be analyzed.",
         required = true)
-    String jobId;
+    Optional<String> jobId;
 
     @ArgGroup(exclusive = false, multiplicity = "1")
     MultiJobInput multiJobInput;
@@ -69,7 +98,7 @@ public class AnalyzeJobCommand implements Callable<Integer> {
         description = "The GCP project to fetch jobs from. "
             + "Defaults to the project used for the BigQuery API.",
         required = false)
-    String jobsProjectId;
+    Optional<String> jobsProjectId;
 
     @Option(
         names = "--region",
@@ -88,7 +117,7 @@ public class AnalyzeJobCommand implements Callable<Integer> {
             + "duration format. E.g. P2D (2 days), P1Y2M3D (1 year, 2 months, 3 days), "
             + "P1W (1 week).",
         required = true)
-    Period lookBack;
+    Optional<Period> lookBack;
 
     @ArgGroup(exclusive = false, multiplicity = "1")
     MultiJobDateRange dateRange;
@@ -110,8 +139,200 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     Date endDate;
   }
 
+  private static final Pattern jobIdPattern = Pattern.compile("^([^:]+)?:([^\\.]+)\\.(.+)$");
+
+  private JobId parseJobId(String defaultProject, String jobId) {
+    Matcher matcher = jobIdPattern.matcher(jobId);
+
+    if(!matcher.find()) {
+      throw new IllegalArgumentException("Invalid BigQuery job id: " + jobId);
+    }
+
+    return JobId.newBuilder()
+        .setProject(matcher.group(1) != null ? matcher.group(1) : defaultProject)
+        .setLocation(matcher.group(2))
+        .setJob(matcher.group(3))
+        .build();
+  }
+
+  private String getProjectIdForJobs(BigQuery client) {
+    if(jobInput.multiJobInput != null && jobInput.multiJobInput.jobsProjectId.isPresent()) {
+      return jobInput.multiJobInput.jobsProjectId.get();
+    }
+
+    if(projectId.isPresent()) {
+      return projectId.get();
+    }
+
+    return client.getOptions().getProjectId();
+  }
+
+  private Iterator<InputQuery> fetchJobs(BigQuery client) throws InterruptedException {
+    // TODO: We can probably build a better abstraction that what the BigQuery helper
+    //  currently exposes to fetch jobs from INFORMATION_SCHEMA.
+    //  At the least, the abstraction we build should return an iterator of InputQuery directly.
+    String projectIdForJobs = getProjectIdForJobs(client);
+    TableResult tableResult;
+
+    if(jobInput.jobId.isPresent()) {
+      String jobId = jobInput.jobId.get();
+      JobId parsedJobId = parseJobId(projectIdForJobs, jobId);
+      tableResult = BigQueryHelper.getSingleQueryFromIs(parsedJobId, client);
+    } else if (jobInput.multiJobInput.jobsPeriod.lookBack.isPresent()) {
+      Period lookBack = jobInput.multiJobInput.jobsPeriod.lookBack.get();
+      String region = jobInput.multiJobInput.jobsRegion;
+      tableResult = BigQueryHelper.getQueriesFromIs(projectIdForJobs, region, lookBack, client);
+    } else {
+      String region = jobInput.multiJobInput.jobsRegion;
+      Date startDate = jobInput.multiJobInput.jobsPeriod.dateRange.startDate;
+      Date endDate = jobInput.multiJobInput.jobsPeriod.dateRange.endDate;
+      tableResult = BigQueryHelper.getQueriesFromIs(
+          projectIdForJobs, region, startDate, endDate, client);
+    }
+
+    Iterator<FieldValueList> rows = tableResult.iterateAll().iterator();
+
+    return new Iterator<>() {
+      @Override
+      public boolean hasNext() {
+        return rows.hasNext();
+      }
+
+      @Override
+      public InputQuery next() {
+        FieldValueList row = rows.next();
+        String job_id = row.get("job_id").getStringValue();
+        String query = row.get("query").getStringValue();
+        String projectId = row.get("project_id").getStringValue();
+        String slot_hours = row.get("slot_hours").getStringValue();
+        return new InputQuery(query, job_id, projectId, Float.parseFloat(slot_hours));
+      }
+    };
+  }
+
+  private List<Map<String, String>> getRecommendationsForQuery(String query) {
+    // TODO: Avoid repetition of this piece of logic between commands.
+    // TODO: There should be an abstraction for recommendations.
+    //  Instead of using Map<String, String> to represent a single recommendation, there should
+    //  be a Recommendation data class which the patter detectors return.
+    ASTStatement parsedQuery = Parser.parseStatement(query, BigQueryLanguageOptions.get());
+    List<Map<String, String>> recommendation = new ArrayList<>();
+    recommendation.add(new HashMap<>() {{
+      put("name", "SelectStar");
+      put("description", new IdentifySimpleSelectStar().run(parsedQuery));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "SubqueryWithoutAgg");
+      put("description", new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "CTEsEvalMultipleTimes");
+      put("description", new IdentifyCTEsEvalMultipleTimes().run(parsedQuery, query));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "OrderByWithoutLimit");
+      put("description", new IdentifyOrderByWithoutLimit().run(parsedQuery, query));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "StringComparison");
+      put("description", new IdentifyRegexpContains().run(parsedQuery, query));
+    }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "NtileWindowFunction");
+      put("description", new IdentifyNtileWindowFunction().run(parsedQuery, query));
+    }});
+    recommendation.removeIf(m -> m.get("description").isEmpty());
+
+    return recommendation;
+  }
+
+  private void outputRecommendationsToConsole(
+      List<InputQuery> inputQueries,
+      List<List<Map<String, String>>> recommendations) {
+    // TODO: Define what formatting we want when outputting to the console
+    for(int i = 0; i < inputQueries.size(); i++) {
+      InputQuery inputQuery = inputQueries.get(i);
+      List<Map<String, String>> recommendation = recommendations.get(i);
+
+      System.out.printf("JobId: %s\n", inputQuery.getQueryId());
+      recommendation.forEach(singleRecommendation ->
+          System.out.printf("%s: %s\n",
+              singleRecommendation.get("name"),
+              singleRecommendation.get("description")));
+      System.out.println("----------------------------");
+    }
+  }
+
+  private void outputRecommendationsToTable(
+      List<InputQuery> inputQueries,
+      List<List<Map<String, String>>> recommendations,
+      BigQuery client) {
+    // TODO: Validate output table, should be a valid table reference
+    // TODO: Parse the output table properly, this currently assumes it is well-formed
+    // TODO: Create the output table if it does not exist
+    // TODO: Inserts should be batched, the size of a single InsertAllRequest is bounded
+    Preconditions.checkArgument(outputTable.isPresent());
+
+    String outputTableProjectId = outputTable.get().split("\\.")[0];
+    String outputTableDataset = outputTable.get().split("\\.")[1];
+    String outputTableName = outputTable.get().split("\\.")[2];
+    TableId outputTableId = TableId.of(outputTableProjectId, outputTableDataset, outputTableName);
+
+    InsertAllRequest.Builder requestBuilder = InsertAllRequest.newBuilder(outputTableId);
+
+    for(int i = 0; i < inputQueries.size(); i++) {
+      InputQuery inputQuery = inputQueries.get(i);
+      List<Map<String, String>> recommendation = recommendations.get(i);
+      requestBuilder.addRow(Map.of(
+          "job_id", inputQuery.getQueryId(),
+          "query", inputQuery.getQuery(),
+          "slot_hours", Float.toString(inputQuery.getSlotHours()),
+          "recommendation", recommendation,
+          "process_timestamp", DateTime.parseRfc3339(Instant.now().toString())
+      ));
+    }
+
+    InsertAllRequest request = requestBuilder.build();
+
+    client.insertAll(request);
+  }
+
+  private void outputRecommendations(
+      List<InputQuery> inputQueries,
+      List<List<Map<String, String>>> recommendations,
+      BigQuery client) {
+
+    if(outputTable.isPresent()) {
+      outputRecommendationsToTable(inputQueries, recommendations, client);
+    } else {
+      outputRecommendationsToConsole(inputQueries, recommendations);
+    }
+
+  }
+
   @Override
-  public Integer call() {
+  public Integer call() throws InterruptedException {
+    // TODO: Add better output for end users
+    // TODO: Produce sensible error messages and exit codes when an error/exception happens
+    //  E.g. this method can throw InterruptedException, but we shouldn't just show the user
+    //  the stack trace if that happens.
+    BigQueryOptions.Builder clientBuilder = BigQueryOptions.newBuilder();
+    projectId.ifPresent(clientBuilder::setProjectId);
+    BigQuery client = clientBuilder.build().getService();
+
+    Iterator<InputQuery> inputQueriesIterator = fetchJobs(client);
+
+    // TODO: Avoid loading all jobs into memory
+    ArrayList<InputQuery> inputQueries = new ArrayList<>();
+    inputQueriesIterator.forEachRemaining(inputQueries::add);
+
+    List<List<Map<String, String>>> recommendations = inputQueries.stream()
+        .map(InputQuery::getQuery)
+        .map(this::getRecommendationsForQuery)
+        .collect(Collectors.toList());
+
+    outputRecommendations(inputQueries, recommendations, client);
+
     return 0;
   }
 
