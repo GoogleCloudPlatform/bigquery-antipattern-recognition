@@ -84,7 +84,7 @@ public class IdentifyLatestRecordRowNumTest {
         String query = "select col1 as r1 ,col2,col3 from ( select col1,col2, row_number() over( partition by id order by created_at desc) rn from `dataset.table` t where r2 < 200 ) where rm = 1 and regexp_contains(col2,r'something') and rn >= 1 and col2 > 300 and 1 = r1 ";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
         String recommendations = (new IdentifyLatestRecordsRowNum()).run(parsedQuery, query);
-//        assertEquals(expected, recommendations);
+        assertEquals(expected, recommendations);
     }
     @Test
     public void rNoInTest() {

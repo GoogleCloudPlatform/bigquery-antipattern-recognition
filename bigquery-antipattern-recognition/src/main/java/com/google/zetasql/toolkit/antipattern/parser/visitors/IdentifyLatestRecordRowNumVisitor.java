@@ -1,15 +1,12 @@
 package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
-import autovalue.shaded.kotlin.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ParseTreeVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 public class IdentifyLatestRecordRowNumVisitor extends ParseTreeVisitor {
