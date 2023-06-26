@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
 import com.google.zetasql.toolkit.antipattern.Recommendation;
+import com.google.zetasql.toolkit.antipattern.cli.converters.JobIdConverter;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import com.google.zetasql.toolkit.antipattern.parser.BasePatternDetector;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyCTEsEvalMultipleTimes;
@@ -42,14 +43,11 @@ import java.time.Instant;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -86,8 +84,9 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     @Option(
         names = "--job-id",
         description = "The Job ID for the BigQuery Job that should be analyzed.",
-        required = true)
-    Optional<String> jobId;
+        required = true,
+        converter = JobIdConverter.class)
+    Optional<JobId> jobId;
 
     @ArgGroup(exclusive = false, multiplicity = "1")
     MultiJobInput multiJobInput;
@@ -141,22 +140,6 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     Date endDate;
   }
 
-  private static final Pattern jobIdPattern = Pattern.compile("^([^:]+)?:([^\\.]+)\\.(.+)$");
-
-  private JobId parseJobId(String defaultProject, String jobId) {
-    Matcher matcher = jobIdPattern.matcher(jobId);
-
-    if(!matcher.find()) {
-      throw new IllegalArgumentException("Invalid BigQuery job id: " + jobId);
-    }
-
-    return JobId.newBuilder()
-        .setProject(matcher.group(1) != null ? matcher.group(1) : defaultProject)
-        .setLocation(matcher.group(2))
-        .setJob(matcher.group(3))
-        .build();
-  }
-
   private String getProjectIdForJobs(BigQuery client) {
     if(jobInput.multiJobInput != null && jobInput.multiJobInput.jobsProjectId.isPresent()) {
       return jobInput.multiJobInput.jobsProjectId.get();
@@ -177,9 +160,8 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     TableResult tableResult;
 
     if(jobInput.jobId.isPresent()) {
-      String jobId = jobInput.jobId.get();
-      JobId parsedJobId = parseJobId(projectIdForJobs, jobId);
-      tableResult = BigQueryHelper.getSingleQueryFromIs(parsedJobId, client);
+      JobId jobId = jobInput.jobId.get();
+      tableResult = BigQueryHelper.getSingleQueryFromIs(jobId, client);
     } else if (jobInput.multiJobInput.jobsPeriod.lookBack.isPresent()) {
       Period lookBack = jobInput.multiJobInput.jobsPeriod.lookBack.get();
       String region = jobInput.multiJobInput.jobsRegion;
