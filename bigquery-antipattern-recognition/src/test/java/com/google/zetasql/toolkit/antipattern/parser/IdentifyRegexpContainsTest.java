@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,8 +28,11 @@ public class IdentifyRegexpContainsTest {
                 + "from `dataset.table` \n"
                 + "where regexp_contains(dim1, '.*test.*')";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
-        assertEquals(expected, recommendations);
+
+        Optional<Recommendation> maybeRecommendation =
+            (new IdentifyRegexpContains()).run(parsedQuery, query);
+        assertTrue(maybeRecommendation.isPresent());
+        assertEquals(expected, maybeRecommendation.get().getDescription());
     }
 
     @Test
@@ -40,8 +45,11 @@ public class IdentifyRegexpContainsTest {
                 + "and dim2 = 'x' \n"
                 + "and regexp_contains(dim1, '.*test.*')";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
-        assertEquals(expected, recommendations);
+
+        Optional<Recommendation> maybeRecommendation =
+            (new IdentifyRegexpContains()).run(parsedQuery, query);
+        assertTrue(maybeRecommendation.isPresent());
+        assertEquals(expected, maybeRecommendation.get().getDescription());
     }
 
     @Test
@@ -57,33 +65,38 @@ public class IdentifyRegexpContainsTest {
                 + "and col1 = 1 \n"
                 + "and regexp_contains(dim2, '.*test.*')";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
-        assertEquals(expected, recommendations);
+
+        Optional<Recommendation> maybeRecommendation =
+            (new IdentifyRegexpContains()).run(parsedQuery, query);
+        assertTrue(maybeRecommendation.isPresent());
+        assertEquals(expected, maybeRecommendation.get().getDescription());
     }
 
     @Test
     public void withoutRegexContainsTest() {
-        String expected = "";
         String query =
             "select dim1 \n"
                 + "from `dataset.table` \n"
                 + "where effective_start_dte = current_date()";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
-        assertEquals(expected, recommendations);
+
+        Optional<Recommendation> maybeRecommendation =
+            (new IdentifyRegexpContains()).run(parsedQuery, query);
+        assertTrue(maybeRecommendation.isEmpty());
     }
 
     @Test
     public void otherFuncTest() {
-        String expected = "";
         String query =
             "select dim1 \n"
                 + "from `dataset.table` \n"
                 + "where effective_start_dte = current_date() \n"
                 + "and lower(\"Sunday\") = day_of_week";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
-        assertEquals(expected, recommendations);
+
+        Optional<Recommendation> maybeRecommendation =
+            (new IdentifyRegexpContains()).run(parsedQuery, query);
+        assertTrue(maybeRecommendation.isEmpty());
     }
 
     @Test
@@ -97,8 +110,11 @@ public class IdentifyRegexpContainsTest {
                 + "and lower('Sunday') = day_of_week) \n"
                 + "select * from a";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
-        assertEquals(expected, recommendations);
+
+        Optional<Recommendation> maybeRecommendation =
+            (new IdentifyRegexpContains()).run(parsedQuery, query);
+        assertTrue(maybeRecommendation.isPresent());
+        assertEquals(expected, maybeRecommendation.get().getDescription());
     }
 
 }

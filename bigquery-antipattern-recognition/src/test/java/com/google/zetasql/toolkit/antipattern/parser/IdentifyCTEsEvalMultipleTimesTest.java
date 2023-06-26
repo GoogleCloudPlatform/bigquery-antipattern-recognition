@@ -17,10 +17,13 @@
 package com.google.zetasql.toolkit.antipattern.parser;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -65,8 +68,11 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "    b, c;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   // Test with a query that uses one CTE aliased (a) referenced  multiple times in from clause and a
@@ -99,14 +105,16 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "  t2.col1 = a.col2;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   // Test with a query that uses two CTEs aliased (b,c) not referenced more than once.
   @Test
   public void withTwoCTEsTest() {
-    String expected = "";
     String query =
         "WITH \n"
             + "    b AS ( \n"
@@ -129,7 +137,9 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "    c;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isEmpty());
   }
 }

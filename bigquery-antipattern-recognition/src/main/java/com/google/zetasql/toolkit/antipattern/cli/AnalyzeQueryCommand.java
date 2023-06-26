@@ -19,9 +19,11 @@ package com.google.zetasql.toolkit.antipattern.cli;
 import com.google.common.base.Preconditions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
 import com.google.zetasql.toolkit.antipattern.cmd.InputCsvQueryIterator;
 import com.google.zetasql.toolkit.antipattern.cmd.InputFolderQueryIterable;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
+import com.google.zetasql.toolkit.antipattern.parser.BasePatternDetector;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyCTEsEvalMultipleTimes;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyInSubqueryWithoutAgg;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyNtileWindowFunction;
@@ -34,10 +36,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -112,63 +112,47 @@ public class AnalyzeQueryCommand implements Callable<Integer> {
     throw new IllegalArgumentException("Should not happen");
   }
 
-  private List<Map<String, String>> getRecommendationsForQuery(String query) {
+  private List<Recommendation> getRecommendationsForQuery(String query) {
     // TODO: Avoid repetition of this piece of logic between commands.
-    // TODO: There should be an abstraction for recommendations.
-    //  Instead of using Map<String, String> to represent a single recommendation, there should
-    //  be a Recommendation data class which the patter detectors return.
     ASTStatement parsedQuery = Parser.parseStatement(query, BigQueryLanguageOptions.get());
-    List<Map<String, String>> recommendation = new ArrayList<>();
-    recommendation.add(new HashMap<>() {{
-      put("name", "SelectStar");
-      put("description", new IdentifySimpleSelectStar().run(parsedQuery));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "SubqueryWithoutAgg");
-      put("description", new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "CTEsEvalMultipleTimes");
-      put("description", new IdentifyCTEsEvalMultipleTimes().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "OrderByWithoutLimit");
-      put("description", new IdentifyOrderByWithoutLimit().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "StringComparison");
-      put("description", new IdentifyRegexpContains().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "NtileWindowFunction");
-      put("description", new IdentifyNtileWindowFunction().run(parsedQuery, query));
-    }});
-    recommendation.removeIf(m -> m.get("description").isEmpty());
 
-    return recommendation;
+    List<BasePatternDetector> patternDetectors = List.of(
+        new IdentifySimpleSelectStar(),
+        new IdentifyInSubqueryWithoutAgg(),
+        new IdentifyCTEsEvalMultipleTimes(),
+        new IdentifyOrderByWithoutLimit(),
+        new IdentifyRegexpContains(),
+        new IdentifyNtileWindowFunction()
+    );
+
+    return patternDetectors.stream()
+        .map(detector -> detector.run(parsedQuery, query))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
   private void outputRecommendationsToConsole(
       List<InputQuery> inputQueries,
-      List<List<Map<String, String>>> recommendations) {
+      List<List<Recommendation>> recommendations) {
     // TODO: Avoid repetition of this piece of logic between commands
     // TODO: Define what formatting we want when outputting to the console
     for(int i = 0; i < inputQueries.size(); i++) {
       InputQuery inputQuery = inputQueries.get(i);
-      List<Map<String, String>> recommendation = recommendations.get(i);
+      List<Recommendation> recommendationsForThisQuery = recommendations.get(i);
 
       System.out.printf("Query: %s\n", inputQuery.getQuery());
-      recommendation.forEach(singleRecommendation ->
+      recommendationsForThisQuery.forEach(singleRecommendation ->
           System.out.printf("%s: %s\n",
-              singleRecommendation.get("name"),
-              singleRecommendation.get("description")));
+              singleRecommendation.getType().name(),
+              singleRecommendation.getDescription()));
       System.out.println("----------------------------");
     }
   }
 
   private void outputRecommendationsToFile(
       List<InputQuery> inputQueries,
-      List<List<Map<String, String>>> recommendations) throws IOException {
+      List<List<Recommendation>> recommendations) throws IOException {
     // TODO: Validate the output path
     // TODO: Use an actual CSV writing tool. This does not do any kind of escaping or encoding.
 
@@ -186,17 +170,17 @@ public class AnalyzeQueryCommand implements Callable<Integer> {
 
       for(int i = 0; i < inputQueries.size(); i++) {
         InputQuery inputQuery = inputQueries.get(i);
-        List<Map<String, String>> recommendationsForThisQuery = recommendations.get(i);
+        List<Recommendation> recommendationsForThisQuery = recommendations.get(i);
 
-        for (Map<String, String> recommendation : recommendationsForThisQuery) {
+        for (Recommendation recommendation : recommendationsForThisQuery) {
           StringBuilder rowBuilder = new StringBuilder();
           rowBuilder.append(inputQuery.getQueryId());
           rowBuilder.append(",");
           rowBuilder.append(inputQuery.getQuery());
           rowBuilder.append(",");
-          rowBuilder.append(recommendation.get("name"));
+          rowBuilder.append(recommendation.getType().name());
           rowBuilder.append(",");
-          rowBuilder.append(recommendation.get("description"));
+          rowBuilder.append(recommendation.getDescription());
           rowBuilder.append("\n");
           csvWriter.write(rowBuilder.toString());
         }
@@ -208,7 +192,7 @@ public class AnalyzeQueryCommand implements Callable<Integer> {
 
   private void outputRecommendations(
       List<InputQuery> inputQueries,
-      List<List<Map<String, String>>> recommendations) throws IOException {
+      List<List<Recommendation>> recommendations) throws IOException {
 
     if(outputPath.isPresent()) {
       outputRecommendationsToFile(inputQueries, recommendations);
@@ -231,7 +215,7 @@ public class AnalyzeQueryCommand implements Callable<Integer> {
     ArrayList<InputQuery> inputQueries = new ArrayList<>();
     inputQueriesIterator.forEachRemaining(inputQueries::add);
 
-    List<List<Map<String, String>>> recommendations = inputQueries.stream()
+    List<List<Recommendation>> recommendations = inputQueries.stream()
         .map(InputQuery::getQuery)
         .map(this::getRecommendationsForQuery)
         .collect(Collectors.toList());

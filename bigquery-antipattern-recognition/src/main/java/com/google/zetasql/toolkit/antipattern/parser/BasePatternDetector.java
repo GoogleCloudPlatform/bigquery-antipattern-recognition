@@ -17,15 +17,11 @@
 package com.google.zetasql.toolkit.antipattern.parser;
 
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import java.util.Optional;
 
 public interface BasePatternDetector {
 
-  default public String run(ASTStatement parsedQuery) {
-    return null;
-  }
-
-  default public String run(ASTStatement parsedQuery, String query) {
-    return null;
-  }
+  Optional<Recommendation> run(ASTStatement parsedQuery, String query);
 
 }

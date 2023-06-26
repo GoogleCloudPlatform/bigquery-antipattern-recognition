@@ -21,6 +21,8 @@ import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
 import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import com.google.zetasql.toolkit.antipattern.parser.BasePatternDetector;
 import com.google.zetasql.toolkit.antipattern.analyzer.IdentifyJoinOrder;
 import com.google.zetasql.toolkit.antipattern.cmd.BQAntiPatternCMDParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
@@ -35,6 +37,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
@@ -75,7 +78,11 @@ public class Main {
       List<Object[]> outputData = new ArrayList<>();
       List<Map<String, String>> rec = new ArrayList<>();
       try {
-        getRecommendations(parserLanguageOptions, query, rec);
+        List<Recommendation> recommendations = getRecommendations(parserLanguageOptions, query);
+        recommendations.stream()
+            .map(Recommendation::toMap)
+            .forEach(rec::add);
+
         if (cmdParser.useAnalyzer()) {
           getRecommendationsAnalyzer(inputQuery, catalog, analyzer, service, rec);
         }
@@ -135,34 +142,24 @@ public class Main {
     }
   }
 
-  private static void getRecommendations(LanguageOptions parserLanguageOptions,
-      String query, List<Map<String, String>> recommendation) {
+  private static List<Recommendation> getRecommendations(
+      LanguageOptions parserLanguageOptions, String query) {
     ASTStatement parsedQuery = Parser.parseStatement(query, parserLanguageOptions);
-    recommendation.add(new HashMap<>() {{
-      put("name", "SelectStar");
-      put("description", new IdentifySimpleSelectStar().run(parsedQuery));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "SubqueryWithoutAgg");
-      put("description", new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "CTEsEvalMultipleTimes");
-      put("description", new IdentifyCTEsEvalMultipleTimes().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "OrderByWithoutLimit");
-      put("description", new IdentifyOrderByWithoutLimit().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "StringComparison");
-      put("description", new IdentifyRegexpContains().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "NtileWindowFunction");
-      put("description", new IdentifyNtileWindowFunction().run(parsedQuery, query));
-    }});
-    recommendation.removeIf(m -> m.get("description").isEmpty());
+
+    List<BasePatternDetector> patternDetectors = List.of(
+        new IdentifySimpleSelectStar(),
+        new IdentifyInSubqueryWithoutAgg(),
+        new IdentifyCTEsEvalMultipleTimes(),
+        new IdentifyOrderByWithoutLimit(),
+        new IdentifyRegexpContains(),
+        new IdentifyNtileWindowFunction()
+    );
+
+    return patternDetectors.stream()
+        .map(detector -> detector.run(parsedQuery, query))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
   private static String getRecommendationsAnalyzer(InputQuery inputQuery, BigQueryCatalog catalog,

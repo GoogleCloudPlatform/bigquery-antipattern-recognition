@@ -21,6 +21,8 @@ import static org.junit.Assert.*;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,8 +49,10 @@ public class IdentifyCrossJoinTest {
             + "WHERE \n"
             + "   t1.col1 = t2.col1 ";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyCrossJoin()).run(parsedQuery, query);
-    assertEquals(expected, recommendations);
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCrossJoin()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -70,13 +74,15 @@ public class IdentifyCrossJoinTest {
             + "   AND t1.col1 = t3.col1 \n";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCrossJoin()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
   public void crossJoinTwoTablesNoFilterTest() {
-    String expected = "";
     String query =
         "SELECT \n"
             + "   t1.col1 \n"
@@ -86,8 +92,10 @@ public class IdentifyCrossJoinTest {
             + "    `project.dataset.table2` t2 \n";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCrossJoin()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isEmpty());
   }
 
   @Test
@@ -103,8 +111,11 @@ public class IdentifyCrossJoinTest {
             + "WHERE \n"
             + "   t1.col1 = t2.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCrossJoin()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -120,8 +131,11 @@ public class IdentifyCrossJoinTest {
             + "WHERE \n"
             + "   t1.col1 = t2.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCrossJoin()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -139,8 +153,11 @@ public class IdentifyCrossJoinTest {
             + "WHERE \n"
             + "   t1.col1 = t3.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCrossJoin()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -158,8 +175,11 @@ public class IdentifyCrossJoinTest {
             + "WHERE \n"
             + "   t1.col1 = t3.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCrossJoin()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -190,7 +210,10 @@ public class IdentifyCrossJoinTest {
             + "WHERE \n"
             + "   t1.col1 = t3.col1 \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCrossJoin()).run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyCrossJoin()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 }

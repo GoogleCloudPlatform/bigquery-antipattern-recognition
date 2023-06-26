@@ -17,10 +17,13 @@
 package com.google.zetasql.toolkit.antipattern.parser;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,17 +47,21 @@ public class IdentifyOrderByWithoutLimitTest {
         + "`project.dataset.table1` t1 \n"
         + "ORDER BY t1.col1;";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyOrderByWithoutLimit()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
   public void OrderByWithLimitTest() {
-    String expected = "";
     String query = "SELECT t1.col1 FROM `project.dataset.table1` t1 ORDER BY t1.col1 LIMIT 5;";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyOrderByWithoutLimit()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isEmpty());
   }
 
   @Test
@@ -76,7 +83,10 @@ public class IdentifyOrderByWithoutLimitTest {
             + "ORDER BY\n"
             + "  t1.col1";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyOrderByWithoutLimit()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 }

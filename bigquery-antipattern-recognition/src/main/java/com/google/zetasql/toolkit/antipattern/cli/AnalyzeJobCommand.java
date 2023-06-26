@@ -27,7 +27,9 @@ import com.google.cloud.bigquery.TableResult;
 import com.google.common.base.Preconditions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
+import com.google.zetasql.toolkit.antipattern.parser.BasePatternDetector;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyCTEsEvalMultipleTimes;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyInSubqueryWithoutAgg;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyNtileWindowFunction;
@@ -210,62 +212,47 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     };
   }
 
-  private List<Map<String, String>> getRecommendationsForQuery(String query) {
+  private List<Recommendation> getRecommendationsForQuery(String query) {
     // TODO: Avoid repetition of this piece of logic between commands.
-    // TODO: There should be an abstraction for recommendations.
-    //  Instead of using Map<String, String> to represent a single recommendation, there should
-    //  be a Recommendation data class which the patter detectors return.
     ASTStatement parsedQuery = Parser.parseStatement(query, BigQueryLanguageOptions.get());
-    List<Map<String, String>> recommendation = new ArrayList<>();
-    recommendation.add(new HashMap<>() {{
-      put("name", "SelectStar");
-      put("description", new IdentifySimpleSelectStar().run(parsedQuery));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "SubqueryWithoutAgg");
-      put("description", new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "CTEsEvalMultipleTimes");
-      put("description", new IdentifyCTEsEvalMultipleTimes().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "OrderByWithoutLimit");
-      put("description", new IdentifyOrderByWithoutLimit().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "StringComparison");
-      put("description", new IdentifyRegexpContains().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "NtileWindowFunction");
-      put("description", new IdentifyNtileWindowFunction().run(parsedQuery, query));
-    }});
-    recommendation.removeIf(m -> m.get("description").isEmpty());
 
-    return recommendation;
+    List<BasePatternDetector> patternDetectors = List.of(
+        new IdentifySimpleSelectStar(),
+        new IdentifyInSubqueryWithoutAgg(),
+        new IdentifyCTEsEvalMultipleTimes(),
+        new IdentifyOrderByWithoutLimit(),
+        new IdentifyRegexpContains(),
+        new IdentifyNtileWindowFunction()
+    );
+
+    return patternDetectors.stream()
+        .map(detector -> detector.run(parsedQuery, query))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
   private void outputRecommendationsToConsole(
       List<InputQuery> inputQueries,
-      List<List<Map<String, String>>> recommendations) {
+      List<List<Recommendation>> recommendations) {
+    // TODO: Avoid repetition of this piece of logic between commands
     // TODO: Define what formatting we want when outputting to the console
     for(int i = 0; i < inputQueries.size(); i++) {
       InputQuery inputQuery = inputQueries.get(i);
-      List<Map<String, String>> recommendation = recommendations.get(i);
+      List<Recommendation> recommendationsForThisQuery = recommendations.get(i);
 
-      System.out.printf("JobId: %s\n", inputQuery.getQueryId());
-      recommendation.forEach(singleRecommendation ->
+      System.out.printf("Query: %s\n", inputQuery.getQuery());
+      recommendationsForThisQuery.forEach(singleRecommendation ->
           System.out.printf("%s: %s\n",
-              singleRecommendation.get("name"),
-              singleRecommendation.get("description")));
+              singleRecommendation.getType().name(),
+              singleRecommendation.getDescription()));
       System.out.println("----------------------------");
     }
   }
 
   private void outputRecommendationsToTable(
       List<InputQuery> inputQueries,
-      List<List<Map<String, String>>> recommendations,
+      List<List<Recommendation>> recommendations,
       BigQuery client) {
     // TODO: Validate output table, should be a valid table reference
     // TODO: Parse the output table properly, this currently assumes it is well-formed
@@ -282,7 +269,7 @@ public class AnalyzeJobCommand implements Callable<Integer> {
 
     for(int i = 0; i < inputQueries.size(); i++) {
       InputQuery inputQuery = inputQueries.get(i);
-      List<Map<String, String>> recommendation = recommendations.get(i);
+      List<Recommendation> recommendation = recommendations.get(i);
       requestBuilder.addRow(Map.of(
           "job_id", inputQuery.getQueryId(),
           "query", inputQuery.getQuery(),
@@ -299,7 +286,7 @@ public class AnalyzeJobCommand implements Callable<Integer> {
 
   private void outputRecommendations(
       List<InputQuery> inputQueries,
-      List<List<Map<String, String>>> recommendations,
+      List<List<Recommendation>> recommendations,
       BigQuery client) {
 
     if(outputTable.isPresent()) {
@@ -326,7 +313,7 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     ArrayList<InputQuery> inputQueries = new ArrayList<>();
     inputQueriesIterator.forEachRemaining(inputQueries::add);
 
-    List<List<Map<String, String>>> recommendations = inputQueries.stream()
+    List<List<Recommendation>> recommendations = inputQueries.stream()
         .map(InputQuery::getQuery)
         .map(this::getRecommendationsForQuery)
         .collect(Collectors.toList());

@@ -17,14 +17,25 @@
 package com.google.zetasql.toolkit.antipattern.parser;
 
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import com.google.zetasql.toolkit.antipattern.RecommendationType;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.crossjoin.IdentifyCrossJoinVisitor;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class IdentifyCrossJoin implements BasePatternDetector {
-  public String run(ASTStatement parsedQuery, String query) {
+
+  public Optional<Recommendation> run(ASTStatement parsedQuery, String query) {
     IdentifyCrossJoinVisitor visitor = new IdentifyCrossJoinVisitor(query);
     parsedQuery.accept(visitor);
 
-    return visitor.getResult().stream().distinct().collect(Collectors.joining("\n"));
+    String description =
+        visitor.getResult().stream().distinct().collect(Collectors.joining("\n"));
+
+    Recommendation recommendation =
+        new Recommendation(RecommendationType.UnnecessaryCrossJoin, description);
+
+    return description.isEmpty() ? Optional.empty() : Optional.of(recommendation);
   }
+
 }

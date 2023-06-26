@@ -17,16 +17,25 @@
 package com.google.zetasql.toolkit.antipattern.parser;
 
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import com.google.zetasql.toolkit.antipattern.RecommendationType;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.OrderByWithoutLimitVisitor;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class IdentifyOrderByWithoutLimit implements BasePatternDetector {
 
   @Override
-  public String run(ASTStatement parsedQuery, String query) {
+  public Optional<Recommendation> run(ASTStatement parsedQuery, String query) {
     OrderByWithoutLimitVisitor visitor = new OrderByWithoutLimitVisitor(query);
     parsedQuery.accept(visitor);
 
-    return visitor.getResult().stream().distinct().collect(Collectors.joining("\n"));
+    String description =
+        visitor.getResult().stream().distinct().collect(Collectors.joining("\n"));
+
+    Recommendation recommendation =
+        new Recommendation(RecommendationType.OrderByWithoutLimit, description);
+
+    return description.isEmpty() ? Optional.empty() : Optional.of(recommendation);
   }
 }

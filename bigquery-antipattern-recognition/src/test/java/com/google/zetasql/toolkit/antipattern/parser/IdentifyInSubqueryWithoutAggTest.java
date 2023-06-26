@@ -17,10 +17,13 @@
 package com.google.zetasql.toolkit.antipattern.parser;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,8 +49,11 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "WHERE \n"
             + "    t1.col2 IN (SELECT col2 FROM `project.dataset.table2`) ";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyInSubqueryWithoutAgg()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -61,8 +67,11 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "WHERE \n"
             + "    t1.col2 NOT IN (SELECT col2 FROM `project.dataset.table2`) ";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyInSubqueryWithoutAgg()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -78,13 +87,15 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "   AND t1.col2 IN (SELECT col2 FROM `project.dataset.table2`) \n"
             + "   AND t1.col3 = 1";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyInSubqueryWithoutAgg()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
   public void noAntiPatternTest() {
-    String expected = "";
     String query =
         "SELECT \n"
             + "   t1.col1 \n"
@@ -96,8 +107,10 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "   AND t1.col3 IN (SELECT col3 FROM `project.dataset.table3` GROUP BY col3) \n"
             + "   AND t1.col4 IN (1, 2, 3, 4)";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyInSubqueryWithoutAgg()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isEmpty());
   }
 
   @Test
@@ -111,7 +124,10 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "WHERE \n"
             + "   (t1.col1,t1.col2) IN (SELECT (col1,col2) FROM `project.dataset.table3`) ";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
-    assertEquals(expected, recommendation);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyInSubqueryWithoutAgg()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 }

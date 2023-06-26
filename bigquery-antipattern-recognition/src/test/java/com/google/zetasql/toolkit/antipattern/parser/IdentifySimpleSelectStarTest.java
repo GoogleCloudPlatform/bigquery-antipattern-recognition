@@ -21,6 +21,8 @@ import static org.junit.Assert.*;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,8 +42,11 @@ public class IdentifySimpleSelectStarTest {
         "SELECT * on table: project.dataset.table1. Check that all columns are needed.";
     String query = "SELECT * FROM `project.dataset.table1`";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifySimpleSelectStar()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -50,25 +55,30 @@ public class IdentifySimpleSelectStarTest {
         "SELECT * on table: project.dataset.table1. Check that all columns are needed.";
     String query = "SELECT * FROM `project.dataset.table1` LIMIT 1000";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifySimpleSelectStar()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
   public void selectStarWithGroupByTest() {
-    String expected = "";
     String query = "SELECT * FROM `project.dataset.table1` GROUP BY col1";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifySimpleSelectStar()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isEmpty());
   }
 
   @Test
   public void selectStarWithJoinTest() {
-    String expected = "";
     String query = "SELECT * FROM table1, table2";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifySimpleSelectStar()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isEmpty());
   }
 }

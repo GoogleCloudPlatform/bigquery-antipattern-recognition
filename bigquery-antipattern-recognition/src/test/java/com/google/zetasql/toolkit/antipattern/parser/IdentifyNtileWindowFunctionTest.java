@@ -17,10 +17,13 @@
 package com.google.zetasql.toolkit.antipattern.parser;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.Recommendation;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,15 +51,16 @@ public class IdentifyNtileWindowFunctionTest {
         + " where EXTRACT(YEAR FROM trips.trip_start_timestamp AT TIME ZONE \"UTC\") = 2013;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   // Test with a query that uses any other analytic function instead of NTILE
   @Test
   public void withOtherAnalyticFunctionTest() {
-    String expected = "";
-
     String query = "SELECT taxi_id,\n"
         + "fare,\n"
         + "payment_type,\n"
@@ -64,8 +68,10 @@ public class IdentifyNtileWindowFunctionTest {
         + "FROM `taxi_trips`";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isEmpty());
   }
 
   // Test with a query that uses the NTILE function in the subquery
@@ -84,8 +90,11 @@ public class IdentifyNtileWindowFunctionTest {
         + " ) t;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
   @Test
@@ -101,8 +110,11 @@ public class IdentifyNtileWindowFunctionTest {
         + " where EXTRACT(YEAR FROM trips.trip_start_timestamp AT TIME ZONE \"UTC\") = 2013;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
-    assertEquals(expected, recommendations);
+
+    Optional<Recommendation> maybeRecommendation =
+        (new IdentifyNtileWindowFunction()).run(parsedQuery, query);
+    assertTrue(maybeRecommendation.isPresent());
+    assertEquals(expected, maybeRecommendation.get().getDescription());
   }
 
 }
