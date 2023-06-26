@@ -78,6 +78,9 @@ public class BQAntiPatternCMDParser {
   public boolean isReadingFromInfoSchema() {
     return cmd.hasOption(READ_FROM_INFO_SCHEMA_FLAG_NAME);
   }
+  public String getInformationSchemaTableName() {
+    return cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME);
+  }
 
   public boolean hasOutputTable() {
     return cmd.hasOption(OUTPUT_TABLE_OPTION_NAME);

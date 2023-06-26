@@ -54,8 +54,21 @@ public class BigQueryHelper {
             .setHeaderProvider(headerProvider)
             .build()
             .getService();
-    QueryJobConfiguration queryConfig =
-        QueryJobConfiguration.newBuilder(
+    QueryJobConfiguration queryConfig;
+    if (ISTable.toUpperCase().contains("INFORMATION_SCHEMA.VIEWS")) {
+      queryConfig = QueryJobConfiguration.newBuilder(
+            "SELECT\n"
+                    + "table_catalog as project_id, \n"
+                    + "concat(table_catalog, '.', table_schema, '.', table_name) as job_id, \n"
+                    + "view_definition as query, \n"
+                    + "0 as slot_hours, \n"
+                    + "FROM\n"
+                    + ISTable)
+              .setUseLegacySql(false)
+              .build();
+    }
+    else {
+      queryConfig = QueryJobConfiguration.newBuilder(
                 "SELECT\n"
                     + "  project_id,\n"
                     + "  CONCAT(project_id, \":US.\",  job_id) job_id, \n"
@@ -76,6 +89,7 @@ public class BigQueryHelper {
                     + "  project_id, start_time desc\n")
             .setUseLegacySql(false)
             .build();
+    }
 
     Job queryJob = bigquery.create(JobInfo.newBuilder(queryConfig).build());
     return queryJob.getQueryResults();

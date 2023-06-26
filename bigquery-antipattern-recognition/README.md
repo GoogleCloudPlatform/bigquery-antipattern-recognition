@@ -53,6 +53,7 @@ docker run \
 Read from information schema and write to output table: 
 1) Create a table with the following DDL:
 ```
+# Query/Tables
 CREATE TABLE dataset.antipattern_output_table (
   job_id STRING,
   query STRING,
@@ -60,6 +61,16 @@ CREATE TABLE dataset.antipattern_output_table (
     name STRING,
     description STRING>>,
   slot_hours FLOAT64,
+  process_timestamp TIMESTAMP
+);
+
+# Views
+CREATE TABLE dataset.views_antipattern_output_table (
+  view STRING,
+  query STRING,
+  recommendation ARRAY<STRUCT<
+    name STRING,
+    description STRING>>,
   process_timestamp TIMESTAMP
 );
 ```
@@ -71,6 +82,7 @@ gcloud auth login
 
 3) Run 
 ```
+# Query/Tables
 docker run \
   -v ~/.config:/root/.config \
   -i bigquery-antipattern-recognition \
@@ -78,6 +90,16 @@ docker run \
   --read_from_info_schema_days 1 \
   --processing_project_id <my-project> \
   --output_table "my-project.dataset.antipattern_output_table" 
+
+# Views
+docker run \
+  -v ~/.config:/root/.config \
+  -i bigquery-antipattern-recognition \
+  --read_from_info_schema \
+  --read_from_info_schema_days 1 \
+  --processing_project_id <my-project> \
+  --info_schema_table_name "`region-us`.INFORMATION_SCHEMA.VIEWS" \
+  --output_table "my-project.dataset.views_antipattern_output_table" 
 ```
 
 # Deploy to Cloud Run Jobs

@@ -63,6 +63,18 @@ public class OutputGenerator {
   private static void writeOutputToBQTable(
       List<Object[]> outputData, BQAntiPatternCMDParser cmdParser) {
     DateTime date = new DateTime(new Date());
+    if (cmdParser.getInformationSchemaTableName().toUpperCase().contains("INFORMATION_SCHEMA.VIEWS")) {
+    for (Object[] row : outputData) {
+      Map<String, Object> rowContent = new HashMap<>();
+      rowContent.put("view", row[0]);
+      rowContent.put("query", row[1]);
+      rowContent.put("recommendation", row[2]);
+      rowContent.put("process_timestamp", date);
+      BigQueryHelper.writeResults(
+              cmdParser.getProcessingProject(), cmdParser.getOutputTable(), rowContent);
+    }
+    }
+    else {
     for (Object[] row : outputData) {
       Map<String, Object> rowContent = new HashMap<>();
       rowContent.put("job_id", row[0]);
@@ -72,6 +84,7 @@ public class OutputGenerator {
       rowContent.put("process_timestamp", date);
       BigQueryHelper.writeResults(
           cmdParser.getProcessingProject(), cmdParser.getOutputTable(), rowContent);
+      }
     }
   }
 }
