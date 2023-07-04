@@ -29,6 +29,7 @@ import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
 import com.google.zetasql.toolkit.antipattern.Recommendation;
 import com.google.zetasql.toolkit.antipattern.cli.converters.JobIdConverter;
+import com.google.zetasql.toolkit.antipattern.cli.converters.TableIdConverter;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import com.google.zetasql.toolkit.antipattern.parser.BasePatternDetector;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyCTEsEvalMultipleTimes;
@@ -76,9 +77,10 @@ public class AnalyzeJobCommand implements Callable<Integer> {
       description = "A BigQuery output table to write analysis results to. "
           + "If not set, output will be written to stdout. "
           + "The table will be created if it does not exist already.",
-      required = false
+      required = false,
+      converter = TableIdConverter.class
   )
-  Optional<String> outputTable;
+  Optional<TableId> outputTable;
 
   static class JobInput {
     @Option(
@@ -155,7 +157,8 @@ public class AnalyzeJobCommand implements Callable<Integer> {
   private Iterator<InputQuery> fetchJobs(BigQuery client) throws InterruptedException {
     // TODO: We can probably build a better abstraction that what the BigQuery helper
     //  currently exposes to fetch jobs from INFORMATION_SCHEMA.
-    //  At the least, the abstraction we build should return an iterator of InputQuery directly.
+    //  At the least, the abstraction we build should return an iterator of InputQuery directly,
+    //  not a TableResult.
     String projectIdForJobs = getProjectIdForJobs(client);
     TableResult tableResult;
 
@@ -236,18 +239,12 @@ public class AnalyzeJobCommand implements Callable<Integer> {
       List<InputQuery> inputQueries,
       List<List<Recommendation>> recommendations,
       BigQuery client) {
-    // TODO: Validate output table, should be a valid table reference
     // TODO: Parse the output table properly, this currently assumes it is well-formed
     // TODO: Create the output table if it does not exist
     // TODO: Inserts should be batched, the size of a single InsertAllRequest is bounded
     Preconditions.checkArgument(outputTable.isPresent());
 
-    String outputTableProjectId = outputTable.get().split("\\.")[0];
-    String outputTableDataset = outputTable.get().split("\\.")[1];
-    String outputTableName = outputTable.get().split("\\.")[2];
-    TableId outputTableId = TableId.of(outputTableProjectId, outputTableDataset, outputTableName);
-
-    InsertAllRequest.Builder requestBuilder = InsertAllRequest.newBuilder(outputTableId);
+    InsertAllRequest.Builder requestBuilder = InsertAllRequest.newBuilder(outputTable.get());
 
     for(int i = 0; i < inputQueries.size(); i++) {
       InputQuery inputQuery = inputQueries.get(i);
