@@ -48,6 +48,7 @@ import com.google.zetasql.toolkit.antipattern.parser.IdentifyNtileWindowFunction
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyOrderByWithoutLimit;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyRegexpContains;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifySimpleSelectStar;
+import com.google.zetasql.toolkit.antipattern.util.BatchIterator;
 import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.time.Instant;
@@ -151,6 +152,8 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     )
     Date endDate;
   }
+
+  private static final int ANALYSIS_BATCH_SIZE = 1000;
 
   private static final TableDefinition outputTableDefinition = StandardTableDefinition.newBuilder()
       .setType(TableDefinition.Type.TABLE)
@@ -339,17 +342,19 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     BigQuery client = clientBuilder.build().getService();
 
     Iterator<InputQuery> inputQueriesIterator = fetchJobs(client);
+    Iterator<List<InputQuery>> inputQueriesBatchIterator =
+        new BatchIterator<>(inputQueriesIterator, ANALYSIS_BATCH_SIZE);
 
-    // TODO: Avoid loading all jobs into memory
-    ArrayList<InputQuery> inputQueries = new ArrayList<>();
-    inputQueriesIterator.forEachRemaining(inputQueries::add);
+    while (inputQueriesBatchIterator.hasNext()) {
+      List<InputQuery> queriesBatch = inputQueriesBatchIterator.next();
 
-    List<List<Recommendation>> recommendations = inputQueries.stream()
-        .map(InputQuery::getQuery)
-        .map(this::getRecommendationsForQuery)
-        .collect(Collectors.toList());
+      List<List<Recommendation>> recommendations = queriesBatch.stream()
+          .map(InputQuery::getQuery)
+          .map(this::getRecommendationsForQuery)
+          .collect(Collectors.toList());
 
-    outputRecommendations(inputQueries, recommendations, client);
+      outputRecommendations(queriesBatch, recommendations, client);
+    }
 
     return 0;
   }

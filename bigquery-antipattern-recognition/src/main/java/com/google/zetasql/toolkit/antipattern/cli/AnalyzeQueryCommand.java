@@ -30,6 +30,7 @@ import com.google.zetasql.toolkit.antipattern.parser.IdentifyNtileWindowFunction
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyOrderByWithoutLimit;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyRegexpContains;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifySimpleSelectStar;
+import com.google.zetasql.toolkit.antipattern.util.BatchIterator;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.io.File;
 import java.io.FileWriter;
@@ -86,6 +87,8 @@ public class AnalyzeQueryCommand implements Callable<Integer> {
         required = true)
     Optional<Path> csvPath;
   }
+
+  private static final int ANALYSIS_BATCH_SIZE = 1000;
 
   private Iterator<InputQuery> fetchQueries() throws IOException {
     if(queryInput.query.isPresent()) {
@@ -210,17 +213,19 @@ public class AnalyzeQueryCommand implements Callable<Integer> {
     //  the stack trace if that happens.
 
     Iterator<InputQuery> inputQueriesIterator = fetchQueries();
+    Iterator<List<InputQuery>> inputQueriesBatchIterator =
+        new BatchIterator<>(inputQueriesIterator, ANALYSIS_BATCH_SIZE);
 
-    // TODO: Avoid loading all queries into memory
-    ArrayList<InputQuery> inputQueries = new ArrayList<>();
-    inputQueriesIterator.forEachRemaining(inputQueries::add);
+    while (inputQueriesBatchIterator.hasNext()) {
+      List<InputQuery> queriesBatch = inputQueriesBatchIterator.next();
 
-    List<List<Recommendation>> recommendations = inputQueries.stream()
-        .map(InputQuery::getQuery)
-        .map(this::getRecommendationsForQuery)
-        .collect(Collectors.toList());
+      List<List<Recommendation>> recommendations = queriesBatch.stream()
+          .map(InputQuery::getQuery)
+          .map(this::getRecommendationsForQuery)
+          .collect(Collectors.toList());
 
-    outputRecommendations(inputQueries, recommendations);
+      outputRecommendations(queriesBatch, recommendations);
+    }
 
     return 0;
   }
