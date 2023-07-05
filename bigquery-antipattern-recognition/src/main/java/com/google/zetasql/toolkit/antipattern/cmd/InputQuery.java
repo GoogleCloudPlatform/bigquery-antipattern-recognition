@@ -16,12 +16,18 @@
 
 package com.google.zetasql.toolkit.antipattern.cmd;
 
+import com.google.common.base.Preconditions;
+import java.time.Instant;
+import java.util.Optional;
+
 public class InputQuery {
 
   private String query;
   private String queryIdentifier;
   private String projectId;
   private float slotHours;
+  private Optional<String> region = Optional.empty();
+  private Optional<Instant> startTime = Optional.empty();
 
   public InputQuery(String query, String queryIdentifier) {
     this.query = query;
@@ -56,4 +62,23 @@ public class InputQuery {
   public float getSlotHours() {
     return slotHours;
   }
+
+  public Optional<String> getRegion() {
+    return region;
+  }
+
+  public Optional<Instant> getStartTime() {
+    return startTime;
+  }
+
+  public void setRegion(String region) {
+    Preconditions.checkNotNull(region);
+    this.region = Optional.of(region);
+  }
+
+  public void setStartTime(Instant startTime) {
+    Preconditions.checkNotNull(startTime);
+    this.startTime = Optional.of(startTime);
+  }
+
 }

@@ -65,13 +65,16 @@ public class BigQueryHelper {
         "SELECT\n"
             + "  project_id,\n"
             + "  CONCAT(project_id, \":%s.\",  job_id) job_id, \n"
+            + "  '%s' AS region,\n"
+            + "  start_time AS job_start_time,\n"
             + "  query, \n"
             + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours\n"
             + "FROM `%s.region-%s.INFORMATION_SCHEMA.JOBS_BY_PROJECT`\n"
             + "WHERE \n"
             + "  job_id = '%s'\n"
             + "  AND total_slot_ms > 0\n",
-        jobId.getLocation(), jobId.getProject(), jobId.getLocation(), jobId.getJob()
+        jobId.getLocation(), jobId.getLocation(),
+        jobId.getProject(), jobId.getLocation(), jobId.getJob()
     );
 
     return runQuery(client, query);
@@ -93,6 +96,8 @@ public class BigQueryHelper {
         "SELECT\n"
             + "  project_id,\n"
             + "  CONCAT(project_id, \":%s.\",  job_id) job_id, \n"
+            + "  '%s' AS region,\n"
+            + "  start_time AS job_start_time,\n"
             + "  query, \n"
             + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours\n"
             + "FROM `%s.%s.INFORMATION_SCHEMA.JOBS_BY_PROJECT`\n"
@@ -104,7 +109,7 @@ public class BigQueryHelper {
             + "  AND UPPER(query) NOT LIKE '%%INFORMATION_SCHEMA%%' \n"
             + "ORDER BY \n"
             + "  project_id, start_time desc\n",
-        regionName, projectId, region, startDateFormatted, endDataFormatted
+        regionName, regionName, projectId, region, startDateFormatted, endDataFormatted
     );
 
     return runQuery(client, query);
@@ -124,6 +129,8 @@ public class BigQueryHelper {
         "SELECT\n"
             + "  project_id,\n"
             + "  CONCAT(project_id, \":%s.\",  job_id) job_id, \n"
+            + "  '%s' AS region,\n"
+            + "  start_time AS job_start_time,\n"
             + "  query, \n"
             + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours\n"
             + "FROM `%s.%s.INFORMATION_SCHEMA.JOBS_BY_PROJECT`\n"
@@ -135,13 +142,14 @@ public class BigQueryHelper {
             + "  AND UPPER(query) NOT LIKE '%%INFORMATION_SCHEMA%%' \n"
             + "ORDER BY \n"
             + "  project_id, start_time desc\n",
-        regionName, projectId, region,
+        regionName, regionName, projectId, region,
         lookBack.getYears(), lookBack.getMonths(), lookBack.getDays()
     );
 
     return runQuery(client, query);
   }
 
+  @Deprecated
   public static TableResult getQueriesFromIS(String projectId, String daysBack, String ISTable)
       throws InterruptedException {
     BigQuery bigquery =
@@ -155,6 +163,7 @@ public class BigQueryHelper {
                 "SELECT\n"
                     + "  project_id,\n"
                     + "  CONCAT(project_id, \":US.\",  job_id) job_id, \n"
+                    + "  start_time AS job_start_time,\n"
                     + "  query, \n"
                     + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours\n"
                     + "FROM\n"
@@ -177,6 +186,7 @@ public class BigQueryHelper {
     return queryJob.getQueryResults();
   }
 
+  @Deprecated
   public static void writeResults(
       String processingProject, String outputTable, Map<String, Object> rowContent) {
     String[] tableName = outputTable.split("\\.");

@@ -19,11 +19,20 @@ package com.google.zetasql.toolkit.antipattern.cli;
 import com.google.api.client.util.DateTime;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.Clustering;
+import com.google.cloud.bigquery.Field;
+import com.google.cloud.bigquery.Field.Mode;
+import com.google.cloud.bigquery.FieldList;
 import com.google.cloud.bigquery.FieldValueList;
-import com.google.cloud.bigquery.InsertAllRequest;
+import com.google.cloud.bigquery.InsertAllRequest.RowToInsert;
 import com.google.cloud.bigquery.JobId;
+import com.google.cloud.bigquery.Schema;
+import com.google.cloud.bigquery.StandardSQLTypeName;
+import com.google.cloud.bigquery.StandardTableDefinition;
+import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableResult;
+import com.google.cloud.bigquery.TimePartitioning;
 import com.google.common.base.Preconditions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
@@ -31,6 +40,7 @@ import com.google.zetasql.toolkit.antipattern.Recommendation;
 import com.google.zetasql.toolkit.antipattern.cli.converters.JobIdConverter;
 import com.google.zetasql.toolkit.antipattern.cli.converters.TableIdConverter;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
+import com.google.zetasql.toolkit.antipattern.io.BigQueryWriter;
 import com.google.zetasql.toolkit.antipattern.parser.BasePatternDetector;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyCTEsEvalMultipleTimes;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyInSubqueryWithoutAgg;
@@ -142,6 +152,34 @@ public class AnalyzeJobCommand implements Callable<Integer> {
     Date endDate;
   }
 
+  private static final TableDefinition outputTableDefinition = StandardTableDefinition.newBuilder()
+      .setType(TableDefinition.Type.TABLE)
+      .setSchema(Schema.of(
+          Field.of("job_id", StandardSQLTypeName.STRING),
+          Field.of("job_start_time", StandardSQLTypeName.TIMESTAMP),
+          Field.of("region", StandardSQLTypeName.STRING),
+          Field.of("query", StandardSQLTypeName.STRING),
+          Field.newBuilder(
+              "recommendation",
+                  StandardSQLTypeName.STRUCT,
+                  FieldList.of(
+                      Field.of("name", StandardSQLTypeName.STRING),
+                      Field.of("description", StandardSQLTypeName.STRING)
+                  ))
+              .setMode(Mode.REPEATED)
+              .build(),
+          Field.of("slot_hours", StandardSQLTypeName.FLOAT64)
+      ))
+      .setTimePartitioning(
+          TimePartitioning.newBuilder(TimePartitioning.Type.DAY)
+              .setField("job_start_time")
+              .build())
+      .setClustering(
+          Clustering.newBuilder()
+              .setFields(List.of("region"))
+              .build())
+      .build();
+
   private String getProjectIdForJobs(BigQuery client) {
     if(jobInput.multiJobInput != null && jobInput.multiJobInput.jobsProjectId.isPresent()) {
       return jobInput.multiJobInput.jobsProjectId.get();
@@ -192,7 +230,11 @@ public class AnalyzeJobCommand implements Callable<Integer> {
         String query = row.get("query").getStringValue();
         String projectId = row.get("project_id").getStringValue();
         String slot_hours = row.get("slot_hours").getStringValue();
-        return new InputQuery(query, job_id, projectId, Float.parseFloat(slot_hours));
+        InputQuery inputQuery =
+            new InputQuery(query, job_id, projectId, Float.parseFloat(slot_hours));
+        inputQuery.setRegion(row.get("region").getStringValue());
+        inputQuery.setStartTime(row.get("job_start_time").getTimestampInstant());
+        return inputQuery;
       }
     };
   }
@@ -239,28 +281,38 @@ public class AnalyzeJobCommand implements Callable<Integer> {
       List<InputQuery> inputQueries,
       List<List<Recommendation>> recommendations,
       BigQuery client) {
-    // TODO: Parse the output table properly, this currently assumes it is well-formed
-    // TODO: Create the output table if it does not exist
-    // TODO: Inserts should be batched, the size of a single InsertAllRequest is bounded
     Preconditions.checkArgument(outputTable.isPresent());
 
-    InsertAllRequest.Builder requestBuilder = InsertAllRequest.newBuilder(outputTable.get());
+    BigQueryWriter writer = new BigQueryWriter(client);
+    writer.ensureTableExists(outputTable.get(), outputTableDefinition);
+
+    ArrayList<RowToInsert> rowsToInsert = new ArrayList<>();
 
     for(int i = 0; i < inputQueries.size(); i++) {
       InputQuery inputQuery = inputQueries.get(i);
       List<Recommendation> recommendation = recommendations.get(i);
-      requestBuilder.addRow(Map.of(
+
+      DateTime jobStartTime = inputQuery.getStartTime()
+          .map(Instant::toString)
+          .map(DateTime::parseRfc3339)
+          .orElse(null);
+      List<Map<String, String>> recommendationAsMaps = recommendation.stream()
+          .map(Recommendation::toMap)
+          .collect(Collectors.toList());
+
+      Map<String, Object> rowContent = Map.of(
           "job_id", inputQuery.getQueryId(),
+          "job_start_time", jobStartTime,
+          "region", inputQuery.getRegion().orElse(null),
           "query", inputQuery.getQuery(),
-          "slot_hours", Float.toString(inputQuery.getSlotHours()),
-          "recommendation", recommendation,
-          "process_timestamp", DateTime.parseRfc3339(Instant.now().toString())
-      ));
+          "slot_hours", inputQuery.getSlotHours(),
+          "recommendation", recommendationAsMaps
+      );
+
+      rowsToInsert.add(RowToInsert.of(rowContent));
     }
 
-    InsertAllRequest request = requestBuilder.build();
-
-    client.insertAll(request);
+    writer.writeRows(outputTable.get(), rowsToInsert);
   }
 
   private void outputRecommendations(
