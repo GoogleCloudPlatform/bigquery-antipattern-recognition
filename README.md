@@ -223,7 +223,7 @@ Must be set along with `--read_from_info_schema`. <br>
 Defaults to 1.
 </ul>
 
-``--read_from_info_schema_days="\`region-us\`.INFORMATION_SCHEMA.JOBS"``
+``--info_schema_table_name="\`region-us\`.INFORMATION_SCHEMA.JOBS"``
 <ul>
 Specifies what variant of INFORMATION_SCHEMA.JONS to read from.
 </ul>
