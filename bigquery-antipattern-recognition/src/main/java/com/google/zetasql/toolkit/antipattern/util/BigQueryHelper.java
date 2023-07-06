@@ -65,7 +65,7 @@ public class BigQueryHelper {
                     + ISTable
                     + "\n"
                     + "WHERE \n"
-                    + "  start_time >= CURRENT_TIMESTAMP - INTERVAL "
+                    + "  creation_time >= CURRENT_TIMESTAMP - INTERVAL "
                     + daysBack
                     + " DAY\n"
                     + "  AND total_slot_ms > 0\n"

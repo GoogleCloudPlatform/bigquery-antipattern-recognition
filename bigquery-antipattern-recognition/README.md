@@ -184,6 +184,7 @@ To read input queries from INFORMATION_SCHEMA.JOBS.
 <ul>
 Specifies how many days of INFORMATION_SCHEMA to read <br> 
 Must be set along with `--read_from_info_schema`. <br>
+This will create a filter on the creation_time column of your INFORMATION_SCHEMA view.<br>
 Defaults to 1.
 </ul>
 
