@@ -220,20 +220,10 @@ public class BQAntiPatternCMDParser {
 
   private Iterator<InputQuery> readFromIS() throws InterruptedException {
     logger.info("Using INFORMATION_SCHEMA as input source");
-    if (cmd.hasOption(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME)
-        && cmd.hasOption(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME)) {
-      return new InformationSchemaQueryIterable(
-          cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME),
-          cmd.getOptionValue(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME),
-          cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME));
-    } else if (cmd.hasOption(READ_FROM_INFO_SCHEMA_FLAG_NAME)) {
-      return new InformationSchemaQueryIterable(
-          cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME),
-          cmd.getOptionValue(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME));
-    } else {
-      return new InformationSchemaQueryIterable(
-          cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME));
-    }
+    String processingProjectId = cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME);
+    String infoSchemaDays = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME);
+    String infoSchemaTableName = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME);
+    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays, infoSchemaTableName);
   }
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {

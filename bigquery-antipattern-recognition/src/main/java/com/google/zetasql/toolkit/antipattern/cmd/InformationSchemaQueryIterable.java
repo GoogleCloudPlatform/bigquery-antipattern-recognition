@@ -27,21 +27,15 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
   String IS_TABLE_DEFAULT = "`region-us`.INFORMATION_SCHEMA.JOBS";
   String DAYS_BACK_DEFAULT = "30";
 
-  public InformationSchemaQueryIterable(String projectId) throws InterruptedException {
+
+  public InformationSchemaQueryIterable(String projectId, String customDaysBack, String customISTable)
+          throws InterruptedException {
+
+    String daysBack = customDaysBack == null ? DAYS_BACK_DEFAULT : customDaysBack;
+    String ISTable = customISTable == null ? IS_TABLE_DEFAULT : customISTable;
+
     TableResult tableResult =
-        BigQueryHelper.getQueriesFromIS(projectId, DAYS_BACK_DEFAULT, IS_TABLE_DEFAULT);
-    fieldValueListIterator = tableResult.iterateAll().iterator();
-  }
-
-  public InformationSchemaQueryIterable(String projectId, String daysBack)
-      throws InterruptedException {
-    TableResult tableResult = BigQueryHelper.getQueriesFromIS(projectId, daysBack, IS_TABLE_DEFAULT);
-    fieldValueListIterator = tableResult.iterateAll().iterator();
-  }
-
-  public InformationSchemaQueryIterable(String projectId, String daysBack, String ISTable)
-      throws InterruptedException {
-    TableResult tableResult = BigQueryHelper.getQueriesFromIS(projectId, daysBack, ISTable);
+        BigQueryHelper.getQueriesFromIS(projectId, daysBack, ISTable);
     fieldValueListIterator = tableResult.iterateAll().iterator();
   }
 
