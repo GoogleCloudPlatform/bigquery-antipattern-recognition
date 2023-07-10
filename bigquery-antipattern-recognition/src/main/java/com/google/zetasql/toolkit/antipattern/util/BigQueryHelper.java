@@ -62,7 +62,8 @@ public class BigQueryHelper {
                     + "  project_id,\n"
                     + "  CONCAT(project_id, \":US.\",  job_id) job_id, \n"
                     + "  query, \n"
-                    + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours\n"
+                    + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours, \n"
+                    + "  user_email \n"
                     + "FROM\n"
                     + ISTable
                     + "\n"

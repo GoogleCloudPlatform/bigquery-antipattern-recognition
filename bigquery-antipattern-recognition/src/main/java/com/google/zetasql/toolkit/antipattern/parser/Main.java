@@ -127,6 +127,7 @@ public class Main {
               inputQuery.getQueryId(),
               inputQuery.getQuery(),
               Float.toString(inputQuery.getSlotHours()),
+              inputQuery.getUserEmail(),
               rec,
           });
     } else {

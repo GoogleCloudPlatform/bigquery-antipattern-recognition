@@ -53,8 +53,9 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
     String job_id = row.get("job_id").getStringValue();
     String query = row.get("query").getStringValue();
     String projectId = row.get("project_id").getStringValue();
+    String userEmail = row.get("user_email").getStringValue();
     // Slot hours can be null if the query errors out
     String slot_hours = row.get("slot_hours").isNull() ? "0" : row.get("slot_hours").getStringValue();
-    return new InputQuery(query, job_id, projectId, Float.parseFloat(slot_hours));
+    return new InputQuery(query, job_id, projectId, userEmail, Float.parseFloat(slot_hours));
   }
 }
