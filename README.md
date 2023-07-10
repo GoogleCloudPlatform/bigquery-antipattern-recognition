@@ -286,26 +286,7 @@ Output:
 All columns on table: project.dataset.table1 are being selected. Please be sure that all columns are needed
 ```
 
-
-## Anti Pattern 2: Using CROSS JOINs when INNER JOINs are an option
-Example:
-```
-SELECT
-   t1.col1
-FROM 
-   `project.dataset.table1` t1 
-cross JOIN " +
-    `project.dataset.table2` t2
-WHERE
-   t1.col1 = t2.col1;
-```
-
-Output:
-```
-CROSS JOIN between tables: project.dataset.table1 and project.dataset.table2. Try to change for a INNER JOIN if possible.
-```
-
-## Anti Pattern 3: Not aggregating subquery in the WHERE clause,
+## Anti Pattern 2: Not aggregating subquery in the WHERE clause,
 Example:
 ```
 SELECT 
@@ -321,7 +302,7 @@ Output:
 You are using an IN filter with a subquery without a DISTINCT on the following columns: project.dataset.table1.col2
 ```
 
-## Anti Pattern 4: Multiple CTEs referenced more than twice
+## Anti Pattern 3: Multiple CTEs referenced more than twice
 Example:
 ```
 WITH
@@ -346,7 +327,7 @@ Output:
 CTE with multiple references: alias a defined at line 2 is referenced 2 times
 ```
 
-## Anti Pattern 5: Using NTILE when APPROX_QUANTILE IS AN OPTION
+## Anti Pattern 4: Using NTILE when APPROX_QUANTILE IS AN OPTION
 Example:
 ```
 SELECT
@@ -367,7 +348,7 @@ Output:
 Use of NTILE window function detected at line 5. Prefer APPROX_QUANTILE if approximate bucketing is sufficient.
 ```
 
-## Anti Pattern 6: Using ORDER BY WITHOUT LIMIT
+## Anti Pattern 5: Using ORDER BY WITHOUT LIMIT
 Example:
 ```
 SELECT
@@ -385,7 +366,7 @@ Output:
 ORDER BY clause without LIMIT at line 8.
 ```
 
-## Anti Pattern 7: Using REGEXP_CONTAINS WHEN LIKE IS AN OPTION
+## Anti Pattern 6: Using REGEXP_CONTAINS WHEN LIKE IS AN OPTION
 Example:
 ```
 SELECT
