@@ -91,6 +91,7 @@ docker run \
   -i bigquery-antipattern-recognition \
   --read_from_info_schema \
   --read_from_info_schema_days 1 \
+  --info_schema_table_name" \`region-us\`.INFORMATION_SCHEMA.JOBS" \
   --processing_project_id <my-project> \
   --output_table "<my-project>.<my-dateset>.antipattern_output_table" 
 ```
@@ -171,6 +172,7 @@ To deploy using the **gcloud CLI** follow the instructions below.
         --task-timeout=15m \
         --args="--read_from_info_schema" \
         --args="--read_from_info_schema_days" --args="1" \
+        --args="--info_schema_table_name" --args="\`region-us\`.INFORMATION_SCHEMA.JOBS" \
         --args="--processing_project_id" --args="$PROJECT_ID" \
         --args="--output_table" --args="\\\`$OUTPUT_TABLE\\\`" \
         --service-account=$CLOUD_RUN_JOB_SA \
@@ -223,9 +225,9 @@ Must be set along with `--read_from_info_schema`. <br>
 Defaults to 1.
 </ul>
 
-``--read_from_info_schema_days="\`region-us\`.INFORMATION_SCHEMA.JOBS"``
+``--info_schema_table_name" \`region-us\`.INFORMATION_SCHEMA.JOBS" \``
 <ul>
-Specifies what variant of INFORMATION_SCHEMA.JONS to read from.
+Specifies what variant of INFORMATION_SCHEMA.JOBS to read from.
 </ul>
 
 ### To read from a files
@@ -318,5 +320,86 @@ Output:
 ```
 You are using an IN filter with a subquery without a DISTINCT on the following columns: project.dataset.table1.col2
 ```
+
+## Anti Pattern 4: Multiple CTEs referenced more than twice
+Example:
+```
+WITH
+  a AS (
+  SELECT col1,col2 FROM test WHERE col1='abc' 
+  ),
+  b AS ( 
+    SELECT col2 FROM a 
+  ),
+  c AS (
+  SELECT col1 FROM a 
+  )
+SELECT
+  b.col2,
+  c.col1
+FROM
+  b,c;
+```
+
+Output:
+```
+CTE with multiple references: alias a defined at line 2 is referenced 2 times
+```
+
+## Anti Pattern 5: Using NTILE when APPROX_QUANTILE IS AN OPTION
+Example:
+```
+SELECT
+  taxi_id,
+  fare,
+  payment_type,
+  NTILE(4) OVER (PARTITION BY payment_type ORDER BY fare ASC) AS fare_rank
+FROM
+  `taxi_trips` trips
+WHERE
+  EXTRACT(YEAR
+  FROM
+    trips.trip_start_timestamp AT TIME ZONE "UTC") = 2013;
+```
+
+Output:
+```
+Use of NTILE window function detected at line 5. Prefer APPROX_QUANTILE if approximate bucketing is sufficient.
+```
+
+## Anti Pattern 6: Using ORDER BY WITHOUT LIMIT
+Example:
+```
+SELECT
+  t.dim1,
+  t.dim2,
+  t.metric1
+FROM
+  `dataset.table` t
+ORDER BY
+  t.metric1 DESC;
+```
+
+Output:
+```
+ORDER BY clause without LIMIT at line 8.
+```
+
+## Anti Pattern 7: Using REGEXP_CONTAINS WHEN LIKE IS AN OPTION
+Example:
+```
+SELECT
+  dim1
+FROM
+  `dataset.table`
+WHERE
+  REGEXP_CONTAINS(dim1, ‘.*test.*’)
+```
+
+Output:
+```
+REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching).";
+```
+
 # Disclaimer
 This is not an officially supported Google product.
