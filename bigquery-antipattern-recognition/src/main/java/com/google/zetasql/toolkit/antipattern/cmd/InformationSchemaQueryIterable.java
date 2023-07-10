@@ -26,16 +26,19 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
   Iterator<FieldValueList> fieldValueListIterator;
   String IS_TABLE_DEFAULT = "`region-us`.INFORMATION_SCHEMA.JOBS";
   String DAYS_BACK_DEFAULT = "30";
+  Integer SLOTMS_MIN_DEFAULT = 0;
 
 
-  public InformationSchemaQueryIterable(String projectId, String customDaysBack, String customISTable)
+  public InformationSchemaQueryIterable(String projectId, String customDaysBack, String customISTable,
+                                        String infoSchemaSlotmsMin)
           throws InterruptedException {
 
     String daysBack = customDaysBack == null ? DAYS_BACK_DEFAULT : customDaysBack;
     String ISTable = customISTable == null ? IS_TABLE_DEFAULT : customISTable;
+    Integer slotsMsMin = infoSchemaSlotmsMin == null ? SLOTMS_MIN_DEFAULT : Integer.parseInt(infoSchemaSlotmsMin);
 
     TableResult tableResult =
-        BigQueryHelper.getQueriesFromIS(projectId, daysBack, ISTable);
+        BigQueryHelper.getQueriesFromIS(projectId, daysBack, ISTable, slotsMsMin);
     fieldValueListIterator = tableResult.iterateAll().iterator();
   }
 

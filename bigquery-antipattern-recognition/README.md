@@ -193,6 +193,13 @@ Defaults to 1.
 Specifies what variant of INFORMATION_SCHEMA.JOBS to read from.
 </ul>
 
+``--info_schema_min_slotms=n``
+<ul>
+Specifies a minimum number of slotms (integer value).<br> The queries that consume less than this minimum will not be selected for processing.
+This is useful when you only want to process the queries that consume more than a certain number of slotms.<br>
+Defaults to 0 (all queries are processed).
+</ul>
+
 ### To read from a files
 `--input_file_path=/path/to/file.sql`
 <ul>
