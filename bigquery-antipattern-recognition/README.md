@@ -58,6 +58,7 @@ CREATE TABLE dataset.antipattern_output_table (
   query STRING,
   recommendation STRING,
   slot_hours FLOAT64,
+  user_email STRING,
   process_timestamp TIMESTAMP
 );
 ```
