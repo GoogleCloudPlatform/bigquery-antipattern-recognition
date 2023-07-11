@@ -92,6 +92,7 @@ docker run \
   -i bigquery-antipattern-recognition \
   --read_from_info_schema \
   --read_from_info_schema_days 1 \
+  --info_schema_table_name" \`region-us\`.INFORMATION_SCHEMA.JOBS" \
   --processing_project_id <my-project> \
   --output_table "<my-project>.<my-dateset>.antipattern_output_table" 
 ```
@@ -172,6 +173,7 @@ To deploy using the **gcloud CLI** follow the instructions below.
         --task-timeout=15m \
         --args="--read_from_info_schema" \
         --args="--read_from_info_schema_days" --args="1" \
+        --args="--info_schema_table_name" --args="\`region-us\`.INFORMATION_SCHEMA.JOBS" \
         --args="--processing_project_id" --args="$PROJECT_ID" \
         --args="--output_table" --args="\\\`$OUTPUT_TABLE\\\`" \
         --service-account=$CLOUD_RUN_JOB_SA \
@@ -225,17 +227,18 @@ This will create a filter on the creation_time column of your INFORMATION_SCHEMA
 Defaults to 1.
 </ul>
 
-``--info_schema_table_name="\`region-us\`.INFORMATION_SCHEMA.JOBS"``
+``--info_schema_table_name" \`region-us\`.INFORMATION_SCHEMA.JOBS" \``
 <ul>
-Specifies what variant of INFORMATION_SCHEMA.JONS to read from.
+Specifies what variant of INFORMATION_SCHEMA.JOBS to read from.
 </ul>
 
-``--info_schema_min_slotms=n``
+``--info_schema_min_slot_ms=n``
 <ul>
-Specifies a minimum number of slotms (integer value).<br> The queries that consume less than this minimum will not be selected for processing.
+Specifies a minimum number of slot_ms (integer value).<br> The queries that consume less than this minimum will not be selected for processing.
 This is useful when you only want to process the queries that consume more than a certain number of slotms.<br>
 Defaults to 0 (all queries are processed).
 </ul>
+
 
 ### To read from a files
 `--input_file_path=/path/to/file.sql`
@@ -293,26 +296,7 @@ Output:
 All columns on table: project.dataset.table1 are being selected. Please be sure that all columns are needed
 ```
 
-
-## Anti Pattern 2: Using CROSS JOINs when INNER JOINs are an option
-Example:
-```
-SELECT
-   t1.col1
-FROM 
-   `project.dataset.table1` t1 
-cross JOIN " +
-    `project.dataset.table2` t2
-WHERE
-   t1.col1 = t2.col1;
-```
-
-Output:
-```
-CROSS JOIN between tables: project.dataset.table1 and project.dataset.table2. Try to change for a INNER JOIN if possible.
-```
-
-## Anti Pattern 3: Not aggregating subquery in the WHERE clause
+## Anti Pattern 2: Not aggregating subquery in the WHERE clause
 Example:
 ```
 SELECT 
@@ -328,7 +312,7 @@ Output:
 You are using an IN filter with a subquery without a DISTINCT on the following columns: project.dataset.table1.col2
 ```
 
-## Anti Pattern 4: Multiple CTEs referenced more than twice
+## Anti Pattern 3: Multiple CTEs referenced more than twice
 Example:
 ```
 WITH
@@ -353,7 +337,7 @@ Output:
 CTE with multiple references: alias a defined at line 2 is referenced 2 times
 ```
 
-## Anti Pattern 5: Using NTILE when APPROX_QUANTILE IS AN OPTION
+## Anti Pattern 4: Using NTILE when APPROX_QUANTILE IS AN OPTION
 Example:
 ```
 SELECT
@@ -374,7 +358,7 @@ Output:
 Use of NTILE window function detected at line 5. Prefer APPROX_QUANTILE if approximate bucketing is sufficient.
 ```
 
-## Anti Pattern 6: Using ORDER BY WITHOUT LIMIT
+## Anti Pattern 5: Using ORDER BY WITHOUT LIMIT
 Example:
 ```
 SELECT
@@ -392,7 +376,7 @@ Output:
 ORDER BY clause without LIMIT at line 8.
 ```
 
-## Anti Pattern 7: Using REGEXP_CONTAINS WHEN LIKE IS AN OPTION
+## Anti Pattern 6: Using REGEXP_CONTAINS WHEN LIKE IS AN OPTION
 Example:
 ```
 SELECT
@@ -407,20 +391,6 @@ Output:
 ```
 REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching).";
 ```
-# Licensing
-Copyright 2023 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
 
 # Disclaimer
 This is not an officially supported Google product.
