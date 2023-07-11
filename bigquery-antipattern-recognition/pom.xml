@@ -34,7 +34,7 @@ limitations under the License.
         <dependency>
             <artifactId>zetasql-toolkit-core</artifactId>
             <groupId>com.google.zetasql.toolkit</groupId>
-            <version>0.3.0</version>
+            <version>0.3.3</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
