@@ -16,6 +16,7 @@
 
 package com.google.zetasql.toolkit.antipattern.parser;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
@@ -50,6 +51,11 @@ public class Main {
   private static ZetaSQLToolkitAnalyzer analyzer;
   private static BigQueryService service;
   private static BigQueryCatalog catalog;
+  private static enum ParsingSuccess {
+    FULL,
+    PARTIAL,
+    NONE
+  }
 
   public static void main(String[] args) throws ParseException, IOException {
     cmdParser = new BQAntiPatternCMDParser(args);
@@ -68,14 +74,26 @@ public class Main {
 
     Iterator<InputQuery> inputQueriesIterator = cmdParser.getInputQueries();
     InputQuery inputQuery;
-    int countQueries = 0, countAntiPatterns = 0, countErrors = 0;
+    int countQueries = 0, countAntiPatterns = 0, countErrors = 0,
+            countNotParsedQueries = 0, countPartiallyParsedQueries = 0, countFullyParsedQueries = 0;
     while (inputQueriesIterator.hasNext()) {
       inputQuery = inputQueriesIterator.next();
       String query = inputQuery.getQuery();
       List<Object[]> outputData = new ArrayList<>();
       List<Map<String, String>> rec = new ArrayList<>();
       try {
-        getRecommendations(parserLanguageOptions, query, rec);
+        ParsingSuccess parsingSuccess = getRecommendations(parserLanguageOptions, query, rec);
+        switch (parsingSuccess) {
+          case FULL:
+            countFullyParsedQueries++;
+            break;
+          case PARTIAL:
+            countPartiallyParsedQueries++;
+            break;
+          case NONE:
+            countNotParsedQueries++;
+        }
+
         if (cmdParser.useAnalyzer()) {
           getRecommendationsAnalyzer(inputQuery, catalog, analyzer, service, rec);
         }
@@ -94,9 +112,15 @@ public class Main {
     logger.info(
         "Processing finished."
             + "Queries read: {}. "
+            + "Fully parsed queries: {}. "
+            + "Partially parsed queries: {}. "
+            + "Queries that could not be parsed: {}. "
             + "Queries with anti-patterns: {}. "
-            + "Queries that could not be parsed: {}.",
+            + "Queries with another error: {}.",
         countQueries,
+        countFullyParsedQueries,
+        countPartiallyParsedQueries,
+        countNotParsedQueries,
         countAntiPatterns,
         countErrors);
   }
@@ -136,34 +160,62 @@ public class Main {
     }
   }
 
-  private static void getRecommendations(LanguageOptions parserLanguageOptions,
+  private static ParsingSuccess getRecommendations(LanguageOptions parserLanguageOptions,
       String query, List<Map<String, String>> recommendation) {
-    ASTStatement parsedQuery = Parser.parseStatement(query, parserLanguageOptions);
-    recommendation.add(new HashMap<>() {{
-      put("name", "SelectStar");
-      put("description", new IdentifySimpleSelectStar().run(parsedQuery));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "SubqueryWithoutAgg");
-      put("description", new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "CTEsEvalMultipleTimes");
-      put("description", new IdentifyCTEsEvalMultipleTimes().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "OrderByWithoutLimit");
-      put("description", new IdentifyOrderByWithoutLimit().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "StringComparison");
-      put("description", new IdentifyRegexpContains().run(parsedQuery, query));
-    }});
-    recommendation.add(new HashMap<>() {{
-      put("name", "NtileWindowFunction");
-      put("description", new IdentifyNtileWindowFunction().run(parsedQuery, query));
-    }});
-    recommendation.removeIf(m -> m.get("description").isEmpty());
+
+    ASTStatement parsedQuery;
+    try {
+      parsedQuery = Parser.parseStatement(query, parserLanguageOptions);
+    }
+    catch (Exception e) {
+      return ParsingSuccess.NONE; // directly consider that the query fully failed
+    }
+
+    int failedToParseExceptionsCount = 0;
+
+    try {
+      recommendation.add(new HashMap<>() {{
+        put("name", "SelectStar");
+        put("description", new IdentifySimpleSelectStar().run(parsedQuery));
+      }});
+    } catch (Exception e) {
+      failedToParseExceptionsCount++;
+    }
+
+    Map<String, ? super BasePatternDetector> basePatternDetectors = Map.of(
+            "SubqueryWithoutAgg", new IdentifyInSubqueryWithoutAgg(),
+            "CTEsEvalMultipleTimes", new IdentifyCTEsEvalMultipleTimes(),
+            "OrderByWithoutLimit", new IdentifyOrderByWithoutLimit(),
+            "StringComparison", new IdentifyRegexpContains(),
+            "NtileWindowFunction", new IdentifyNtileWindowFunction()
+    );
+
+    for (Map.Entry<String, ? super BasePatternDetector> patternDetectorEntry : basePatternDetectors.entrySet()) {
+      try {
+
+        BasePatternDetector detector = (BasePatternDetector) patternDetectorEntry.getValue();
+        recommendation.add(new HashMap<>() {{
+          put("name", patternDetectorEntry.getKey());
+          put("description", detector.run(parsedQuery, query));
+        }});
+
+      } catch (Exception e) {
+        failedToParseExceptionsCount++;
+      }
+      recommendation.removeIf(m -> m.get("description").isEmpty());
+    }
+
+    // 1 Select Star detector plus the base pattern detectors
+    int numDetectors = 1 + basePatternDetectors.size();
+    if (failedToParseExceptionsCount == numDetectors) {
+      return ParsingSuccess.NONE;
+    }
+    else if (failedToParseExceptionsCount == 0) {
+      return ParsingSuccess.FULL;
+    }
+    else {
+      return ParsingSuccess.PARTIAL;
+    }
   }
 
   private static String getRecommendationsAnalyzer(InputQuery inputQuery, BigQueryCatalog catalog,
