@@ -139,7 +139,7 @@ To deploy using the **gcloud CLI** follow the instructions below.
 
     export CLOUD_RUN_JOB_NAME="bigquery-antipattern-recognition"  # Name for the Cloud Run job
     export CLOUD_RUN_JOB_SA=""  # Service account associated to the Cloud Run job
-    export OUTPUT_TABLE=""  # BigQuery output table for the Anti Pattern Detector
+    export OUTPUT_TABLE=""  # Ex: "project.dataset.table" BigQuery output table for the Anti Pattern Detector
     ```
 
 2. Create an Artifact Registry Repository, if necessary
@@ -174,7 +174,7 @@ To deploy using the **gcloud CLI** follow the instructions below.
         --args="--read_from_info_schema_days" --args="1" \
         --args="--info_schema_table_name" --args="\`region-us\`.INFORMATION_SCHEMA.JOBS" \
         --args="--processing_project_id" --args="$PROJECT_ID" \
-        --args="--output_table" --args="\\\`$OUTPUT_TABLE\\\`" \
+        --args="--output_table" --args="$OUTPUT_TABLE" \
         --service-account=$CLOUD_RUN_JOB_SA \
         --region=$REGION \
         --project=$PROJECT_ID
