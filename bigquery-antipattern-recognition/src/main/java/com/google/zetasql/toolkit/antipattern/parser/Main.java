@@ -162,6 +162,10 @@ public class Main {
       put("name", "NtileWindowFunction");
       put("description", new IdentifyNtileWindowFunction().run(parsedQuery, query));
     }});
+    recommendation.add(new HashMap<>() {{
+      put("name", "IdentifyLatestRecordsRowNum");
+      put("description", new IdentifyLatestRecordsRowNum().run(parsedQuery, query));
+    }});
     recommendation.removeIf(m -> m.get("description").isEmpty());
   }
 
