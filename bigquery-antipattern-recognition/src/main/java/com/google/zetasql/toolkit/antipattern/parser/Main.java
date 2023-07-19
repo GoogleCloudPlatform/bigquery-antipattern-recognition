@@ -122,6 +122,14 @@ public class Main {
       InputQuery inputQuery,
       List<Map<String, String>> rec) {
     if (cmdParser.isReadingFromInfoSchema()) {
+      if (cmdParser.getInformationSchemaTableName().toUpperCase().contains("INFORMATION_SCHEMA.VIEWS")) {
+        outputData.add(
+          new Object[]{
+            inputQuery.getQueryId(),
+            inputQuery.getQuery(),
+            rec,
+          });
+      } else {
       outputData.add(
           new Object[] {
               inputQuery.getQueryId(),
@@ -129,6 +137,7 @@ public class Main {
               Float.toString(inputQuery.getSlotHours()),
               rec,
           });
+      }
     } else {
       String output = rec.stream().map(m -> m.get("name") + ": \"" + m.getOrDefault("description", "") + "\"\n").collect(Collectors.joining());
       outputData.add(new String[] {inputQuery.getQueryId(), output});
