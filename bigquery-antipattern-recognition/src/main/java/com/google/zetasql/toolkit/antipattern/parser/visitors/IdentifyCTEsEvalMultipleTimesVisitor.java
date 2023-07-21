@@ -35,13 +35,13 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
       "CTE with multiple references: alias %s defined at line %d is referenced %d times.";
 
   // An array list to store the suggestions.
-  private ArrayList<String> result = new ArrayList<String>();
+  private final ArrayList<String> result = new ArrayList<>();
 
   // A map to keep track of the number of times each CTE is evaluated.
-  private Map<String, Integer> cteCountMap = new HashMap<>();
+  private final Map<String, Integer> cteCountMap = new HashMap<>();
 
   // A map to keep track of the number of times each CTE is evaluated.
-  private Map<String, Integer> cteStartPositionMap = new HashMap<>();
+  private final Map<String, Integer> cteStartPositionMap = new HashMap<>();
 
   private String query;
 
