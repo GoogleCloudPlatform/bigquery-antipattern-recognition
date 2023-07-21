@@ -16,6 +16,8 @@
 
 package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
+
+import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTSelect;
 import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
 import com.google.zetasql.parser.ASTNodes.ASTWithClause;
@@ -23,6 +25,7 @@ import com.google.zetasql.parser.ParseTreeVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
@@ -42,6 +45,8 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
 
   private String query;
 
+  private List<String> tableNameList;
+
   public IdentifyCTEsEvalMultipleTimesVisitor(String query) {
     this.query = query;
   }
@@ -53,58 +58,72 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
         .getWith()
         .forEach(
             alias -> {
-
               // Add the CTE name to the count map with initial count 0.
               cteCountMap.put(alias.getAlias().getIdString().toLowerCase(), 0);
               cteStartPositionMap.put(alias.getAlias().getIdString().toLowerCase(), alias.getParseLocationRange().start());
-
-              // If the query expression is a SELECT statement, visit the FROM clause.
-              if (alias.getQuery().getQueryExpr() instanceof ASTSelect) {
-                ASTTablePathExpression tablePathExp =
-                    (ASTTablePathExpression)
-                        ((ASTSelect) alias.getQuery().getQueryExpr())
-                            .getFromClause()
-                            .getTableExpression();
-                visit(tablePathExp);
-              }
+              // Visit from and fetch tablename
+                if(alias.getQuery().getQueryExpr() instanceof ASTSelect){
+                    ASTNodes.ASTTableExpression tableExpression = ((ASTSelect) alias.getQuery().getQueryExpr()).getFromClause().getTableExpression();
+                    visit(tableExpression);
+                }
             });
+      getPatternResults();
   }
 
-  public void visit(ASTTablePathExpression tablePathExpression) {
-
-    // Loop through all the identifiers in the table path expression.
-    tablePathExpression
-        .getPathExpr()
-        .getNames()
-        .forEach(
-            identifier -> {
-
-              // Get the identifier as a string in lower case.
-              String table = identifier.getIdString().toLowerCase();
-
-              // If the count map contains the identifier, increment its count.
-              if (cteCountMap.containsKey(table)) {
-                cteCountMap.put(table, cteCountMap.get(table) + 1);
-              }
-            });
-
-    // Loop through all the entries in the count map.
-    for (Map.Entry<String, Integer> entry : cteCountMap.entrySet()) {
-
-      // Get the CTE name and its count.
-      String cteName = entry.getKey();
-      int count = entry.getValue();
-
-      // If the CTE count is greater than 1, add the suggestion message to the list.
-      if (count > 1) {
-        int lineNum = ZetaSQLStringParsingHelper.countLine(query, cteStartPositionMap.get(cteName));
-        result.add(String.format(MULTIPLE_CTE_SUGGESTION_MESSAGE, cteName, lineNum, count));
-      }
+  // fetch table names from, FROM clause
+    public void visit(ASTNodes.ASTTableExpression tableExpression) {
+        if(tableExpression instanceof ASTNodes.ASTTablePathExpression) {
+            visit((ASTTablePathExpression) tableExpression);
+        }
+        else if(tableExpression instanceof ASTNodes.ASTJoin){
+            visit(((ASTNodes.ASTJoin) tableExpression).getLhs());
+            visit(((ASTNodes.ASTJoin) tableExpression).getRhs());
+        }
+        else if(tableExpression instanceof ASTNodes.ASTTableSubquery){
+            ASTNodes.ASTQueryExpression queryExpression =  ((ASTNodes.ASTTableSubquery) tableExpression).getSubquery().getQueryExpr();
+            if(queryExpression instanceof ASTNodes.ASTSelect)
+            {
+                ASTNodes.ASTTableExpression tableExpression1 =  ((ASTSelect) queryExpression).getFromClause().getTableExpression();
+                visit(tableExpression1);
+            }
+        }
     }
-  }
 
-  // Getter method to retrieve the list of suggestion messages.
-  public ArrayList<String> getResult() {
-    return result;
-  }
+    // Fetch table names and count occurrence of it
+    public void visit(ASTTablePathExpression tablePathExpression) {
+
+        // Loop through all the identifiers in the table path expression.
+        tablePathExpression
+                .getPathExpr()
+                .getNames()
+                .forEach(
+                        identifier -> {
+                            // Get the identifier as a string in lower case.
+                            String table = identifier.getIdString().toLowerCase();
+                            // If the count map contains the identifier, increment its count.
+                            if (cteCountMap.containsKey(table)) {
+                                cteCountMap.put(table, cteCountMap.get(table) + 1);
+                            }
+                        });
+    }
+
+ public void getPatternResults(){
+     // Loop through all the entries in the count map.
+     for (Map.Entry<String, Integer> entry : cteCountMap.entrySet()) {
+         // Get the CTE name and its count.
+         String cteName = entry.getKey();
+         int count = entry.getValue();
+         // If the CTE count is greater than 1, add the suggestion message to the list.
+         if (count > 1) {
+             int lineNum = ZetaSQLStringParsingHelper.countLine(query, cteStartPositionMap.get(cteName));
+             result.add(String.format(MULTIPLE_CTE_SUGGESTION_MESSAGE, cteName, lineNum, count));
+         }
+     }
+ }
+
+    // Getter method to retrieve the list of suggestion messages.
+    public ArrayList<String> getResult() {
+        return result;
+    }
 }
+

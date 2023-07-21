@@ -73,7 +73,7 @@ public class IdentifyCTEsEvalMultipleTimesTest {
   // subquery
   @Test
   public void withOneCTETest() {
-    String expected = "CTE with multiple references: alias a defined at line 2 is referenced 2 times.";
+    String expected = "";
     String query =
         "WITH\n"
             + "  a AS (\n"
@@ -128,6 +128,39 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "    b, \n"
             + "    c;";
 
+    ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
+    assertEquals(expected, recommendation);
+  }
+
+  // Test with a query that uses joins and sub-queries like nested patterns.
+  @Test
+  public void nestedJoinsTest(){
+    String expected = "CTE with multiple references: alias a defined at line 1 is referenced 2 times.";
+    String query = "with a as (\n" +
+            "select col1, col2, col3\n" +
+            "from `dataset.table`\n" +
+            "where col1 = 10\n" +
+            "),\n" +
+            "b as (\n" +
+            "select col4, col5\n" +
+            "from `dataset.table` a\n" +
+            "left join `dataset.table2` b on a.id = b.id\n" +
+            "left join `dataset.table3` c on b.id = c.id\n" +
+            "left join (select * from `dataset.table3`) d on c.id = d.id \n" +
+            "),\n" +
+            "c as (\n" +
+            "select col5, col6\n" +
+            "from ( select * from `dataset.table5` ) x\n" +
+            "left join a on x.id = a.id\n" +
+            "),\n" +
+            "d as (\n" +
+            "select col6, col7,\n" +
+            "from a\n" +
+            ")\n" +
+            "select *\n" +
+            "from `dataset.table5` b\n" +
+            "left join a on a.id = b.id";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
     String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
     assertEquals(expected, recommendation);
