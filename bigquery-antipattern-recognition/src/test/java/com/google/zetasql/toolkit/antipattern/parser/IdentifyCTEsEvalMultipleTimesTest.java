@@ -73,7 +73,7 @@ public class IdentifyCTEsEvalMultipleTimesTest {
   // subquery
   @Test
   public void withOneCTETest() {
-    String expected = "";
+    String expected = "CTE with multiple references: alias a defined at line 2 is referenced 2 times.";
     String query =
         "WITH\n"
             + "  a AS (\n"
@@ -136,7 +136,7 @@ public class IdentifyCTEsEvalMultipleTimesTest {
   // Test with a query that uses joins and sub-queries like nested patterns.
   @Test
   public void nestedJoinsTest(){
-    String expected = "CTE with multiple references: alias a defined at line 1 is referenced 2 times.";
+    String expected = "CTE with multiple references: alias a defined at line 1 is referenced 3 times.";
     String query = "with a as (\n" +
             "select col1, col2, col3\n" +
             "from `dataset.table`\n" +
