@@ -22,6 +22,7 @@ import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.antipattern.cmd.BQAntiPatternCMDParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
+import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.ArrayList;
@@ -58,7 +59,8 @@ public class Main {
         options,
         analyzer,
         inputQueryIterator,
-        bqAntiPatternCMDParser.getProcessingProject());
+        bqAntiPatternCMDParser.getProcessingProject(),
+        bqAntiPatternCMDParser.getOutputTable());
   }
 
   private static void populateAntiPatterList() {
@@ -72,37 +74,41 @@ public class Main {
       AnalyzerOptions options,
       ZetaSQLToolkitAnalyzer analyzer,
       Iterator<InputQuery> inputQueryIterator,
-      String outputProjectId) {
-    List<String> recommendationsList = new ArrayList<>();
+      String outputProjectId,
+      String outputTable) {
 
-    InputQuery inputQuery;
     while (inputQueryIterator.hasNext()) {
-      inputQuery = inputQueryIterator.next();
-      String query = inputQuery.getQuery();
 
-      catalog.addAllTablesUsedInQuery(query, options);
+      try {
+        InputQuery inputQuery = inputQueryIterator.next();
+        String query = inputQuery.getQuery();
+        catalog.addAllTablesUsedInQuery(query, options);
 
-      antiPatterList.forEach(
-          antiPatter -> {
-            String rec = antiPatter.run(query, catalog, analyzer);
-            if (rec.length() > 0) {
-              recommendationsList.add(rec);
-            }
-          });
+        List<String> recommendationsList = new ArrayList<>();
+        antiPatterList.forEach(
+                antiPatter -> {
+                  String rec = antiPatter.run(query, catalog, analyzer);
+                  if (rec.length() > 0) {
+                    recommendationsList.add(rec);
+                  }
+                });
 
-      String recommendations = String.join("\n", recommendationsList);
-      recommendationsList.clear();
-      System.out.println(recommendations);
+        String recommendations = String.join("\n", recommendationsList);
+        System.out.println(recommendations);
 
-      // Create a map of rows to insert
-      Map<String, Object> rowContent = new HashMap<>();
-      rowContent.put("job_id", inputQuery.getQueryId());
-      rowContent.put("query", query);
-      rowContent.put("slot_hours", inputQuery.getSlotHours());
-      rowContent.put("recommendation", recommendations);
-      rowContent.put("process_timestamp", new DateTime(new Date()));
+        // Create a map of rows to insert
+        Map<String, Object> rowContent = new HashMap<>();
+        rowContent.put("job_id", inputQuery.getQueryId());
+        rowContent.put("query", query);
+        rowContent.put("slot_hours", inputQuery.getSlotHours());
+        rowContent.put("recommendation", recommendations);
+        rowContent.put("process_timestamp", new DateTime(new Date()));
 
-      //     BigQueryHelper.writeResults(outputProjectId, rowContent);
+        BigQueryHelper.writeResults(outputProjectId, outputTable, rowContent);
+      } catch (Exception e) {
+          // when a query fails while analyzing, log the exception and continue
+        e.printStackTrace();
+      }
     }
   }
 }
