@@ -40,7 +40,9 @@ public class IdentifySubqueryInWhere implements BasePatternDetector {
 
     visitor.getResult().forEach(subqueryInWhereColumns -> parseResults(subqueryInWhereColumns));
 
-    return StringUtils.join(result, "\n");
+    String retValue = StringUtils.join(result, "\n");
+    result.clear();
+    return retValue;
   }
 
   public void parseResults(String subqueryInWhereColumns) {

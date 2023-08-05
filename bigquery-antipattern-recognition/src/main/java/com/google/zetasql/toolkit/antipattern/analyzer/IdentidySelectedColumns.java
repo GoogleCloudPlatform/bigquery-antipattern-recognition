@@ -54,7 +54,9 @@ public class IdentidySelectedColumns implements BasePatternDetector {
               }
             });
 
-    return StringUtils.join(result, "\n");
+    String retValue = StringUtils.join(result, "\n");
+    result.clear();
+    return retValue;
   }
 
   static void checkTable(

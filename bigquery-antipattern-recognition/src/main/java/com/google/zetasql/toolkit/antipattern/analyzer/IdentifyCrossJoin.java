@@ -42,7 +42,9 @@ public class IdentifyCrossJoin implements BasePatternDetector {
     List<CrossJoin> crossJoinList = visitor.getResult();
     crossJoinList.forEach(crossJoin -> parseCrossJoin(crossJoin));
 
-    return StringUtils.join(result, "\n");
+    String retValue = StringUtils.join(result, "\n");
+    result.clear();
+    return retValue;
   }
 
   public void parseCrossJoin(CrossJoin crossJoin) {
