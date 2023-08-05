@@ -72,6 +72,7 @@ public class BigQueryHelper {
                     + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
                     + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
                     + "  AND query not like '%INFORMATION_SCHEMA%' \n"
+                    + "  AND error_result.reason IS  NULL \n"
                     + "ORDER BY \n"
                     + "  project_id, start_time desc\n")
             .setUseLegacySql(false)
