@@ -1,0 +1,6 @@
+id,query
+1,SelectStar: "SELECT * on table: table1. Check that all columns are needed."
+2,CTEsEvalMultipleTimes: "CTE with multiple references: alias a defined at line 1 is referenced 2 times."
+3,SubqueryWithoutAgg: "Subquery in filter without aggregation at line 6."
+4,OrderByWithoutLimit: "ORDER BY clause without LIMIT at line 5."
+5,StringComparison: "REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching)."

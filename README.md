@@ -70,7 +70,7 @@ docker run \
 Read from information schema and write to output table:
 1) Create a table with the following DDL:
 ```
-CREATE TABLE <my-project>.<my-dateset>.antipattern_output_table (
+CREATE OR REPLACE TABLE <my-project>.<my-dateset>.antipattern_output_table (
   job_id STRING,
   user_email STRING,
   query STRING,
@@ -92,9 +92,8 @@ docker run \
   -i bigquery-antipattern-recognition \
   --read_from_info_schema \
   --read_from_info_schema_days 1 \
-  --info_schema_table_name" \`region-us\`.INFORMATION_SCHEMA.JOBS" \
   --processing_project_id <my-project> \
-  --output_table "<my-project>.<my-dateset>.antipattern_output_table" 
+  --output_table "<my-project>.<my-dataset>.antipattern_output_table" 
 ```
 
 Run using advanced analytics 

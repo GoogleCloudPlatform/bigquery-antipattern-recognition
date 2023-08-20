@@ -111,18 +111,14 @@ public class Main {
 
     logger.info(
         "Processing finished."
-            + "Queries read: {}. "
-            + "Fully parsed queries: {}. "
-            + "Partially parsed queries: {}. "
-            + "Queries that could not be parsed: {}. "
-            + "Queries with anti-patterns: {}. "
-            + "Queries with another error: {}.",
+            + "\nQueries read: {}"
+            + "\nParsed queries: {}"
+            + "\nQueries that could not be parsed: {}"
+            + "\nQueries with anti-patterns: {}",
         countQueries,
-        countFullyParsedQueries,
         countPartiallyParsedQueries,
         countNotParsedQueries,
-        countAntiPatterns,
-        countErrors);
+        countAntiPatterns);
   }
 
   private static ZetaSQLToolkitAnalyzer getAnalyzer(AnalyzerOptions options) {
