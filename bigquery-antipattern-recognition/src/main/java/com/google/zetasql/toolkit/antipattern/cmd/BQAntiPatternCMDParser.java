@@ -40,6 +40,7 @@ public class BQAntiPatternCMDParser {
   public static final String OUTPUT_FILE_OPTION_NAME = "output_file_path";
   public static final String READ_FROM_INFO_SCHEMA_FLAG_NAME = "read_from_info_schema";
   public static final String READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME = "read_from_info_schema_days";
+  public static final String INFO_SCHEMA_MIN_SLOTMS="info_schema_min_slotms";
   public static final String READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME = "info_schema_table_name";
   public static final String PROCESSING_PROJECT_ID_OPTION_NAME = "processing_project_id";
   public static final String OUTPUT_TABLE_OPTION_NAME = "output_table";
@@ -169,6 +170,16 @@ public class BQAntiPatternCMDParser {
             .build();
     options.addOption(infoSchemaDays);
 
+    Option infoSchemaSlotmsMin =
+        Option.builder(INFO_SCHEMA_MIN_SLOTMS)
+                .argName(INFO_SCHEMA_MIN_SLOTMS)
+                .hasArg()
+                .required(false)
+                .desc("Specifies the minimum number of slotms for a query in INFORMATION_SCHEMA to be" +
+                        "selected for processing. Defaults to 0 (all queries are processed)")
+                .build();
+    options.addOption(infoSchemaSlotmsMin);
+
     Option infoSchemaTable =
         Option.builder(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME)
             .argName(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME)
@@ -220,20 +231,11 @@ public class BQAntiPatternCMDParser {
 
   private Iterator<InputQuery> readFromIS() throws InterruptedException {
     logger.info("Using INFORMATION_SCHEMA as input source");
-    if (cmd.hasOption(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME)
-        && cmd.hasOption(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME)) {
-      return new InformationSchemaQueryIterable(
-          cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME),
-          cmd.getOptionValue(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME),
-          cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME));
-    } else if (cmd.hasOption(READ_FROM_INFO_SCHEMA_FLAG_NAME)) {
-      return new InformationSchemaQueryIterable(
-          cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME),
-          cmd.getOptionValue(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME));
-    } else {
-      return new InformationSchemaQueryIterable(
-          cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME));
-    }
+    String processingProjectId = cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME);
+    String infoSchemaDays = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME);
+    String infoSchemaTableName = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME);
+    String infoSchemaSlotmsMin = cmd.getOptionValue(INFO_SCHEMA_MIN_SLOTMS);
+    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays, infoSchemaTableName, infoSchemaSlotmsMin);
   }
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {

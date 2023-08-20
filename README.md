@@ -72,6 +72,7 @@ Read from information schema and write to output table:
 ```
 CREATE TABLE <my-project>.<my-dateset>.antipattern_output_table (
   job_id STRING,
+  user_email STRING,
   query STRING,
   recommendation ARRAY<STRUCT<name STRING, description STRING>>,
   slot_hours FLOAT64,

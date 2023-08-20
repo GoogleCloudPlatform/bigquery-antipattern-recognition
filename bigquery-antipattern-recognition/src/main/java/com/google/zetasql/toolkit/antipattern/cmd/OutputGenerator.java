@@ -68,7 +68,8 @@ public class OutputGenerator {
       rowContent.put("job_id", row[0]);
       rowContent.put("query", row[1]);
       rowContent.put("slot_hours", row[2]);
-      rowContent.put("recommendation", row[3]);
+      rowContent.put("user_email", row[3]);
+      rowContent.put("recommendation", row[4]);
       rowContent.put("process_timestamp", date);
       BigQueryHelper.writeResults(
           cmdParser.getProcessingProject(), cmdParser.getOutputTable(), rowContent);

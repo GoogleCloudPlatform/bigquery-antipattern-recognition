@@ -41,13 +41,15 @@ public class BigQueryHelper {
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
-  public static TableResult getQueriesFromIS(String projectId, String daysBack, String ISTable)
+  public static TableResult getQueriesFromIS(String projectId, String daysBack, String ISTable, Integer slotsMsMin)
       throws InterruptedException {
     logger.info(
-        "Running job on project {}, reading from: {}, scanning last {} days.",
+        "Running job on project {}, reading from: {}, scanning last {} days " +
+                "and selecting queries with minimum {} slotms",
         projectId,
         ISTable,
-        daysBack);
+        daysBack,
+        slotsMsMin);
     BigQuery bigquery =
         BigQueryOptions.newBuilder()
             .setProjectId(projectId)
@@ -60,15 +62,16 @@ public class BigQueryHelper {
                     + "  project_id,\n"
                     + "  CONCAT(project_id, \":US.\",  job_id) job_id, \n"
                     + "  query, \n"
-                    + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours\n"
+                    + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours, \n"
+                    + "  user_email \n"
                     + "FROM\n"
                     + ISTable
                     + "\n"
                     + "WHERE \n"
-                    + "  start_time >= CURRENT_TIMESTAMP - INTERVAL "
+                    + "  creation_time >= CURRENT_TIMESTAMP - INTERVAL "
                     + daysBack
                     + " DAY\n"
-                    + "  AND total_slot_ms > 0\n"
+                    + "  AND total_slot_ms > "+ slotsMsMin+ "\n"
                     + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
                     + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
                     + "  AND query not like '%INFORMATION_SCHEMA%' \n"
