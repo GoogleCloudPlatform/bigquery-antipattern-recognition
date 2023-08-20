@@ -72,10 +72,10 @@ Read from information schema and write to output table:
 ```
 CREATE TABLE <my-project>.<my-dateset>.antipattern_output_table (
   job_id STRING,
+  user_email STRING,
   query STRING,
   recommendation ARRAY<STRUCT<name STRING, description STRING>>,
   slot_hours FLOAT64,
-  user_email STRING,
   process_timestamp TIMESTAMP
 );
 ```
@@ -140,7 +140,7 @@ To deploy using the **gcloud CLI** follow the instructions below.
 
     export CLOUD_RUN_JOB_NAME="bigquery-antipattern-recognition"  # Name for the Cloud Run job
     export CLOUD_RUN_JOB_SA=""  # Service account associated to the Cloud Run job
-    export OUTPUT_TABLE=""  # BigQuery output table for the Anti Pattern Detector
+    export OUTPUT_TABLE=""  # Ex: "project.dataset.table" BigQuery output table for the Anti Pattern Detector
     ```
 
 2. Create an Artifact Registry Repository, if necessary
@@ -175,7 +175,7 @@ To deploy using the **gcloud CLI** follow the instructions below.
         --args="--read_from_info_schema_days" --args="1" \
         --args="--info_schema_table_name" --args="\`region-us\`.INFORMATION_SCHEMA.JOBS" \
         --args="--processing_project_id" --args="$PROJECT_ID" \
-        --args="--output_table" --args="\\\`$OUTPUT_TABLE\\\`" \
+        --args="--output_table" --args="$OUTPUT_TABLE" \
         --service-account=$CLOUD_RUN_JOB_SA \
         --region=$REGION \
         --project=$PROJECT_ID
@@ -223,7 +223,6 @@ To read input queries from INFORMATION_SCHEMA.JOBS.
 <ul>
 Specifies how many days of INFORMATION_SCHEMA to read <br> 
 Must be set along with `--read_from_info_schema`. <br>
-This will create a filter on the creation_time column of your INFORMATION_SCHEMA view.<br>
 Defaults to 1.
 </ul>
 
@@ -231,14 +230,6 @@ Defaults to 1.
 <ul>
 Specifies what variant of INFORMATION_SCHEMA.JOBS to read from.
 </ul>
-
-``--info_schema_min_slot_ms=n``
-<ul>
-Specifies a minimum number of slot_ms (integer value).<br> The queries that consume less than this minimum will not be selected for processing.
-This is useful when you only want to process the queries that consume more than a certain number of slotms.<br>
-Defaults to 0 (all queries are processed).
-</ul>
-
 
 ### To read from a files
 `--input_file_path=/path/to/file.sql`
@@ -296,7 +287,7 @@ Output:
 All columns on table: project.dataset.table1 are being selected. Please be sure that all columns are needed
 ```
 
-## Anti Pattern 2: Not aggregating subquery in the WHERE clause
+## Anti Pattern 2: Not aggregating subquery in the WHERE clause,
 Example:
 ```
 SELECT 
