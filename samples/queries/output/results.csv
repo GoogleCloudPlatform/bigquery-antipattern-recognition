@@ -1,0 +1,6 @@
+id,query
+/samples/queries/input/selectStar.sql,SelectStar: "SELECT * on table: table1. Check that all columns are needed."
+/samples/queries/input/multipleCTEs.sql,CTEsEvalMultipleTimes: "CTE with multiple references: alias a defined at line 1 is referenced 2 times."
+/samples/queries/input/stringComaprison.sql,StringComparison: "REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching)."
+/samples/queries/input/subqueryInFilterWithoutAgg.sql,SubqueryWithoutAgg: "Subquery in filter without aggregation at line 6."
+/samples/queries/input/orderByWithoutLimit.sql,OrderByWithoutLimit: "ORDER BY clause without LIMIT at line 5."
