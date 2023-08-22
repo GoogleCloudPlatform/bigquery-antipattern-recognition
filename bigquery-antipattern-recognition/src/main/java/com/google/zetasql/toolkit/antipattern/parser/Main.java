@@ -133,6 +133,7 @@ public class Main {
     LanguageOptions languageOptions = new LanguageOptions();
     languageOptions.enableMaximumLanguageFeatures();
     languageOptions.setSupportsAllStatementKinds();
+    languageOptions.enableReservableKeyword("QUALIFY");
     return languageOptions;
   }
 
