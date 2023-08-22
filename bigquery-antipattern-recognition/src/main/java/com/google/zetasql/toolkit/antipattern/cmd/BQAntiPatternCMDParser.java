@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.cli.*;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,9 @@ public class BQAntiPatternCMDParser {
   public static final String OUTPUT_FILE_OPTION_NAME = "output_file_path";
   public static final String READ_FROM_INFO_SCHEMA_FLAG_NAME = "read_from_info_schema";
   public static final String READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME = "read_from_info_schema_days";
+  public static final String READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME = "read_from_info_schema_start_time";
+  public static final String READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME = "read_from_info_schema_end_time";
+  public static final String READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME = "read_from_info_schema_timeout_in_secs";
   public static final String INFO_SCHEMA_MIN_SLOTMS="info_schema_min_slotms";
   public static final String READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME = "info_schema_table_name";
   public static final String PROCESSING_PROJECT_ID_OPTION_NAME = "processing_project_id";
@@ -170,14 +174,41 @@ public class BQAntiPatternCMDParser {
             .build();
     options.addOption(infoSchemaDays);
 
-    Option infoSchemaSlotmsMin =
-        Option.builder(INFO_SCHEMA_MIN_SLOTMS)
-                .argName(INFO_SCHEMA_MIN_SLOTMS)
+    Option infoSchemaStartTime =
+        Option.builder(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME)
+                .argName(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME)
                 .hasArg()
                 .required(false)
-                .desc("Specifies the minimum number of slotms for a query in INFORMATION_SCHEMA to be" +
-                        "selected for processing. Defaults to 0 (all queries are processed)")
+                .desc("Specifies start timestamp INFORMATION SCHEMA be queried for")
                 .build();
+    options.addOption(infoSchemaStartTime);
+
+    Option infoSchemaEndTime =
+        Option.builder(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME)
+                .argName(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME)
+                .hasArg()
+                .required(false)
+                .desc("Specifies end timestamp INFORMATION SCHEMA be queried for")
+                .build();
+    options.addOption(infoSchemaEndTime);
+
+    Option infoSchemaTimeoutSecs =
+        Option.builder(READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME)
+                .argName(READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME)
+                .hasArg()
+                .required(false)
+                .desc("Specifies timeout (in secs) to query INFORMATION SCHEMA")
+                .build();
+    options.addOption(infoSchemaTimeoutSecs);
+
+    Option infoSchemaSlotmsMin =
+            Option.builder(INFO_SCHEMA_MIN_SLOTMS)
+                    .argName(INFO_SCHEMA_MIN_SLOTMS)
+                    .hasArg()
+                    .required(false)
+                    .desc("Specifies the minimum number of slotms for a query in INFORMATION_SCHEMA to be" +
+                            "selected for processing. Defaults to 0 (all queries are processed)")
+                    .build();
     options.addOption(infoSchemaSlotmsMin);
 
     Option infoSchemaTable =
@@ -235,7 +266,11 @@ public class BQAntiPatternCMDParser {
     String infoSchemaDays = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME);
     String infoSchemaTableName = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME);
     String infoSchemaSlotmsMin = cmd.getOptionValue(INFO_SCHEMA_MIN_SLOTMS);
-    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays, infoSchemaTableName, infoSchemaSlotmsMin);
+    String timeoutInSecs = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME);
+    String infoSchemaStartTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME);
+    String infoSchemaEndTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME);
+
+    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays, infoSchemaStartTime, infoSchemaEndTime, infoSchemaTableName, infoSchemaSlotmsMin, timeoutInSecs);
   }
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {

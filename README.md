@@ -225,6 +225,22 @@ Must be set along with `--read_from_info_schema`. <br>
 Defaults to 1.
 </ul>
 
+`--read_from_info_schema_start_time="start-timestamp"` <br>
+`--read_from_info_schema_end_time="end-timestamp"`
+<ul>
+Alternative to `read_from_info_schema_days` option,<br>
+to specify start and end date or timestamp of INFORMATION_SCHEMA to read.<br>
+Must be set along with `--read_from_info_schema`. <br>
+Defaults to `--read_from_info_schema_days` option.
+</ul>
+
+`--read_from_info_schema_timeout_in_secs=n`
+<ul>
+Specifies timeout, in secs, to query INFORMATION SCHEMA<br>
+Must be set along with `--read_from_info_schema`. <br>
+Defaults to 60.
+</ul>
+
 ``--info_schema_table_name" \`region-us\`.INFORMATION_SCHEMA.JOBS" \``
 <ul>
 Specifies what variant of INFORMATION_SCHEMA.JOBS to read from.

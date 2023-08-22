@@ -29,11 +29,13 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableResult;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BigQueryHelper {
-
   private static final String USER_AGENT_HEADER = "user-agent";
   private static final String USER_AGENT_VALUE =
       "google-pso-tool/bq-anti-pattern-recognition/0.1.0";
@@ -41,21 +43,53 @@ public class BigQueryHelper {
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
-  public static TableResult getQueriesFromIS(String projectId, String daysBack, String ISTable, Integer slotsMsMin)
+  public static TableResult getQueriesFromIS(String projectId, String daysBack, String startTime, String endTime,
+                                             String ISTable, Integer slotsMsMin, Long timeoutInSecs)
+          throws InterruptedException {
+    String timeCriteria;
+    if (StringUtils.isBlank(startTime) || StringUtils.isBlank(endTime)) {
+      logger.info(
+              "Running job on project {}, reading from: {}, scanning last {} days." +
+                      "and selecting queries with minimum {} slotms",
+              projectId,
+              ISTable,
+              daysBack,
+              slotsMsMin);
+      timeCriteria = "  creation_time >= CURRENT_TIMESTAMP - INTERVAL " + daysBack + " DAY\n";
+    } else {
+      logger.info(
+              "Running job on project {}, reading from: {}, scanning between {} and {}." +
+                      "and selecting queries with minimum {} slotms",
+              projectId,
+              ISTable,
+              startTime,
+              endTime,
+              slotsMsMin);
+
+      startTime = startTime.trim();
+      endTime = endTime.trim();
+      if (!(startTime.startsWith("'") || startTime.startsWith("\""))) {
+        startTime = "'" + startTime + "'";
+      }
+      if (!(endTime.startsWith("'") || endTime.startsWith("\""))) {
+        endTime = "'" + endTime + "'";
+      }
+      timeCriteria = "  creation_time BETWEEN " + startTime + " AND " + endTime + "\n";
+    }
+    return getQueriesFromIS(projectId, timeoutInSecs, timeCriteria, ISTable, slotsMsMin);
+  }
+
+  private static TableResult getQueriesFromIS(String projectId, Long timeoutInSecs,
+                                             String timeCriteria,
+                                             String ISTable, Integer slotsMsMin)
       throws InterruptedException {
-    logger.info(
-        "Running job on project {}, reading from: {}, scanning last {} days " +
-                "and selecting queries with minimum {} slotms",
-        projectId,
-        ISTable,
-        daysBack,
-        slotsMsMin);
     BigQuery bigquery =
         BigQueryOptions.newBuilder()
             .setProjectId(projectId)
             .setHeaderProvider(headerProvider)
             .build()
             .getService();
+
     QueryJobConfiguration queryConfig =
         QueryJobConfiguration.newBuilder(
                 "SELECT\n"
@@ -68,9 +102,7 @@ public class BigQueryHelper {
                     + ISTable
                     + "\n"
                     + "WHERE \n"
-                    + "  creation_time >= CURRENT_TIMESTAMP - INTERVAL "
-                    + daysBack
-                    + " DAY\n"
+                    + timeCriteria
                     + "  AND total_slot_ms > "+ slotsMsMin+ "\n"
                     + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
                     + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
@@ -78,8 +110,10 @@ public class BigQueryHelper {
                     + "ORDER BY \n"
                     + "  project_id, start_time desc\n")
             .setUseLegacySql(false)
+            .setJobTimeoutMs(TimeUnit.SECONDS.toMillis(timeoutInSecs))
             .build();
 
+    logger.debug("Running query:\n" + queryConfig.getQuery());
     Job queryJob = bigquery.create(JobInfo.newBuilder(queryConfig).build());
     return queryJob.getQueryResults();
   }
@@ -94,6 +128,9 @@ public class BigQueryHelper {
             .setHeaderProvider(headerProvider)
             .build()
             .getService();
-    bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+    InsertAllResponse response = bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+    if(response.hasErrors()) {
+      logger.error("Insert into " + tableId.toString() + " failed, with these errors: " + StringUtils.join(response.getInsertErrors()) );
+    }
   }
 }
