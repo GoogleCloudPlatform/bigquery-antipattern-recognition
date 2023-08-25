@@ -19,7 +19,11 @@ package com.google.zetasql.toolkit.antipattern.cmd;
 import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.TableResult;
 import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+
 import java.util.Iterator;
+import java.util.Optional;
 
 public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
 
@@ -27,18 +31,21 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
   String IS_TABLE_DEFAULT = "`region-us`.INFORMATION_SCHEMA.JOBS";
   String DAYS_BACK_DEFAULT = "30";
   Integer SLOTMS_MIN_DEFAULT = 0;
+  Long TIMEOUT_SECS_DEFAULT = 60L;
 
 
-  public InformationSchemaQueryIterable(String projectId, String customDaysBack, String customISTable,
-                                        String infoSchemaSlotmsMin)
+  public InformationSchemaQueryIterable(String projectId, String customDaysBack, String startTime, String endTime, String customISTable,
+                                        String infoSchemaSlotmsMin, String customTimeoutInSecs)
           throws InterruptedException {
 
     String daysBack = customDaysBack == null ? DAYS_BACK_DEFAULT : customDaysBack;
     String ISTable = customISTable == null ? IS_TABLE_DEFAULT : customISTable;
     Integer slotsMsMin = infoSchemaSlotmsMin == null ? SLOTMS_MIN_DEFAULT : Integer.parseInt(infoSchemaSlotmsMin);
+    Long timeoutInSecs = !NumberUtils.isParsable(customTimeoutInSecs) ? TIMEOUT_SECS_DEFAULT : Long.parseLong(customTimeoutInSecs);
 
     TableResult tableResult =
-        BigQueryHelper.getQueriesFromIS(projectId, daysBack, ISTable, slotsMsMin);
+        BigQueryHelper.getQueriesFromIS(projectId, daysBack, startTime, endTime, ISTable, slotsMsMin, timeoutInSecs);
+
     fieldValueListIterator = tableResult.iterateAll().iterator();
   }
 
