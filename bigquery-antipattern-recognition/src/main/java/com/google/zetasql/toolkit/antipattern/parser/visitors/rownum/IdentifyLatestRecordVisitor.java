@@ -40,7 +40,6 @@ public class IdentifyLatestRecordVisitor extends ParseTreeVisitor {
   private final String LATEST_RECORD_SUGGESTION_MESSAGE = "Seems like you might be using analytical function %s in line %d to filter the latest record in line %d.";
 
   public IdentifyLatestRecordVisitor(String query) {
-    System.out.println(query);
     this.query = query;
   }
 

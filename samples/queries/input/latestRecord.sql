@@ -9,6 +9,4 @@ FROM
     `bigquery-public-data.chicago_taxi_trips.taxi_trips`
 )
 WHERE
-  rn = 1
-ORDER BY
-  taxi_id;
+  rn = 1;
