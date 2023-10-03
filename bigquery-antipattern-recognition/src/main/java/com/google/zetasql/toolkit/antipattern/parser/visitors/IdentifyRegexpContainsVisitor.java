@@ -1,6 +1,5 @@
 package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.zetasql.parser.ASTNodes;
