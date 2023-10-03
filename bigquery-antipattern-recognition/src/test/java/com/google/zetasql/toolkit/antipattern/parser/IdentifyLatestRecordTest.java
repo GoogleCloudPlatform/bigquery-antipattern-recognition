@@ -58,6 +58,55 @@ public class IdentifyLatestRecordTest {
   }
 
   @Test
+  public void RowNumberForLatestRecordNoFilterTest() {
+    String expected = "";
+    String query = "SELECT \n"
+        + "  taxi_id, trip_seconds, fare\n"
+        + "FROM\n"
+        + "  (\n"
+        + "  SELECT \n"
+        + "    taxi_id, trip_seconds, fare,\n"
+        + "    row_number() over(partition by taxi_id order by fare desc) rn\n"
+        + "  FROM \n"
+        + "    `bigquery-public-data.chicago_taxi_trips.taxi_trips`\n"
+        + ")\n"
+        + "ORDER BY\n"
+        + "  taxi_id;\n";
+    ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    assertEquals(expected, recommendation);
+  }
+
+  @Test
+  public void RowNumberForLatestRecordNestedQueryTest() {
+    String expected = "";
+    String query = "SELECT \n"
+        + "  taxi_id, trip_seconds, fare\n"
+        + "FROM\n"
+        + "  table1\n"
+        + "JOIN \n"
+        + "  (\n"
+        + "  SELECT taxi_id, trip_seconds\n"
+        + "  FROM "
+        + "    (\n"
+        + "    SELECT \n"
+        + "      taxi_id, trip_seconds, fare,\n"
+        + "      row_number() over(partition by taxi_id order by fare desc) rn\n"
+        + "    FROM \n"
+        + "      `bigquery-public-data.chicago_taxi_trips.taxi_trips`\n"
+        + "    )"
+        + "  )\n"
+        + "WHERE\n"
+        + "  rn=1\n"
+        + "  AND taxi_id = 1\n"
+        + "ORDER BY\n"
+        + "  taxi_id;\n";
+    ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    assertEquals(expected, recommendation);
+  }
+
+  @Test
   public void RowNumberNoFilterTest() {
     String expected = "";
     String query = "SELECT \n"
