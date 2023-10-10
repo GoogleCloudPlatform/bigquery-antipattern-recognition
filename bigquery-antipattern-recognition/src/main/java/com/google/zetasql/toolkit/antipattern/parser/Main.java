@@ -186,7 +186,8 @@ public class Main {
             "StringComparison", new IdentifyRegexpContains(),
             "NtileWindowFunction", new IdentifyNtileWindowFunction(),
             "LatestRecordWithAnalyticFun", new IdentifyLatestRecord(),
-            "DynamicPredicate", new IdentifyDynamicPredicate()
+            "DynamicPredicate", new IdentifyDynamicPredicate(),
+            "WhereOrder", new IdentifyWhereOrder()
     );
 
     for (Map.Entry<String, ? super BasePatternDetector> patternDetectorEntry : basePatternDetectors.entrySet()) {
