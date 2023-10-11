@@ -184,7 +184,8 @@ public class Main {
             "CTEsEvalMultipleTimes", new IdentifyCTEsEvalMultipleTimes(),
             "OrderByWithoutLimit", new IdentifyOrderByWithoutLimit(),
             "StringComparison", new IdentifyRegexpContains(),
-            "NtileWindowFunction", new IdentifyNtileWindowFunction()
+            "NtileWindowFunction", new IdentifyNtileWindowFunction(),
+            "SelfJoin", new IdentifySelfJoin()
     );
 
     for (Map.Entry<String, ? super BasePatternDetector> patternDetectorEntry : basePatternDetectors.entrySet()) {
