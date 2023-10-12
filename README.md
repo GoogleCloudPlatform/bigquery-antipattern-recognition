@@ -21,7 +21,6 @@ All columns on table: project.dataset.table1 are being selected. Please be sure 
 ```
 
 
-
 # Quick Start
 
 Prerequisites:
@@ -420,6 +419,32 @@ WHERE
 Output:
 ```
 LatestRecordWithAnalyticFun: Seems like you might be using analytical function row_number in line 7 to filter the latest record in line 12.
+```
+
+## Anti Pattern 8: Convert Dynamic Predicates into Static
+Example:
+```
+SELECT
+ *
+FROM 
+  comments c
+JOIN 
+  users u ON c.user_id = u.id
+WHERE 
+  u.id IN (
+    SELECT id 
+    FROM users
+    WHERE location LIKE '%New York'
+    GROUP BY id
+    ORDER BY SUM(up_votes) DESC
+    LIMIT 10
+  )
+;
+```
+
+Output:
+```
+Dynamic Predicate: Using subquery in filter at line 10. Converting this dynamic predicate to static might provide better performance.
 ```
 
 # Disclaimer

@@ -185,7 +185,8 @@ public class Main {
             "OrderByWithoutLimit", new IdentifyOrderByWithoutLimit(),
             "StringComparison", new IdentifyRegexpContains(),
             "NtileWindowFunction", new IdentifyNtileWindowFunction(),
-            "LatestRecordWithAnalyticFun", new IdentifyLatestRecord()
+            "LatestRecordWithAnalyticFun", new IdentifyLatestRecord(),
+            "DynamicPredicate", new IdentifyDynamicPredicate()
     );
 
     for (Map.Entry<String, ? super BasePatternDetector> patternDetectorEntry : basePatternDetectors.entrySet()) {
