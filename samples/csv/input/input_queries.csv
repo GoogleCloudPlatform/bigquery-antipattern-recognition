@@ -52,3 +52,42 @@ from
 where
   regexp_contains(title, '.*shakespeare.*')
 "
+6,"SELECT
+     taxi_id, trip_seconds, fare
+   FROM
+     (
+     SELECT
+       taxi_id, trip_seconds, fare,
+       row_number() over(partition by taxi_id order by fare desc) rn
+     FROM
+       `bigquery-public-data.chicago_taxi_trips.taxi_trips`
+   )
+   WHERE
+     rn = 1;
+"
+7,"SELECT
+    *
+   FROM
+     comments c
+   JOIN
+     users u ON c.user_id = u.id
+   WHERE
+     u.id IN (
+       SELECT id
+       FROM users
+       WHERE location LIKE '%New York'
+       GROUP BY id
+       ORDER BY SUM(up_votes) DESC
+       LIMIT 10
+     );
+"
+8,"SELECT
+     repo_name,
+     id,
+     ref
+   FROM
+     `bigquery-public-data.github_repos.files`
+   WHERE
+     ref like '%master%'
+     and repo_name = 'cdnjs/cdnjs';
+"

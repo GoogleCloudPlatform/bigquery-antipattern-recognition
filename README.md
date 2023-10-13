@@ -21,7 +21,6 @@ All columns on table: project.dataset.table1 are being selected. Please be sure 
 ```
 
 
-
 # Quick Start
 
 Prerequisites:
@@ -397,6 +396,78 @@ Output:
 ```
 REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching).";
 ```
+
+
+
+## Anti Pattern 7: Using an analytic functions to determine latest record
+Example:
+```
+SELECT
+  taxi_id, trip_seconds, fare
+FROM
+  (
+  SELECT
+    taxi_id, trip_seconds, fare,
+    row_number() over(partition by taxi_id order by fare desc) rn
+  FROM
+    `bigquery-public-data.chicago_taxi_trips.taxi_trips`
+)
+WHERE
+  rn = 1;
+```
+
+Output:
+```
+LatestRecordWithAnalyticFun: Seems like you might be using analytical function row_number in line 7 to filter the latest record in line 12.
+```
+
+## Anti Pattern 8: Convert Dynamic Predicates into Static
+Example:
+```
+SELECT
+ *
+FROM 
+  comments c
+JOIN 
+  users u ON c.user_id = u.id
+WHERE 
+  u.id IN (
+    SELECT id 
+    FROM users
+    WHERE location LIKE '%New York'
+    GROUP BY id
+    ORDER BY SUM(up_votes) DESC
+    LIMIT 10
+  )
+;
+```
+
+Output:
+```
+Dynamic Predicate: Using subquery in filter at line 10. Converting this dynamic predicate to static might provide better performance.
+```
+
+
+## Anti Pattern 9: Where order, apply most selective expression first
+Example:
+```
+SELECT 
+  repo_name, 
+  id,
+  ref
+FROM 
+  `bigquery-public-data.github_repos.files` 
+WHERE
+  ref like '%master%'
+  and repo_name = 'cdnjs/cdnjs'
+;
+```
+
+Output:
+```
+WhereOrder: LIKE filter in line 8 precedes a more selective filter.
+```
+
 
 # Disclaimer
 This is not an officially supported Google product.
