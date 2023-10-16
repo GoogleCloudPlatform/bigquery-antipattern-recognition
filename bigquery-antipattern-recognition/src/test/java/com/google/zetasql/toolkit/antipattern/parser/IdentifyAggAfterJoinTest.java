@@ -36,7 +36,7 @@ public class IdentifyAggAfterJoinTest {
 
   @Test
   public void aggAfterJoinSimpleSelect() {
-    String expected = "GROUP By found at line number 10 after Join at line number 5.Try to apply aggregation before joining to reduce join data";
+    String expected = "GROUP BY found at line number 10 after JOIN at line number 5. Consider applying aggregation before joining to reduce join data";
     String query =
         "select\n"
             + "  user_id,\n"
@@ -47,7 +47,7 @@ public class IdentifyAggAfterJoinTest {
             + "  stackoverflow.users as u\n"
             + "on c.user_id = u.id\n"
             + "and c.user_id_new = u.id_n\n"
-            + "group by c.user_id,c.user_id_new";
+            + "group by c.user_id";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
     String recommendations = (new IdentifyAggAfterJoin()).run(parsedQuery, query);
     assertEquals(expected, recommendations);
@@ -76,7 +76,7 @@ public class IdentifyAggAfterJoinTest {
 
   @Test
   public void aggAfterJoinInWithClause() {
-    String expected = "GROUP By found at line number 17 after Join at line number 5.Try to apply aggregation before joining to reduce join data";
+    String expected = "GROUP BY found at line number 17 after JOIN at line number 5. Consider applying aggregation before joining to reduce join data";
     String query =
         "WITH\n"
             + "  users_posts AS (\n"
@@ -135,7 +135,56 @@ public class IdentifyAggAfterJoinTest {
     assertEquals(expected, recommendations);
   }
 
+  @Test
+  public void aggAfterJoinInSubquery() {
+    String expected = "GROUP BY found at line number 10 after JOIN at line number 7. Consider applying aggregation before joining to reduce join data";
+    String query =
+        "SELECT\n"
+            + "    tt1.sum_col2, count(1) ct\n"
+            + "FROM \n"
+            + "    (SELECT \n"
+            + "        t1.col1, sum(t2.col2) sum_col2\n"
+            + "    FROM \n"
+            + "        t1\n"
+            + "    JOIN\n"
+            + "        t2 ON t1.col1 = t2.col2\n"
+            + "    GROUP BY\n"
+            + "        t2.col2 ) tt1\n"
+            + "GROUP BY    \n"
+            + "    tt1.sum_col2";
+    ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+    String recommendations = (new IdentifyAggAfterJoin()).run(parsedQuery, query);
+    assertEquals(expected, recommendations);
+  }
 
+  @Test
+  public void aggBeforeJoinInSubquery() {
+    String expected = "";
+    String query =
+        "SELECT\n"
+            + "    tt1.sum_col2, count(1) ct\n"
+            + "FROM \n"
+            + "(SELECT \n"
+            + "col1,\n"
+            + "sum_col2\n"
+            + "FROM\n"
+            + "t1 \n"
+            + "JOIN\n"
+            + "    ( SELECT \n"
+            + "        col2,\n"
+            + "        sum(col2) sum_col2\n"
+            + "      FROM\n"
+            + "      t2\n"
+            + "      GROUP BY col2\n"
+            + "    ) as t2_temp\n"
+            + "ON\n"
+            + "t1.col1=t2_temp.col2 ) tt1\n"
+            + "GROUP BY    \n"
+            + "tt1.sum_col2";
+    ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+    String recommendations = (new IdentifyAggAfterJoin()).run(parsedQuery, query);
+    assertEquals(expected, recommendations);
+  }
 
 
 

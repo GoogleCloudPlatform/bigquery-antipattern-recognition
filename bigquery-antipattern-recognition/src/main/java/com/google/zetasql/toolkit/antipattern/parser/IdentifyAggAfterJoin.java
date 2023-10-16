@@ -22,8 +22,7 @@ import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifySimpleSele
 import java.util.stream.Collectors;
 
 /*
- * Identifies only the simple "select *":
- * SELECT * FROM table
+ * Identifies GROUP BY applied on a join key after the join has occurred
  */
 public class IdentifyAggAfterJoin {
 

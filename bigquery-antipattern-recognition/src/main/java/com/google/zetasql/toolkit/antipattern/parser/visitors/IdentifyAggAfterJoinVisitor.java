@@ -26,6 +26,7 @@ import com.google.zetasql.parser.ASTNodes.ASTOnOrUsingClauseList;
 import com.google.zetasql.parser.ASTNodes.ASTPathExpression;
 import com.google.zetasql.parser.ASTNodes.ASTSelect;
 import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
+import com.google.zetasql.parser.ASTNodes.ASTTableSubquery;
 import com.google.zetasql.parser.ParseTreeVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.lang.reflect.Array;
@@ -36,7 +37,7 @@ import java.util.Set;
 public class IdentifyAggAfterJoinVisitor extends ParseTreeVisitor {
 
   private final String SUGGESTION_MESSAGE =
-      "GROUP By found at line number %s after Join at line number %s.Try to apply aggregation before joining to reduce join data";
+      "GROUP BY found at line number %s after JOIN at line number %s. Consider applying aggregation before joining to reduce join data";
 
   private String query;
   private boolean foundGroupBy = false;
@@ -93,6 +94,15 @@ public class IdentifyAggAfterJoinVisitor extends ParseTreeVisitor {
 
       }
 
+    }
+
+    // Re-route to select node if subquery exists
+    if(tableExpression instanceof ASTTableSubquery)
+    {
+      if (((ASTTableSubquery) tableExpression).getSubquery().getQueryExpr() instanceof ASTSelect) {
+        ASTSelect subQuerySelectNode = (ASTSelect) ((ASTTableSubquery) tableExpression).getSubquery().getQueryExpr();
+        visit(subQuerySelectNode);
+      }
     }
 
   }
