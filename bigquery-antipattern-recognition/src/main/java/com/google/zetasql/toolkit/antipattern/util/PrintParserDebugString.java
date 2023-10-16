@@ -22,6 +22,7 @@ import com.google.zetasql.parser.ASTNodes.ASTStatement;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyDynamicPredicate;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifyLatestRecord;
 import com.google.zetasql.toolkit.antipattern.parser.IdentifySimpleSelectStar;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyWhereOrder;
 
 public class PrintParserDebugString {
 
@@ -30,19 +31,18 @@ public class PrintParserDebugString {
     languageOptions.enableMaximumLanguageFeatures();
     languageOptions.setSupportsAllStatementKinds();
 
-    String query = "SELECT\n"
-        + "    col1, col2 \n"
-        + "FROM \n"
-        + "    table1 \n"
-        + "WHERE \n"
-        + "    col3 in (select col3 from table2)";
+    String query = "select\n"
+        + "  message\n"
+        + "from \n"
+        + "  `bigquery-public-data.github_repos.commits`\n"
+        + "where\n"
+        + "  message like '%Update%'\n"
+        + "  and author.name = 'shenzhouzd'\n"
+        + ";\n";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    // System.out.println(parsedQuery);
-    // System.out.println(new IdentifyLatestRecord().run(parsedQuery, query));
-    System.out.println(new IdentifyDynamicPredicate().run(parsedQuery, query));
-    // System.out.println(new IdentifyInSubqueryWithoutAgg().run(parsedQuery));
-    // System.out.println(new IdentifyCrossJoin().run(parsedQuery));
+    //System.out.println(parsedQuery);
+    System.out.println(new IdentifyWhereOrder().run(parsedQuery, query));
 
   }
 }

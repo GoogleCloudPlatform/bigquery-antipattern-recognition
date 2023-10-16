@@ -447,5 +447,27 @@ Output:
 Dynamic Predicate: Using subquery in filter at line 10. Converting this dynamic predicate to static might provide better performance.
 ```
 
+
+## Anti Pattern 9: Where order, apply most selective expression first
+Example:
+```
+SELECT 
+  repo_name, 
+  id,
+  ref
+FROM 
+  `bigquery-public-data.github_repos.files` 
+WHERE
+  ref like '%master%'
+  and repo_name = 'cdnjs/cdnjs'
+;
+```
+
+Output:
+```
+WhereOrder: LIKE filter in line 8 precedes a more selective filter.
+```
+
+
 # Disclaimer
 This is not an officially supported Google product.
