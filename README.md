@@ -26,6 +26,7 @@ All columns on table: project.dataset.table1 are being selected. Please be sure 
 Prerequisites:
 * [gcloud CLI](https://cloud.google.com/sdk/gcloud)
 * Docker
+* maven
 
 
 Build utility
