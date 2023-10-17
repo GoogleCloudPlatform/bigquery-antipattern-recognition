@@ -21,10 +21,6 @@ public class IdentifySelfJoinVisitor extends ParseTreeVisitor {
     String table;
     int lineNum;
 
-/*    @Override
-    public void visit(ASTNodes.ASTQuery query){
-        System.out.println("Query - "+ query);
-    }*/
     // Fetch the fromClause from query
     @Override
     public void visit(ASTNodes.ASTFromClause fromClause){
@@ -35,23 +31,18 @@ public class IdentifySelfJoinVisitor extends ParseTreeVisitor {
 
     // Traverse the tableExpression fetched from fromClause and look for sub-queries and join patterns
     public void traverseTableExpression(ASTNodes.ASTTableExpression tableExpression, String joinSide) {
-        // if tableExpression directly contains tablePath fetch the tableNames from getIdentifier methods otherwise recursively look for it
-//        System.out.println("TableExpression function");
+        // if tableExpression directly contains tablePath fetch the tableNames from getIdentifier methods otherwise recursively look for i
         if(tableExpression instanceof ASTNodes.ASTTablePathExpression) {
-//            System.out.println("TablePathExpression function");
             getIdentifier((ASTNodes.ASTTablePathExpression) tableExpression, joinSide);
             if(joinSide.equals("RHS")){
-                System.out.println("======== Hashmap cleared ========");
                 tableIdMap.clear();
             }
         }
         else if(tableExpression instanceof ASTNodes.ASTJoin){
-//            System.out.println("Join function");
             traverseTableExpression(((ASTNodes.ASTJoin) tableExpression).getLhs(), "LHS");
             traverseTableExpression(((ASTNodes.ASTJoin) tableExpression).getRhs(), "RHS");
         }
         else if(tableExpression instanceof ASTNodes.ASTTableSubquery){
-//            System.out.println("SubQuery function");
             ASTNodes.ASTQueryExpression queryExpression =  ((ASTNodes.ASTTableSubquery) tableExpression).getSubquery().getQueryExpr();
             if(queryExpression instanceof ASTNodes.ASTSelect)
             {
@@ -75,15 +66,13 @@ public class IdentifySelfJoinVisitor extends ParseTreeVisitor {
                             lineNum = ZetaSQLStringParsingHelper.countLine(query, identifier.getParseLocationRange().start());
                             table = identifier.getIdString().toLowerCase();
                             tableIdMap.put(joinSide,table);
-                            System.out.println("Table Map - > " + tableIdMap);
+                            /*System.out.println("Table Map - > " + tableIdMap);
                             System.out.println("==========================================");
                             System.out.println("Table -> " + table + " Join side " + joinSide + " line num " + lineNum);
                             System.out.println("Table Map - > " + tableIdMap);
-                            System.out.println("==========================================");
+                            System.out.println("==========================================");*/
                         });
         if(tableIdMap.get("LHS").equals(tableIdMap.get("RHS"))) {
-            System.out.println("PATTERN DETECTED");
-            System.out.println("Table Map - > " + tableIdMap);
             result.add(String.format(SELF_JOIN_SUGGESTION_MESSAGE, lineNum));
         }
 
