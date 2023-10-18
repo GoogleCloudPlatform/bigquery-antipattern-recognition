@@ -31,6 +31,8 @@ Prerequisites:
 
 Build utility
 ```
+git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
+cd bigquery-antipattern-recognition
 mvn clean package jib:dockerBuild -DskipTests
 ```
 
