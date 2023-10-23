@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 
-package com.google.zetasql.toolkit.antipattern.parser;
+package com.google.zetasql.toolkit.antipattern;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
 import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.antipattern.analyzer.IdentifyJoinOrder;
-import com.google.zetasql.toolkit.antipattern.cmd.BQAntiPatternCMDParser;
+import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.cmd.OutputGenerator;
+import com.google.zetasql.toolkit.antipattern.cmd.output.OutputGenerator;
+import com.google.zetasql.toolkit.antipattern.parser.BasePatternDetector;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyCTEsEvalMultipleTimes;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyDynamicPredicate;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyInSubqueryWithoutAgg;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyLatestRecord;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyNtileWindowFunction;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyOrderByWithoutLimit;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyRegexpContains;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifySimpleSelectStar;
+import com.google.zetasql.toolkit.antipattern.parser.IdentifyWhereOrder;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryAPIResourceProvider;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService;
@@ -47,7 +56,7 @@ public class Main {
   private static String analyzerProject = null;
   private static AnalyzerOptions analyzerOptions;
   private static BigQueryAPIResourceProvider resourceProvider;
-  private static BQAntiPatternCMDParser cmdParser;
+  private static AntiPatternCommandParser cmdParser;
   private static ZetaSQLToolkitAnalyzer analyzer;
   private static BigQueryService service;
   private static BigQueryCatalog catalog;
@@ -58,7 +67,7 @@ public class Main {
   }
 
   public static void main(String[] args) throws ParseException, IOException {
-    cmdParser = new BQAntiPatternCMDParser(args);
+    cmdParser = new AntiPatternCommandParser(args);
 
     // parser setup
     LanguageOptions parserLanguageOptions = getParserLanguageOptions();
@@ -138,7 +147,7 @@ public class Main {
   }
 
   private static void addRecToOutput(
-      BQAntiPatternCMDParser cmdParser,
+      AntiPatternCommandParser cmdParser,
       List<Object[]> outputData,
       InputQuery inputQuery,
       List<Map<String, String>> rec) {

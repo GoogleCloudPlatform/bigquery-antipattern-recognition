@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.google.zetasql.toolkit.antipattern.cmd;
+package com.google.zetasql.toolkit.antipattern.cmd.output;
 
 import com.google.api.client.util.DateTime;
+import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
+import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,7 +30,7 @@ import java.util.Map;
 
 public class OutputGenerator {
 
-  public static void writeOutput(BQAntiPatternCMDParser cmdParser, List<Object[]> outputData)
+  public static void writeOutput(AntiPatternCommandParser cmdParser, List<Object[]> outputData)
       throws IOException {
     if (cmdParser.hasOutputFileOptionName()) {
       writeOutputToCSV(outputData, cmdParser);
@@ -42,26 +44,38 @@ public class OutputGenerator {
     }
   }
 
-  private static void writeOutputToCSV(List<Object[]> outputData, BQAntiPatternCMDParser cmdParser)
+  private static void writeOutputToCSV(List<Object[]> outputData, AntiPatternCommandParser cmdParser)
       throws IOException {
+    String outputFileName = cmdParser.getOutputFileOptionName();
 
-    FileWriter csvWriter;
-    File file = new File(cmdParser.getOutputFileOptionName());
-    if (file.exists()) {
-      csvWriter = new FileWriter(file, true);
+    if(GCSHelper.isGCSPath(outputFileName)){
+      StringBuilder fileContent = new StringBuilder();
+      fileContent.append(String.join(",", new String[] {"id", "query\n"}));
+      for (Object[] row : outputData) {
+        fileContent.append(String.join(",", (String[]) row));
+      }
+      GCSHelper gcsHelper = new GCSHelper();
+      gcsHelper.writeToGCS(outputFileName, fileContent.toString());
     } else {
-      csvWriter = new FileWriter(file);
-      csvWriter.write(String.join(",", new String[] {"id", "query\n"}));
+      FileWriter csvWriter;
+      File file = new File(cmdParser.getOutputFileOptionName());
+      if (file.exists()) {
+        csvWriter = new FileWriter(file, true);
+      } else {
+        csvWriter = new FileWriter(file);
+        csvWriter.write(String.join(",", new String[] {"id", "query\n"}));
+      }
+
+      for (Object[] row : outputData) {
+        csvWriter.write(String.join(",", (String[]) row));
+      }
+      csvWriter.close();
     }
 
-    for (Object[] row : outputData) {
-      csvWriter.write(String.join(",", (String[]) row));
-    }
-    csvWriter.close();
   }
 
   private static void writeOutputToBQTable(
-      List<Object[]> outputData, BQAntiPatternCMDParser cmdParser) {
+      List<Object[]> outputData, AntiPatternCommandParser cmdParser) {
     DateTime date = new DateTime(new Date());
     for (Object[] row : outputData) {
       Map<String, Object> rowContent = new HashMap<>();

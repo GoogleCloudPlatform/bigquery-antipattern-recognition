@@ -17,6 +17,7 @@
 package com.google.zetasql.toolkit.antipattern.cmd;
 
 import com.google.cloud.storage.*;
+import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +29,7 @@ import java.util.List;
 public class InputFolderQueryIterable implements Iterator<InputQuery> {
 
   Iterator<String> filePathIterator;
+  GCSHelper gcsHelper = new GCSHelper();
 
   public InputFolderQueryIterable(List<String> filePathList) {
     this.filePathIterator = filePathList.iterator();
@@ -43,16 +45,8 @@ public class InputFolderQueryIterable implements Iterator<InputQuery> {
     String filePathStr = filePathIterator.next();
     Path fileName = Path.of(filePathStr);
     try {
-      if (filePathStr.startsWith("gs://")) {
-        String trimFilePathStr = filePathStr.replace("gs://", "");
-        List<String> list = new ArrayList(Arrays.asList(trimFilePathStr.split("/")));
-        String bucket = list.get(0);
-        list.remove(0);
-        String filename = String.join("/", list);
-        Storage storage = StorageOptions.newBuilder().build().getService();
-        Blob blob = storage.get(bucket, filename);
-        String fileContent = new String(blob.getContent());
-        return new InputQuery(fileContent, filePathStr);
+      if (GCSHelper.isGCSPath(filePathStr)) {
+        return gcsHelper.getInputQueryFromGCSPath(filePathStr);
       } else {
         return new InputQuery(Files.readString(fileName), filePathStr);
       }

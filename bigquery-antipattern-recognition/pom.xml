@@ -118,6 +118,11 @@ limitations under the License.
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.5</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.cloud.functions</groupId>
+            <artifactId>functions-framework-api</artifactId>
+            <version>1.0.4</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -139,7 +144,7 @@ limitations under the License.
                 <configuration>
                     <container>
                         <mainClass>
-                            com.google.zetasql.toolkit.antipattern.parser.Main
+                            com.google.zetasql.toolkit.antipattern.Main
                         </mainClass>
                     </container>
                     <from>
@@ -180,7 +185,7 @@ limitations under the License.
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.google.zetasql.toolkit.antipattern.parser.Main</mainClass>
+                            <mainClass>com.google.zetasql.toolkit.antipattern.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

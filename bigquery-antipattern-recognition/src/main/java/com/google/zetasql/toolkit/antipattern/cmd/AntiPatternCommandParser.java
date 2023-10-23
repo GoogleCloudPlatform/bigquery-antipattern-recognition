@@ -20,19 +20,20 @@ import com.google.api.gax.paging.Page;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.cli.*;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BQAntiPatternCMDParser {
 
-  private static final Logger logger = LoggerFactory.getLogger(BQAntiPatternCMDParser.class);
+public class AntiPatternCommandParser {
+
+  private static final Logger logger = LoggerFactory.getLogger(AntiPatternCommandParser.class);
 
   public static final String QUERY_OPTION_NAME = "query";
   public static final String FILE_PATH_OPTION_NAME = "input_file_path";
@@ -54,7 +55,7 @@ public class BQAntiPatternCMDParser {
   private Options options;
   private CommandLine cmd;
 
-  public BQAntiPatternCMDParser(String[] args) throws ParseException {
+  public AntiPatternCommandParser(String[] args) throws ParseException {
     options = getOptions();
     CommandLineParser parser = new BasicParser();
     cmd = parser.parse(options, args);
@@ -292,28 +293,11 @@ public class BQAntiPatternCMDParser {
 
   private static Iterator<InputQuery> buildIteratorFromFolderPath(String folderPath) {
     logger.info("Using folder as input source");
-    if (folderPath.startsWith("gs://")) {
+    if (GCSHelper.isGCSPath(folderPath)) {
       logger.info("Reading input folder from GCS");
-      Storage storage = StorageOptions.newBuilder().build().getService();
-      String trimFolderPathStr = folderPath.replace("gs://", "");
-      List<String> list = new ArrayList(Arrays.asList(trimFolderPathStr.split("/")));
-      String bucket = list.get(0);
-      list.remove(0);
-      String directoryPrefix = String.join("/", list) + "/";
-      Page<Blob> blobs =
-          storage.list(
-              bucket,
-              Storage.BlobListOption.prefix(directoryPrefix),
-              Storage.BlobListOption.currentDirectory());
-      ArrayList gcsFileList = new ArrayList();
-      for (Blob blob : blobs.iterateAll()) {
-        String blobName = blob.getName();
-        if (blobName.equals(directoryPrefix)) {
-          continue;
-        }
-        gcsFileList.add("gs://" + bucket + "/" + blobName);
-      }
-      return new InputFolderQueryIterable(gcsFileList);
+      GCSHelper gcsHelper = new GCSHelper();
+      return new InputFolderQueryIterable(
+          gcsHelper.getListOfFilesInGCSPath(folderPath));
     } else {
       logger.info("Reading input folder from local");
       List<String> fileList =

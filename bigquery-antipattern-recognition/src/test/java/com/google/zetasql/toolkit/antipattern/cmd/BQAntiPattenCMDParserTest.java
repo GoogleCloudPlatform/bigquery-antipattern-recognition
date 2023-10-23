@@ -55,7 +55,7 @@ public class BQAntiPattenCMDParserTest {
     @Test
     public void testMethod() {
         try {
-            new BQAntiPatternCMDParser(args);
+            new AntiPatternCommandParser(args);
             if (shouldFail) {
                 Assert.fail("parsing should fail, but did not fail, for args: " + Arrays.toString(args));
             }
