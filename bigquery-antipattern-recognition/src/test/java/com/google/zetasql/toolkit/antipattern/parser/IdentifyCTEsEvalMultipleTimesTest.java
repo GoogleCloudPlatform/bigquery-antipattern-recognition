@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyCTEsEvalMultipleTimesVisitor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -65,7 +66,9 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "    b, c;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
+    IdentifyCTEsEvalMultipleTimesVisitor visitor = new IdentifyCTEsEvalMultipleTimesVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendations = visitor.getResult();
     assertEquals(expected, recommendations);
   }
 
@@ -99,7 +102,9 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "  t2.col1 = a.col2;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
+    IdentifyCTEsEvalMultipleTimesVisitor visitor = new IdentifyCTEsEvalMultipleTimesVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -129,7 +134,9 @@ public class IdentifyCTEsEvalMultipleTimesTest {
             + "    c;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
+    IdentifyCTEsEvalMultipleTimesVisitor visitor = new IdentifyCTEsEvalMultipleTimesVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -138,31 +145,33 @@ public class IdentifyCTEsEvalMultipleTimesTest {
   public void nestedJoinsTest(){
     String expected = "CTE with multiple references: alias a defined at line 1 is referenced 3 times.";
     String query = "with a as (\n" +
-            "select col1, col2, col3\n" +
-            "from `dataset.table`\n" +
-            "where col1 = 10\n" +
-            "),\n" +
-            "b as (\n" +
-            "select col4, col5\n" +
-            "from `dataset.table` a\n" +
-            "left join `dataset.table2` b on a.id = b.id\n" +
-            "left join `dataset.table3` c on b.id = c.id\n" +
-            "left join (select * from `dataset.table3`) d on c.id = d.id \n" +
-            "),\n" +
-            "c as (\n" +
-            "select col5, col6\n" +
-            "from ( select * from `dataset.table5` ) x\n" +
-            "left join a on x.id = a.id\n" +
-            "),\n" +
-            "d as (\n" +
-            "select col6, col7,\n" +
-            "from a\n" +
-            ")\n" +
-            "select *\n" +
-            "from `dataset.table5` b\n" +
-            "left join a on a.id = b.id";
+        "select col1, col2, col3\n" +
+        "from `dataset.table`\n" +
+        "where col1 = 10\n" +
+        "),\n" +
+        "b as (\n" +
+        "select col4, col5\n" +
+        "from `dataset.table` a\n" +
+        "left join `dataset.table2` b on a.id = b.id\n" +
+        "left join `dataset.table3` c on b.id = c.id\n" +
+        "left join (select * from `dataset.table3`) d on c.id = d.id \n" +
+        "),\n" +
+        "c as (\n" +
+        "select col5, col6\n" +
+        "from ( select * from `dataset.table5` ) x\n" +
+        "left join a on x.id = a.id\n" +
+        "),\n" +
+        "d as (\n" +
+        "select col6, col7,\n" +
+        "from a\n" +
+        ")\n" +
+        "select *\n" +
+        "from `dataset.table5` b\n" +
+        "left join a on a.id = b.id";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = (new IdentifyCTEsEvalMultipleTimes()).run(parsedQuery, query);
+    IdentifyCTEsEvalMultipleTimesVisitor visitor = new IdentifyCTEsEvalMultipleTimesVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 }

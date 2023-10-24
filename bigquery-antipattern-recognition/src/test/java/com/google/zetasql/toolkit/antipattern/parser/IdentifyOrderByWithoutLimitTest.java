@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyOrderByWithoutLimitVisitor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +45,9 @@ public class IdentifyOrderByWithoutLimitTest {
         + "`project.dataset.table1` t1 \n"
         + "ORDER BY t1.col1;";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
+    IdentifyOrderByWithoutLimitVisitor visitor = new IdentifyOrderByWithoutLimitVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -53,7 +56,9 @@ public class IdentifyOrderByWithoutLimitTest {
     String expected = "";
     String query = "SELECT t1.col1 FROM `project.dataset.table1` t1 ORDER BY t1.col1 LIMIT 5;";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
+    IdentifyOrderByWithoutLimitVisitor visitor = new IdentifyOrderByWithoutLimitVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -76,7 +81,9 @@ public class IdentifyOrderByWithoutLimitTest {
             + "ORDER BY\n"
             + "  t1.col1";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyOrderByWithoutLimit().run(parsedQuery, query);
+    IdentifyOrderByWithoutLimitVisitor visitor = new IdentifyOrderByWithoutLimitVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 }

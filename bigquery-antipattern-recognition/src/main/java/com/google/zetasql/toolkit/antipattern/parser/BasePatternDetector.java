@@ -24,8 +24,10 @@ public interface BasePatternDetector {
     return null;
   }
 
-  default public String run(ASTStatement parsedQuery, String query) {
+  default public String getResult() {
     return null;
   }
+
+  void run(ASTStatement parsedQuery, String query);
 
 }

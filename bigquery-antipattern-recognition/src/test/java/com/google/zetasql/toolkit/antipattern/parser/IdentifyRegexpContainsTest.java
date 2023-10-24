@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyRegexpContainsVisitor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,7 +27,9 @@ public class IdentifyRegexpContainsTest {
                 + "from `dataset.table` \n"
                 + "where regexp_contains(dim1, '.*test.*')";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
+        IdentifyRegexpContainsVisitor visitor = new IdentifyRegexpContainsVisitor(query);
+        parsedQuery.accept(visitor);
+        String recommendations = visitor.getResult();
         assertEquals(expected, recommendations);
     }
 
@@ -40,7 +43,9 @@ public class IdentifyRegexpContainsTest {
                 + "and dim2 = 'x' \n"
                 + "and regexp_contains(dim1, '.*test.*')";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
+        IdentifyRegexpContainsVisitor visitor = new IdentifyRegexpContainsVisitor(query);
+        parsedQuery.accept(visitor);
+        String recommendations = visitor.getResult();
         assertEquals(expected, recommendations);
     }
 
@@ -57,7 +62,9 @@ public class IdentifyRegexpContainsTest {
                 + "and col1 = 1 \n"
                 + "and regexp_contains(dim2, '.*test.*')";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
+        IdentifyRegexpContainsVisitor visitor = new IdentifyRegexpContainsVisitor(query);
+        parsedQuery.accept(visitor);
+        String recommendations = visitor.getResult();
         assertEquals(expected, recommendations);
     }
 
@@ -69,7 +76,9 @@ public class IdentifyRegexpContainsTest {
                 + "from `dataset.table` \n"
                 + "where effective_start_dte = current_date()";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
+        IdentifyRegexpContainsVisitor visitor = new IdentifyRegexpContainsVisitor(query);
+        parsedQuery.accept(visitor);
+        String recommendations = visitor.getResult();
         assertEquals(expected, recommendations);
     }
 
@@ -82,7 +91,9 @@ public class IdentifyRegexpContainsTest {
                 + "where effective_start_dte = current_date() \n"
                 + "and lower(\"Sunday\") = day_of_week";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
+        IdentifyRegexpContainsVisitor visitor = new IdentifyRegexpContainsVisitor(query);
+        parsedQuery.accept(visitor);
+        String recommendations = visitor.getResult();
         assertEquals(expected, recommendations);
     }
 
@@ -97,7 +108,9 @@ public class IdentifyRegexpContainsTest {
                 + "and lower('Sunday') = day_of_week) \n"
                 + "select * from a";
         ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-        String recommendations = (new IdentifyRegexpContains()).run(parsedQuery, query);
+        IdentifyRegexpContainsVisitor visitor = new IdentifyRegexpContainsVisitor(query);
+        parsedQuery.accept(visitor);
+        String recommendations = visitor.getResult();
         assertEquals(expected, recommendations);
     }
 

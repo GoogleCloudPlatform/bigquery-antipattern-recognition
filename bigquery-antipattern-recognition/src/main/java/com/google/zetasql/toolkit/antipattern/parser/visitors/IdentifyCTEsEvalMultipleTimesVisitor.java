@@ -27,10 +27,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
+public class IdentifyCTEsEvalMultipleTimesVisitor extends AbstractVisitor {
 
-  // A string template to be used for generating the suggestion message.
+  public final String NAME = "CTEsEvalMultipleTimes";
   private final String MULTIPLE_CTE_SUGGESTION_MESSAGE =
       "CTE with multiple references: alias %s defined at line %d is referenced %d times.";
 
@@ -104,7 +105,7 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
     }
 
     // Getter method to retrieve the list of suggestion messages.
-    public ArrayList<String> getResult() {
+    public String getResult() {
         // Loop through all the entries in the count map.
         for (Map.Entry<String, Integer> entry : cteCountMap.entrySet()) {
             // Get the CTE name and its count.
@@ -116,7 +117,8 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor {
                 result.add(String.format(MULTIPLE_CTE_SUGGESTION_MESSAGE, cteName, lineNum, count));
             }
         }
-      return result;
+      return result.stream().distinct().collect(Collectors.joining("\n"));
     }
+
 }
 

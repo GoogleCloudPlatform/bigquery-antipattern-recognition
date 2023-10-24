@@ -3,12 +3,15 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors.whereorder;
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTExpression;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.AbstractVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
-public class IdentifyWhereOrderVisitor extends ParseTreeVisitor {
+public class IdentifyWhereOrderVisitor extends AbstractVisitor {
 
+  public final static String NAME = "WhereOrder";
   private String query;
   private Boolean insideWhere = false;
   private final String WHERE_ORDER_SUGGESTION_MESSAGE = "LIKE filter in line %d precedes a more selective filter.";
@@ -32,7 +35,7 @@ public class IdentifyWhereOrderVisitor extends ParseTreeVisitor {
     super.visit(whereNode);
   }
 
-  public ArrayList<String> getResult() {
-    return result;
+  public String getResult() {
+    return result.stream().distinct().collect(Collectors.joining("\n"));
   }
 }

@@ -8,15 +8,18 @@ import com.google.zetasql.parser.ParseTreeVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
-public class IdentifyRegexpContainsVisitor extends ParseTreeVisitor {
+public class IdentifyRegexpContainsVisitor extends AbstractVisitor {
 
+    public final static String NAME = "StringComparison";
     private final static String REGEXP_CONTAINS = "REGEXP_CONTAINS at line %d. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching).";
     private final static String REGEXP_CONTAINS_STR = "regexp_contains";
     private ArrayList<String> result = new ArrayList<String>();
     private String query;
-    public ArrayList<String> getResult() {
-        return result;
+
+    public String getResult() {
+        return result.stream().distinct().collect(Collectors.joining("\n"));
     }
 
     public IdentifyRegexpContainsVisitor(String query) {

@@ -23,12 +23,16 @@ import com.google.zetasql.parser.ASTNodes.ASTSelectColumn;
 import com.google.zetasql.parser.ASTNodes.ASTTableExpression;
 import com.google.zetasql.parser.ASTNodes.ASTWhereClause;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.AbstractVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
-public class IdentifyLatestRecordVisitor extends ParseTreeVisitor {
+public class IdentifyLatestRecordVisitor extends AbstractVisitor {
+
+  public final static String NAME = "LatestRecordWithAnalyticFun";
 
   private String query;
   private ASTNodes.ASTSelectColumn selectColWithRowNumNode = null;
@@ -37,7 +41,7 @@ public class IdentifyLatestRecordVisitor extends ParseTreeVisitor {
   private ArrayList<String> result = new ArrayList<String>();
 
   private static final String[] STRING_IDS_ANALYTIC_FUN = {"row_number", "rank"};
-  private final String LATEST_RECORD_SUGGESTION_MESSAGE = "Seems like you might be using analytical function %s in line %d to filter the latest record in line %d.";
+  private final String LATEST_RECORD_SUGGESTION_MESSAGE = "LatestRecordWithAnalyticFun: Seems like you might be using analytical function %s in line %d to filter the latest record in line %d.";
 
   public IdentifyLatestRecordVisitor(String query) {
     this.query = query;
@@ -104,7 +108,7 @@ public class IdentifyLatestRecordVisitor extends ParseTreeVisitor {
     return foundFilter;
   }
 
-  public ArrayList<String> getResult() {
-    return result;
+  public String getResult() {
+    return result.stream().distinct().collect(Collectors.joining("\n"));
   }
 }
