@@ -13,7 +13,7 @@ public class LocalFileOutputGenerator extends AbstractOutputGenerator {
   private String filePath;
   private final static String CSV_HEADER = "id,recommendation\n";
   private final static String REC_FORMAT = "%s: %s";
-  private final static String OUTPUT_RECORD_FORMAT = "%s,\"%s\"";
+  private final static String OUTPUT_RECORD_FORMAT = "%s,\"%s\"\n";
   public LocalFileOutputGenerator(String outputDir)  {
     filePath = outputDir;
   }
@@ -35,6 +35,7 @@ public class LocalFileOutputGenerator extends AbstractOutputGenerator {
             Collectors.joining("\n"))
         )
     );
+    csvWriter.close();
 
   }
 

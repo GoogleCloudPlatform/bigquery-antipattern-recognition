@@ -41,7 +41,7 @@ public class IdentifyLatestRecordVisitor extends AbstractVisitor {
   private ArrayList<String> result = new ArrayList<String>();
 
   private static final String[] STRING_IDS_ANALYTIC_FUN = {"row_number", "rank"};
-  private final String LATEST_RECORD_SUGGESTION_MESSAGE = "LatestRecordWithAnalyticFun: Seems like you might be using analytical function %s in line %d to filter the latest record in line %d.";
+  private final String LATEST_RECORD_SUGGESTION_MESSAGE = "Seems like you might be using analytical function %s in line %d to filter the latest record in line %d.";
 
   public IdentifyLatestRecordVisitor(String query) {
     this.query = query;

@@ -22,9 +22,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
 
+  private static final Logger logger = LoggerFactory.getLogger(Main.class);
   private static AntiPatternCommandParser cmdParser;
   private static LanguageOptions languageOptions = new LanguageOptions();
   static {
@@ -44,6 +47,7 @@ public class Main {
         countNotParsedQueries = 0, countPartiallyParsedQueries = 0, countFullyParsedQueries = 0;
     while (inputQueriesIterator.hasNext()) {
       inputQuery = inputQueriesIterator.next();
+      logger.info("Parsing query: " + inputQuery.getQueryId());
       String query = inputQuery.getQuery();
 
       List<AbstractVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
@@ -57,7 +61,7 @@ public class Main {
         }
       }
       if(visitorsThatFoundAntiPatterns.size()>0) {
-
+        outputWriter.writeRecForQuery(inputQuery, visitorsThatFoundAntiPatterns);
       }
 
 
