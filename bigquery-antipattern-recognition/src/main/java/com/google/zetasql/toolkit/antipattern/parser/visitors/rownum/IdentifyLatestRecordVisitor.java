@@ -111,4 +111,9 @@ public class IdentifyLatestRecordVisitor extends AbstractVisitor {
   public String getResult() {
     return result.stream().distinct().collect(Collectors.joining("\n"));
   }
+
+  @Override
+  public String getNAME() {
+    return NAME;
+  }
 }

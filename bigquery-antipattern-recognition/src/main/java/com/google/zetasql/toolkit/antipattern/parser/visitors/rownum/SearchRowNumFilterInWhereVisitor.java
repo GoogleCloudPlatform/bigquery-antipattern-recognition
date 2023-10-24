@@ -4,7 +4,7 @@ import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ParseTreeVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.AbstractVisitor;
 
-public class SearchRowNumFilterInWhereVisitor extends AbstractVisitor {
+public class SearchRowNumFilterInWhereVisitor extends ParseTreeVisitor {
 
   private String rowNumColAlias;
   private boolean foundFilter = false;

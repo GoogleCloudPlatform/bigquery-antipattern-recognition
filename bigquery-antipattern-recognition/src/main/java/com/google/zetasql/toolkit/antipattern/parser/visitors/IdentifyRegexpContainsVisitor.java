@@ -39,6 +39,11 @@ public class IdentifyRegexpContainsVisitor extends AbstractVisitor {
 
     }
 
+    @Override
+    public String getNAME() {
+        return NAME;
+    }
+
 }
 
 

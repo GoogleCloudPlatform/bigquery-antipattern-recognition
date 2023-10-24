@@ -92,4 +92,9 @@ public class IdentifySimpleSelectStarVisitor extends AbstractVisitor {
       return "";
     }
   }
+
+  @Override
+  public String getNAME() {
+    return NAME;
+  }
 }

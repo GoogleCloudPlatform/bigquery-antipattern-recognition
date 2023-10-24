@@ -120,5 +120,9 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends AbstractVisitor {
       return result.stream().distinct().collect(Collectors.joining("\n"));
     }
 
+  @Override
+  public String getNAME() {
+    return NAME;
+  }
 }
 

@@ -5,14 +5,18 @@ import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.cmd.output.AbstractOutputGenerator;
-import com.google.zetasql.toolkit.antipattern.cmd.output.LocalFileOutputGenerator;
+import com.google.zetasql.toolkit.antipattern.cmd.output.AntiPatternOutputWriter;
+import com.google.zetasql.toolkit.antipattern.cmd.output.BQOutputWriter;
+import com.google.zetasql.toolkit.antipattern.cmd.output.GCSFileOutputWriter;
+import com.google.zetasql.toolkit.antipattern.cmd.output.LocalFileOutputWriter;
+import com.google.zetasql.toolkit.antipattern.cmd.output.OutputToLogWriter;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.AbstractVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyCTEsEvalMultipleTimesVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyDynamicPredicateVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyInSubqueryWithoutAggVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyOrderByWithoutLimitVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyRegexpContainsVisitor;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifySimpleSelectStarVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.rownum.IdentifyLatestRecordVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.whereorder.IdentifyWhereOrderVisitor;
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
@@ -40,7 +44,7 @@ public class Main {
     cmdParser = new AntiPatternCommandParser(args);
 
     Iterator<InputQuery> inputQueriesIterator = cmdParser.getInputQueries();
-    AbstractOutputGenerator outputWriter = getOutputWriter(cmdParser);
+    AntiPatternOutputWriter outputWriter = getOutputWriter(cmdParser);
 
     InputQuery inputQuery;
     int countQueries = 0, countAntiPatterns = 0, countErrors = 0,
@@ -63,13 +67,13 @@ public class Main {
       if(visitorsThatFoundAntiPatterns.size()>0) {
         outputWriter.writeRecForQuery(inputQuery, visitorsThatFoundAntiPatterns);
       }
-
-
     }
+    outputWriter.close();
   }
 
   private static List<AbstractVisitor> getVisitorList(String query) {
     return new ArrayList<>(Arrays.asList(
+        new IdentifySimpleSelectStarVisitor(),
         new IdentifyInSubqueryWithoutAggVisitor(query),
         new IdentifyCTEsEvalMultipleTimesVisitor(query),
         new IdentifyOrderByWithoutLimitVisitor(query),
@@ -80,18 +84,22 @@ public class Main {
     ));
   }
 
-  private static AbstractOutputGenerator getOutputWriter(AntiPatternCommandParser cmdParser) {
+  private static AntiPatternOutputWriter getOutputWriter(AntiPatternCommandParser cmdParser) {
     if (cmdParser.hasOutputFileOptionName()){
       if(GCSHelper.isGCSPath(cmdParser.getOutputFileOptionName())){
-        //..
+        return new GCSFileOutputWriter(cmdParser.getOutputFileOptionName());
       } else {
-        return new LocalFileOutputGenerator(cmdParser.getOutputFileOptionName());
+        return new LocalFileOutputWriter(cmdParser.getOutputFileOptionName());
       }
     }
-    else {
-      return null;
+    else if(cmdParser.hasOutputTable()) {
+      BQOutputWriter outputWriter = new BQOutputWriter(cmdParser.getOutputTable());
+      outputWriter.setProcessingProjectName(cmdParser.getProcessingProject());
+      return outputWriter;
     }
-    return null;
+    else {
+      return new OutputToLogWriter();
+    }
   }
 
 }
