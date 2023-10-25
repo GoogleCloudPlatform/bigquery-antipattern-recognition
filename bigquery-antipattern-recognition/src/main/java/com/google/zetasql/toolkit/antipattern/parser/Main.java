@@ -187,7 +187,8 @@ public class Main {
             "NtileWindowFunction", new IdentifyNtileWindowFunction(),
             "LatestRecordWithAnalyticFun", new IdentifyLatestRecord(),
             "DynamicPredicate", new IdentifyDynamicPredicate(),
-            "WhereOrder", new IdentifyWhereOrder()
+            "WhereOrder", new IdentifyWhereOrder(),
+            "SelfJoin", new IdentifySelfJoin()
     );
 
     for (Map.Entry<String, ? super BasePatternDetector> patternDetectorEntry : basePatternDetectors.entrySet()) {
