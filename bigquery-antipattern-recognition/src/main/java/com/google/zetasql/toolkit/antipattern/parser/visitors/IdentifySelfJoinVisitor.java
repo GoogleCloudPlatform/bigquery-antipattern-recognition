@@ -56,7 +56,6 @@ public class IdentifySelfJoinVisitor extends ParseTreeVisitor {
 
     // Loop through all the identifiers in the table path expression.
     public void getIdentifier(ASTNodes.ASTTablePathExpression tablePathExpression, String joinSide) {
-//        System.out.println("Table Path Expression ==> "+ tablePathExpression);
         tablePathExpression
                 .getPathExpr()
                 .getNames()
@@ -66,11 +65,6 @@ public class IdentifySelfJoinVisitor extends ParseTreeVisitor {
                             lineNum = ZetaSQLStringParsingHelper.countLine(query, identifier.getParseLocationRange().start());
                             table = identifier.getIdString().toLowerCase();
                             tableIdMap.put(joinSide,table);
-                            /*System.out.println("Table Map - > " + tableIdMap);
-                            System.out.println("==========================================");
-                            System.out.println("Table -> " + table + " Join side " + joinSide + " line num " + lineNum);
-                            System.out.println("Table Map - > " + tableIdMap);
-                            System.out.println("==========================================");*/
                         });
         if(tableIdMap.get("LHS").equals(tableIdMap.get("RHS"))) {
             result.add(String.format(SELF_JOIN_SUGGESTION_MESSAGE, lineNum));
