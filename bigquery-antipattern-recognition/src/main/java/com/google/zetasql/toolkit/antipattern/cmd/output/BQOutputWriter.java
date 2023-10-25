@@ -1,17 +1,22 @@
 package com.google.zetasql.toolkit.antipattern.cmd.output;
 
 import com.google.api.client.util.DateTime;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
+import com.google.zetasql.toolkit.antipattern.Main;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.AbstractVisitor;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BQOutputWriter extends AntiPatternOutputWriter {
 
+  private static final Logger logger = LoggerFactory.getLogger(BQOutputWriter.class);
   public static final String JOB_IDENTIFIER_COL_NAME = "job_id";
   public static final String QUERY_COL_NAME = "query";
   public static final String SLOT_HOURS_COL_NAME = "slot_hours";
@@ -33,10 +38,10 @@ public class BQOutputWriter extends AntiPatternOutputWriter {
     this.processingProjectName = processingProjectName;
   }
 
-  public void writeRecForQuery(InputQuery inputQuery, List<AbstractVisitor> visitorsThatFoundPatterns) {
+  public void writeRecForQuery(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns) {
 
     List<Map<String, String>> recommendations = new ArrayList<>();
-    for(AbstractVisitor visitor: visitorsThatFoundPatterns) {
+    for(AntiPatternVisitor visitor: visitorsThatFoundPatterns) {
 
       Map<String, String> rec = new HashMap<>();
       rec.put(REC_NAME_COL_NAME, visitor.getNAME());
@@ -50,10 +55,12 @@ public class BQOutputWriter extends AntiPatternOutputWriter {
       rowContent.put(USER_EMAIL_COL_NAME, inputQuery.getUserEmail());
       rowContent.put(RECOMMENDATION_COL_NAME, recommendations);
       rowContent.put(PROCESS_TIMESTAMP_COL_NAME, date);
+      logger.info("Writing rec to BQ :" + rowContent);
       BigQueryHelper.writeResults(
           processingProjectName, tableName, rowContent);
     }
   }
+
 }
 
 

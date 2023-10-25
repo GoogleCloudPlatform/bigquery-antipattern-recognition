@@ -1,12 +1,17 @@
 package com.google.zetasql.toolkit.antipattern.cmd.output;
 
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
+import com.google.zetasql.toolkit.antipattern.Main;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.AbstractVisitor;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GCSFileOutputWriter extends AntiPatternOutputWriter {
 
+  private static final Logger logger = LoggerFactory.getLogger(GCSFileOutputWriter.class);
   private String gcsFilePath;
   public String csvFileExtension = ".csv";
   private StringBuilder outputStrBuilder = new StringBuilder();
@@ -18,7 +23,7 @@ public class GCSFileOutputWriter extends AntiPatternOutputWriter {
   }
 
   public void writeRecForQuery(
-      InputQuery inputQuery, List<AbstractVisitor> visitorsThatFoundPatterns) {
+      InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns) {
       if(outputStrBuilder.length()==0) {
         outputStrBuilder.append(OutputCSVWriterHelper.CSV_HEADER);
       }
@@ -38,6 +43,7 @@ public class GCSFileOutputWriter extends AntiPatternOutputWriter {
   }
 
   private void writeOutput() {
+    logger.info("Writing recommendations to GCS: " + gcsFilePath);
     String gcsOutputFileName = getGCSOutputFileName();
     GCSHelper gcsHelper = new GCSHelper();
     gcsHelper.writeToGCS(gcsOutputFileName, outputStrBuilder.toString());

@@ -20,6 +20,7 @@ import com.google.api.gax.paging.Page;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.google.zetasql.toolkit.antipattern.Main;
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.io.File;
 import java.io.IOException;
@@ -51,14 +52,16 @@ public class AntiPatternCommandParser {
   public static final String OUTPUT_TABLE_OPTION_NAME = "output_table";
   public static final String USE_ANALYZER_FLAG_NAME = "advanced_analysis";
   public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
-
   private Options options;
   private CommandLine cmd;
 
   public AntiPatternCommandParser(String[] args) throws ParseException {
     options = getOptions();
     CommandLineParser parser = new BasicParser();
+    logger.info("Running anti patter tool for args:" + args.toString());
     cmd = parser.parse(options, args);
+    logger.info("Running with the following config:" + cmd.toString());
+
   }
 
   public String getOutputTable() {

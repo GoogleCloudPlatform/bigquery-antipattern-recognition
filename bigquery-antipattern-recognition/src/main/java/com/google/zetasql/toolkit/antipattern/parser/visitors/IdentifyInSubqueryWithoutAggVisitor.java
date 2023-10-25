@@ -22,7 +22,7 @@ import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class IdentifyInSubqueryWithoutAggVisitor extends AbstractVisitor {
+public class IdentifyInSubqueryWithoutAggVisitor extends AntipatternParserVisitor {
 
   public final static String NAME = "SemiJoinWithoutAgg";
 

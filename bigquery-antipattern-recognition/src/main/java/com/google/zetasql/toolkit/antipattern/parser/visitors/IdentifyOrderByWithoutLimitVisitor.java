@@ -21,7 +21,7 @@ import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class IdentifyOrderByWithoutLimitVisitor extends AbstractVisitor {
+public class IdentifyOrderByWithoutLimitVisitor extends AntipatternParserVisitor {
 
   public static final String NAME = "OrderByWithoutLimit";
 

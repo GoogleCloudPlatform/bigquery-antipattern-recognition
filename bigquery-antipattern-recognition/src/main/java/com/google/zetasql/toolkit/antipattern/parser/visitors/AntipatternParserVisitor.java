@@ -1,8 +1,9 @@
 package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 
-public abstract class AbstractVisitor extends ParseTreeVisitor {
+public abstract class AntipatternParserVisitor extends ParseTreeVisitor implements AntiPatternVisitor {
   public final String NAME = "";
 
   public String getResult() {

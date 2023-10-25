@@ -18,11 +18,10 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
-import com.google.zetasql.parser.ParseTreeVisitor;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class IdentifySimpleSelectStarVisitor extends AbstractVisitor {
+public class IdentifySimpleSelectStarVisitor extends AntipatternParserVisitor {
 
   public final static String NAME = "SimpleSelectStar";
   private final String SUGGESTION_MESSAGE =

@@ -1,7 +1,8 @@
 package com.google.zetasql.toolkit.antipattern.cmd.output;
 
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.AbstractVisitor;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,7 +17,7 @@ public class LocalFileOutputWriter extends AntiPatternOutputWriter {
     filePath = outputDir;
   }
 
-  public void writeRecForQuery(InputQuery inputQuery, List<AbstractVisitor> visitorsThatFoundPatterns)
+  public void writeRecForQuery(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns)
       throws IOException {
     setFileWriter();
     csvWriter.write(
