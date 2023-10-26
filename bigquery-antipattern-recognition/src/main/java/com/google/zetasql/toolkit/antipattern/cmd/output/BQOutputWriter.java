@@ -38,6 +38,7 @@ public class BQOutputWriter extends AntiPatternOutputWriter {
     this.processingProjectName = processingProjectName;
   }
 
+
   public void writeRecForQuery(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns) {
 
     List<Map<String, String>> recommendations = new ArrayList<>();

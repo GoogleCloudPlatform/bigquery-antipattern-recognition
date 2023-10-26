@@ -13,4 +13,5 @@ public abstract class AntiPatternOutputWriter {
   public void close() throws IOException {
 
   };
+
 }

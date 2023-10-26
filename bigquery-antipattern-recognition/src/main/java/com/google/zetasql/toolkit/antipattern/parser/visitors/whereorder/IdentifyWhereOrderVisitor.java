@@ -2,13 +2,15 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors.whereorder;
 
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTExpression;
+import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-public class IdentifyWhereOrderVisitor extends AntipatternParserVisitor {
+public class IdentifyWhereOrderVisitor extends ParseTreeVisitor implements AntiPatternVisitor {
 
   public final static String NAME = "WhereOrder";
   private String query;

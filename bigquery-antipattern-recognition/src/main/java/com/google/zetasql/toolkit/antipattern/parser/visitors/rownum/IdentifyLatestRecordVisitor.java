@@ -21,6 +21,8 @@ import com.google.zetasql.parser.ASTNodes.ASTSelect;
 import com.google.zetasql.parser.ASTNodes.ASTSelectColumn;
 import com.google.zetasql.parser.ASTNodes.ASTTableExpression;
 import com.google.zetasql.parser.ASTNodes.ASTWhereClause;
+import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.Collectors;
 
-public class IdentifyLatestRecordVisitor extends AntipatternParserVisitor {
+public class IdentifyLatestRecordVisitor extends ParseTreeVisitor implements AntiPatternVisitor {
 
   public final static String NAME = "LatestRecordWithAnalyticFun";
 

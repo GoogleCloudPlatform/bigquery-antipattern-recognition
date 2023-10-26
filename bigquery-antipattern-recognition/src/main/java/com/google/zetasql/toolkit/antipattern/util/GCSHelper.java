@@ -9,11 +9,17 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.google.zetasql.toolkit.antipattern.cmd.output.GCSFileOutputWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GCSHelper {
+  private static final Logger logger = LoggerFactory.getLogger(GCSHelper.class);
+
   public final static String GCS_DELIMITER = "/";
   public final static String GCS_PATH_PREFIX = "gs://";
 
@@ -60,11 +66,18 @@ public class GCSHelper {
   }
 
   public void writeToGCS(String filePath, String fileContent) {
-    setBucketName(filePath);
-    String filename = filePath.replace(GCS_PATH_PREFIX+this.bucketName+GCS_DELIMITER, "");
-    BlobId blobId = BlobId.of(bucketName, filename);
-    BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("text/plain").build();
-    Blob blob = storage.create(blobInfo, fileContent.getBytes(UTF_8));
+    try {
+      setBucketName(filePath);
+      String filename = filePath.replace(GCS_PATH_PREFIX+this.bucketName+GCS_DELIMITER, "");
+      BlobId blobId = BlobId.of(bucketName, filename);
+      BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("text/plain").build();
+      Blob blob = storage.create(blobInfo, fileContent.getBytes(UTF_8));
+    } catch (Exception e) {
+      logger.error("Error when writing to GCD: " + filePath);
+      logger.error(e.getMessage());
+      logger.error(e.getStackTrace().toString());
+    }
+
   }
 
   private void setBucketName(String gcsPath) {

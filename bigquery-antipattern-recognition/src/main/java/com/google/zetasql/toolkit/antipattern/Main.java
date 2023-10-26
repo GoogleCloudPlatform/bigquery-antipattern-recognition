@@ -4,6 +4,7 @@ import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.parser.ParseTreeVisitor;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.antipattern.analyzer.visitors.joinorder.JoinOrderVisitor;
@@ -14,7 +15,6 @@ import com.google.zetasql.toolkit.antipattern.cmd.output.BQOutputWriter;
 import com.google.zetasql.toolkit.antipattern.cmd.output.GCSFileOutputWriter;
 import com.google.zetasql.toolkit.antipattern.cmd.output.LocalFileOutputWriter;
 import com.google.zetasql.toolkit.antipattern.cmd.output.OutputToLogWriter;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyCTEsEvalMultipleTimesVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyDynamicPredicateVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyInSubqueryWithoutAggVisitor;
@@ -111,17 +111,17 @@ public class Main {
 
   private static void checkForAntiPatternsInQueryWithParserVisitors(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundAntiPatterns ) {
 
-    List<AntipatternParserVisitor> parserVisitorList = getParserVisitorList(inputQuery.getQuery());
+    List<AntiPatternVisitor> parserVisitorList = getParserVisitorList(inputQuery.getQuery());
     if(visitorMetricsMap == null) {
       setVisitorMetricsMap(parserVisitorList);
     }
 
-    for (AntipatternParserVisitor visitor : parserVisitorList) {
+    for (AntiPatternVisitor visitor : parserVisitorList) {
       try{
         logger.info("Parsing query with id: " + inputQuery.getQueryId() +
             " for anti-pattern:" + visitor.getNAME());
         ASTStatement parsedQuery = Parser.parseStatement( inputQuery.getQuery(), languageOptions);
-        parsedQuery.accept(visitor);
+        parsedQuery.accept((ParseTreeVisitor) visitor);
         String result = visitor.getResult();
         if(result.length() > 0) {
           visitorsThatFoundAntiPatterns.add(visitor);
@@ -176,7 +176,7 @@ public class Main {
     }
   }
 
-  private static List<AntipatternParserVisitor> getParserVisitorList(String query) {
+  private static List<AntiPatternVisitor> getParserVisitorList(String query) {
     return new ArrayList<>(Arrays.asList(
         new IdentifySimpleSelectStarVisitor(),
         new IdentifyInSubqueryWithoutAggVisitor(query),
@@ -189,7 +189,7 @@ public class Main {
     ));
   }
 
-  private static void setVisitorMetricsMap(List<AntipatternParserVisitor> parserVisitorList ) {
+  private static void setVisitorMetricsMap(List<AntiPatternVisitor> parserVisitorList ) {
     visitorMetricsMap = new HashMap<>();
     parserVisitorList.stream().forEach(visitor -> visitorMetricsMap.put(visitor.getNAME(), 0));
   }
@@ -235,11 +235,7 @@ public class Main {
 
     for (HashMap.Entry<String, Integer> entry : visitorMetricsMap.entrySet()) {
       statsString.append(String.format("\n* %s: %d", entry.getKey(), entry.getValue()));
-
-      logger.info(statsString.toString());
-
     }
-
-
+    logger.info(statsString.toString());
   }
 }

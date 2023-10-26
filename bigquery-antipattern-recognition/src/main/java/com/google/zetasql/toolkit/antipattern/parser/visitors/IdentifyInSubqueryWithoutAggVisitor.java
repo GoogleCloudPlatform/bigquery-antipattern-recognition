@@ -18,11 +18,14 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
 import com.google.zetasql.parser.ASTNodes.ASTInExpression;
 import com.google.zetasql.parser.ASTNodes.ASTSelect;
+import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class IdentifyInSubqueryWithoutAggVisitor extends AntipatternParserVisitor {
+public class IdentifyInSubqueryWithoutAggVisitor extends ParseTreeVisitor implements
+    AntiPatternVisitor {
 
   public final static String NAME = "SemiJoinWithoutAgg";
 

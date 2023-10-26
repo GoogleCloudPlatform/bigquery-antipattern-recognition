@@ -21,13 +21,15 @@ import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTSelect;
 import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
 import com.google.zetasql.parser.ASTNodes.ASTWithClause;
+import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class IdentifyCTEsEvalMultipleTimesVisitor extends AntipatternParserVisitor {
+public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor implements AntiPatternVisitor {
 
   public final String NAME = "CTEsEvalMultipleTimes";
   private final String MULTIPLE_CTE_SUGGESTION_MESSAGE =

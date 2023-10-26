@@ -3,11 +3,13 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.parser.ASTNodes;
 
+import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class IdentifyRegexpContainsVisitor extends AntipatternParserVisitor {
+public class IdentifyRegexpContainsVisitor extends ParseTreeVisitor implements AntiPatternVisitor {
 
     public final static String NAME = "StringComparison";
     private final static String REGEXP_CONTAINS = "REGEXP_CONTAINS at line %d. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching).";
