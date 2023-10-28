@@ -1,9 +1,10 @@
 # BigQuery Optimization via Anti-Pattern Recognition
 
-This utility scans a BigQuery SQL in search for several possible anti-patterns. \
+This utility scans a BigQuery SQL in search for several possible anti-patterns.
 
 These anti-patterns are specific SQL syntaxes that might cause performance impact.
-The recommended use of this tool is to use it to scan the top 10% slot consuming 
+
+The recommended use of this tool is to scan the top 10% slot consuming 
 jobs in your workloads. 
 
 For example:
@@ -29,6 +30,7 @@ pre-requisites.
 
 Build utility
 ```
+# in cloud shell terminal
 git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
 cd bigquery-antipattern-recognition
 mvn clean package jib:dockerBuild -DskipTests
@@ -36,13 +38,15 @@ mvn clean package jib:dockerBuild -DskipTests
 
 Run tool for simple inline query
 ```
+# in cloud shell terminal
 docker run \
   -i bigquery-antipattern-recognition \
   --query "SELECT * FROM \`project.dataset.table1\`" 
 ```
 
 In the BigQuery console, run the DDL bellow to create th output table 
-```SQL 
+```SQL
+-- in BQ console 
 CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_output_table (
   job_id STRING,
   user_email STRING,
@@ -56,6 +60,7 @@ CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_output_table (
 To read from INFORMATION_SCHEMA and write to the output table, run the following
 in the command line:
 ```
+# in cloud shell terminal
 gcloud auth login
 
 docker run \
@@ -71,6 +76,7 @@ docker run \
 
 Read output in BigQuery Console
 ```SQL
+-- in BQ console
 SELECT
   job_id, user_email, query, 
   recommendation, slot_hours
@@ -82,9 +88,9 @@ LIMIT 10000;
 ```
 
 ### Other input / output options
-* [Read from file and write output to terminal](./EXAMPLES.md#local-file----log)
-* [Read from folder and write output to csv](./EXAMPLES.md#local-folder----local-csv)
-* [Read from csv and output to csv](./EXAMPLES.md#local-csv----local-csv)
+* [Read from file and write output to terminal](./EXAMPLES.md#local-file---log)
+* [Read from folder and write output to csv](./EXAMPLES.md#local-folder---local-csv)
+* [Read from csv and output to csv](./EXAMPLES.md#local-csv---local-csv)
 
 
 # Flags and arguments

@@ -1,4 +1,4 @@
-### Inline -> log
+### inline -> log
 ```
 docker run \
   -i bigquery-antipattern-recognition \
@@ -46,7 +46,7 @@ ORDER BY
 LIMIT 10000;
 ```
 
-### Local file -> log
+### local file -> log
 Read from local file and write to log
 ```
 export INPUT_FOLDER=$(pwd)/samples/queries/input
@@ -56,7 +56,7 @@ docker run \
   -i bigquery-antipattern-recognition \
   --input_file_path $INPUT_FOLDER/$INPUT_FILE_NAME
 ```
-### Local folder -> local CSV
+### local folder -> local CSV
 Read from folder and write output to csv
 ```
 export INPUT_FOLDER=$(pwd)/samples/queries/input
