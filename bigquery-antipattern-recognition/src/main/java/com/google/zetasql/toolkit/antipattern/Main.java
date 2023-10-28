@@ -119,7 +119,7 @@ public class Main {
     for (AntiPatternVisitor visitor : parserVisitorList) {
       try{
         logger.info("Parsing query with id: " + inputQuery.getQueryId() +
-            " for anti-pattern:" + visitor.getNAME());
+            " for anti-pattern: " + visitor.getNAME());
         ASTStatement parsedQuery = Parser.parseStatement( inputQuery.getQuery(), languageOptions);
         parsedQuery.accept((ParseTreeVisitor) visitor);
         String result = visitor.getResult();
@@ -233,9 +233,9 @@ public class Main {
     statsString.append("\n\n* Queries read: " + countQueriesRead);
     statsString.append("\n* Queries with anti patterns: " + countQueriesWithAntipattern);
 
-    for (HashMap.Entry<String, Integer> entry : visitorMetricsMap.entrySet()) {
-      statsString.append(String.format("\n* %s: %d", entry.getKey(), entry.getValue()));
-    }
+    // for (HashMap.Entry<String, Integer> entry : visitorMetricsMap.entrySet()) {
+    //   statsString.append(String.format("\n* %s: %d", entry.getKey(), entry.getValue()));
+    // }
     logger.info(statsString.toString());
   }
 }

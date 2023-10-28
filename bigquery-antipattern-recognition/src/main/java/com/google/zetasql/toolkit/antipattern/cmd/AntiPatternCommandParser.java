@@ -52,13 +52,14 @@ public class AntiPatternCommandParser {
   public static final String OUTPUT_TABLE_OPTION_NAME = "output_table";
   public static final String USE_ANALYZER_FLAG_NAME = "advanced_analysis";
   public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
+  public static final String IS_TOP_N_PERC_JOBS = "info_schema_top_n_percentage_of_jobs";
   private Options options;
   private CommandLine cmd;
 
   public AntiPatternCommandParser(String[] args) throws ParseException {
     options = getOptions();
     CommandLineParser parser = new BasicParser();
-    logger.info("Running anti patter tool for args:" + args.toString());
+    logger.info("Running anti pattern tool for args:" + String.join(" ", args));
     cmd = parser.parse(options, args);
     logger.info("Running with the following config:" + cmd.toString());
 
@@ -241,6 +242,15 @@ public class AntiPatternCommandParser {
             .build();
     options.addOption(anaLyzerDefaultProjectId);
 
+    Option ISTopNPercentageJobs =
+        Option.builder(IS_TOP_N_PERC_JOBS)
+            .argName(IS_TOP_N_PERC_JOBS)
+            .hasArg()
+            .required(false)
+            .desc("Top % of jobs by slot_ms to read from INFORMATION_SCHEMA")
+            .build();
+    options.addOption(ISTopNPercentageJobs);
+
     return options;
   }
 
@@ -273,8 +283,9 @@ public class AntiPatternCommandParser {
     String timeoutInSecs = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME);
     String infoSchemaStartTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME);
     String infoSchemaEndTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME);
+    String customTopNPercent = cmd.getOptionValue(IS_TOP_N_PERC_JOBS);
 
-    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays, infoSchemaStartTime, infoSchemaEndTime, infoSchemaTableName, infoSchemaSlotmsMin, timeoutInSecs);
+    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays, infoSchemaStartTime, infoSchemaEndTime, infoSchemaTableName, infoSchemaSlotmsMin, timeoutInSecs, customTopNPercent);
   }
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {

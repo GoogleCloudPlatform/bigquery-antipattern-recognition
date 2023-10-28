@@ -32,19 +32,21 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
   String DAYS_BACK_DEFAULT = "30";
   Integer SLOTMS_MIN_DEFAULT = 0;
   Long TIMEOUT_SECS_DEFAULT = 60L;
+  Float TOP_N_PERC_DEFAULT = 0.1F;
 
 
   public InformationSchemaQueryIterable(String projectId, String customDaysBack, String startTime, String endTime, String customISTable,
-                                        String infoSchemaSlotmsMin, String customTimeoutInSecs)
+                                        String infoSchemaSlotmsMin, String customTimeoutInSecs, String customTopNPercent)
           throws InterruptedException {
 
     String daysBack = customDaysBack == null ? DAYS_BACK_DEFAULT : customDaysBack;
     String ISTable = customISTable == null ? IS_TABLE_DEFAULT : customISTable;
     Integer slotsMsMin = infoSchemaSlotmsMin == null ? SLOTMS_MIN_DEFAULT : Integer.parseInt(infoSchemaSlotmsMin);
     Long timeoutInSecs = !NumberUtils.isParsable(customTimeoutInSecs) ? TIMEOUT_SECS_DEFAULT : Long.parseLong(customTimeoutInSecs);
+    float topNPercent = customTopNPercent == null ? TOP_N_PERC_DEFAULT : Float.parseFloat(customTopNPercent);
 
     TableResult tableResult =
-        BigQueryHelper.getQueriesFromIS(projectId, daysBack, startTime, endTime, ISTable, slotsMsMin, timeoutInSecs);
+        BigQueryHelper.getQueriesFromIS(projectId, daysBack, startTime, endTime, ISTable, slotsMsMin, timeoutInSecs, topNPercent);
 
     fieldValueListIterator = tableResult.iterateAll().iterator();
   }

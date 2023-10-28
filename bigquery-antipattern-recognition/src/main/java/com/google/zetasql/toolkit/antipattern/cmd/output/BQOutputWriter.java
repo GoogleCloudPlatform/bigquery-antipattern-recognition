@@ -41,12 +41,13 @@ public class BQOutputWriter extends AntiPatternOutputWriter {
 
   public void writeRecForQuery(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns) {
 
-    List<Map<String, String>> recommendations = new ArrayList<>();
+    List<Map<String, String>> rec_list = new ArrayList<>();
     for(AntiPatternVisitor visitor: visitorsThatFoundPatterns) {
 
       Map<String, String> rec = new HashMap<>();
       rec.put(REC_NAME_COL_NAME, visitor.getNAME());
       rec.put(DESCRIPTION_COL_NAME, visitor.getResult());
+      rec_list.add(rec);
 
       Map<String, Object> rowContent = new HashMap<>();
       rowContent.put(JOB_IDENTIFIER_COL_NAME, inputQuery.getQueryId());
@@ -54,7 +55,7 @@ public class BQOutputWriter extends AntiPatternOutputWriter {
       rowContent.put(
           SLOT_HOURS_COL_NAME, inputQuery.getSlotHours() >= 0 ? inputQuery.getSlotHours() : null);
       rowContent.put(USER_EMAIL_COL_NAME, inputQuery.getUserEmail());
-      rowContent.put(RECOMMENDATION_COL_NAME, recommendations);
+      rowContent.put(RECOMMENDATION_COL_NAME, rec_list);
       rowContent.put(PROCESS_TIMESTAMP_COL_NAME, date);
       logger.info("Writing rec to BQ :" + rowContent);
       BigQueryHelper.writeResults(
