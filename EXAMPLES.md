@@ -1,4 +1,4 @@
-### inline -> log
+### inline -> terminal
 ```
 docker run \
   -i bigquery-antipattern-recognition \
