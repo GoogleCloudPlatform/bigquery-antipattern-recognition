@@ -57,7 +57,6 @@ public class BQOutputWriter extends AntiPatternOutputWriter {
       rowContent.put(USER_EMAIL_COL_NAME, inputQuery.getUserEmail());
       rowContent.put(RECOMMENDATION_COL_NAME, rec_list);
       rowContent.put(PROCESS_TIMESTAMP_COL_NAME, date);
-      logger.info("Writing rec to BQ :" + rowContent);
       BigQueryHelper.writeResults(
           processingProjectName, tableName, rowContent);
     }

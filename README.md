@@ -240,7 +240,7 @@ Output:
 CTE with multiple references: alias a defined at line 2 is referenced 2 times
 ```
 
-## Anti Pattern 4: Using ORDER BY WITHOUT LIMIT
+## Anti Pattern 4: Using ORDER BY without LIMIT
 Example:
 ```
 SELECT
@@ -258,7 +258,7 @@ Output:
 ORDER BY clause without LIMIT at line 8.
 ```
 
-## Anti Pattern 5: Using REGEXP_CONTAINS WHEN LIKE IS AN OPTION
+## Anti Pattern 5: Using REGEXP_CONTAINS when LIKE is an option
 Example:
 ```
 SELECT
