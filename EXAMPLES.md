@@ -68,7 +68,7 @@ docker run \
   -v $OUTPUT_FOLDER:$OUTPUT_FOLDER \
   -i bigquery-antipattern-recognition \
   --input_folder_path $INPUT_FOLDER \
-  --output_file_path $OUTPUT_FOLDER/$OUT_FILENAME
+  --output_file_path $OUTPUT_FOLDER/$OUTPUT_FILENAME
 ```
 
 ### local csv -> local csv
@@ -83,8 +83,8 @@ docker run \
   -v $INPUT_FOLDER:$INPUT_FOLDER \
   -v $OUTPUT_FOLDER:$OUTPUT_FOLDER \
   -i bigquery-antipattern-recognition \
-  --input_csv_file_path $INPUT_FOLDER/$INPUT_FILENAME \
-  --output_file_path $OUTPUT_FOLDER/$OUT_FILENAME
+  --input_csv_file_path $INPUT_FOLDER/$INPUT_CSV_FILENAME \
+  --output_file_path $OUTPUT_FOLDER/$OUTPUT_FILENAME
 ```
 
 ### Run using advanced analytics 

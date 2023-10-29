@@ -74,8 +74,7 @@ public class GCSHelper {
       Blob blob = storage.create(blobInfo, fileContent.getBytes(UTF_8));
     } catch (Exception e) {
       logger.error("Error when writing to GCD: " + filePath);
-      logger.error(e.getMessage());
-      logger.error(e.getStackTrace().toString());
+      logger.error(e.getMessage(), e);
     }
 
   }

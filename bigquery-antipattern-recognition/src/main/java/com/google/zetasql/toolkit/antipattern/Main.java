@@ -101,8 +101,7 @@ public class Main {
 
     } catch (Exception e) {
       logger.error("Error processing query with id: " + inputQuery.getQueryId());
-      logger.error(e.getMessage());
-      logger.error(e.getStackTrace().toString());
+      logger.error(e.getMessage(), e);
     }
   }
 
@@ -127,8 +126,7 @@ public class Main {
       } catch (Exception e) {
         logger.error("Error parsing query with id: " + inputQuery.getQueryId() +
             " for anti-pattern:" + visitor.getNAME());
-        logger.error(e.getMessage());
-        logger.error(e.getStackTrace().toString());
+        logger.error(e.getMessage(), e);
       }
     }
   }
@@ -166,8 +164,7 @@ public class Main {
     } catch (Exception e) {
       logger.error("Error analyzing query with id: " + inputQuery.getQueryId() +
           " For anti-pattern:" + visitor.getNAME());
-      logger.error(e.getMessage());
-      logger.error(e.getStackTrace().toString());
+      logger.error(e.getMessage(), e);
     }
   }
 
