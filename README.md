@@ -88,7 +88,7 @@ LIMIT 10000;
 ```
 
 ### Other input / output options
-* [local file -> log](./EXAMPLES.md#local-file---log)
+* [local file -> terminal](./EXAMPLES.md#local-file---log)
 * [local file -> csv](./EXAMPLES.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
 

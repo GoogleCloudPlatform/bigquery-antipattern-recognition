@@ -46,8 +46,8 @@ ORDER BY
 LIMIT 10000;
 ```
 
-### local file -> log
-Read from local file and write to log
+### local file -> terminal
+Read from local file and write to terminal
 ```
 export INPUT_FOLDER=$(pwd)/samples/queries/input
 export INPUT_FILE_NAME=multipleCTEs.sql
