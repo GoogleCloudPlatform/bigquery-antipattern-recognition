@@ -52,7 +52,6 @@ public class Main {
   private static HashMap<String, Integer> visitorMetricsMap;
   private static int countQueriesRead = 0;
   private static int countQueriesWithAntipattern = 0;
-  private static boolean queryHasAntiPattern;
 
   static {
     languageOptions.enableMaximumLanguageFeatures();
@@ -85,7 +84,6 @@ public class Main {
       throws IOException {
 
     try {
-      queryHasAntiPattern = false;
       List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
       // parser visitors
       checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
@@ -97,11 +95,10 @@ public class Main {
 
       // write output
       if (visitorsThatFoundAntiPatterns.size() > 0) {
+        countQueriesWithAntipattern += 1;
         outputWriter.writeRecForQuery(inputQuery, visitorsThatFoundAntiPatterns);
       }
-      if(queryHasAntiPattern) {
-        countQueriesWithAntipattern += 1;
-      }
+
     } catch (Exception e) {
       logger.error("Error processing query with id: " + inputQuery.getQueryId());
       logger.error(e.getMessage());
@@ -126,7 +123,6 @@ public class Main {
         if(result.length() > 0) {
           visitorsThatFoundAntiPatterns.add(visitor);
           visitorMetricsMap.merge(visitor.getNAME(), 1, Integer::sum);
-          queryHasAntiPattern = true;
         }
       } catch (Exception e) {
         logger.error("Error parsing query with id: " + inputQuery.getQueryId() +
@@ -165,7 +161,6 @@ public class Main {
 
       String result = visitor.getResult();
       if (result.length() > 0) {
-        queryHasAntiPattern = true;
         visitorsThatFoundAntiPatterns.add(visitor);
       }
     } catch (Exception e) {

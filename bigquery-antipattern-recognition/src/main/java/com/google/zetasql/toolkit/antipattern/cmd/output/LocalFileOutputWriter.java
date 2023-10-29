@@ -32,7 +32,9 @@ public class LocalFileOutputWriter extends AntiPatternOutputWriter {
   }
 
   public void close() throws IOException {
-    csvWriter.close();
+    if(csvWriter != null){
+      csvWriter.close();
+    }
   }
 
   private void setFileWriter() throws IOException {
