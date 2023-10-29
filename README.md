@@ -88,9 +88,9 @@ LIMIT 10000;
 ```
 
 ### Other input / output options
-* [Read from file and write output to terminal](./EXAMPLES.md#local-file---log)
-* [Read from folder and write output to csv](./EXAMPLES.md#local-folder---local-csv)
-* [Read from csv and output to csv](./EXAMPLES.md#local-csv---local-csv)
+* [local file -> log](./EXAMPLES.md#local-file---log)
+* [local file -> csv](./EXAMPLES.md#local-folder---local-csv)
+* [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
 
 
 # Flags and arguments
