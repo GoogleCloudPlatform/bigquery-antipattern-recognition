@@ -26,10 +26,13 @@ All columns on table: project.dataset.table1 are being selected. Please be sure 
 Prerequisites:
 * [gcloud CLI](https://cloud.google.com/sdk/gcloud)
 * Docker
+* maven
 
 
 Build utility
 ```
+git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
+cd bigquery-antipattern-recognition
 mvn clean package jib:dockerBuild -DskipTests
 ```
 
