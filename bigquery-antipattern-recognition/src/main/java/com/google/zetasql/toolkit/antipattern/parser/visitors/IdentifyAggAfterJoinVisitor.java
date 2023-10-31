@@ -16,6 +16,7 @@
 
 package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
+import com.google.common.collect.ImmutableList;
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTExpression;
 import com.google.zetasql.parser.ASTNodes.ASTGroupingItem;
@@ -114,17 +115,11 @@ public class IdentifyAggAfterJoinVisitor extends ParseTreeVisitor {
     ASTNodes.ASTPathExpression lhsPath = (ASTNodes.ASTPathExpression) node.getLhs();
     ASTNodes.ASTPathExpression rhsPath = (ASTNodes.ASTPathExpression) node.getRhs();
 
-    if (lhsPath.getNames().size() > 1) {
-      lhsJoinKeys.add(lhsPath.getNames().get(1).getIdString());
-    } else {
-      lhsJoinKeys.add(lhsPath.getNames().get(0).getIdString());
-    }
+    ImmutableList<ASTIdentifier> lhsPathNames = lhsPath.getNames();
+    lhsJoinKeys.add(lhsPathNames.get(lhsPathNames.size()-1).getIdString());
 
-    if (rhsPath.getNames().size() > 1) {
-      rhsJoinKeys.add(rhsPath.getNames().get(1).getIdString());
-    } else {
-      rhsJoinKeys.add(rhsPath.getNames().get(0).getIdString());
-    }
+    ImmutableList<ASTIdentifier> rhsPathNames = rhsPath.getNames();
+    rhsJoinKeys.add(rhsPathNames.get(rhsPathNames.size()-1).getIdString());
 
     super.visit(node);
   }
