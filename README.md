@@ -351,7 +351,7 @@ As a [best practice](https://cloud.google.com/bigquery/docs/best-practices-perfo
 the table with the largest number of rows should be placed first in a JOIN. 
 
 This anti-pattern checks the join order based on the number of rows of each 
-table. To do so it must fetch table metadata, for which the `advanced_analysis`
+table. To do so this tool must fetch table metadata, for which the `advanced_analysis`
 flag must be used.
 
 Details can be found [here](./EXAMPLES.md#run-using-advanced-analytics).
