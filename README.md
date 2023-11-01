@@ -346,6 +346,36 @@ Output:
 WhereOrder: LIKE filter in line 8 precedes a more selective filter.
 ```
 
+## Anti Pattern 9: Join Order 
+As a [best practice](https://cloud.google.com/bigquery/docs/best-practices-performance-compute#optimize_your_join_patterns)
+the table with the largest number of rows should be placed first in a JOIN. 
+
+This anti-pattern checks the join order based on the number of rows of each 
+table. To do so it must fetch table metadata, for which the `advanced_analysis`
+flag must be used.
+
+Details can be found [here](./EXAMPLES.md#run-using-advanced-analytics).
+
+Example:
+```
+SELECT  
+  t1.station_id,
+  COUNT(1) num_trips_started
+FROM
+  `bigquery-public-data.austin_bikeshare.bikeshare_stations` t1
+JOIN
+  `bigquery-public-data.austin_bikeshare.bikeshare_trips` t2 ON t1.station_id = t2.start_station_id
+GROUP BY
+  t1.station_id
+;
+```
+
+Output:
+```
+JoinOrder: JOIN on tables: [bikeshare_stations, bikeshare_trips] might perform 
+better if tables where joined in the following order: 
+[bikeshare_trips, bikeshare_stations]
+```
 
 # Disclaimer
 This is not an officially supported Google product.
