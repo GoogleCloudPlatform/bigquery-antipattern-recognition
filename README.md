@@ -354,7 +354,7 @@ This anti-pattern checks the join order based on the number of rows of each
 table. To do so this tool must fetch table metadata, for which the `advanced_analysis`
 flag must be used.
 
-Details can be found [here](./EXAMPLES.md#run-using-advanced-analytics).
+Details can be found [here](./EXAMPLES.md#run-using-advanced-analysis).
 
 Example:
 ```

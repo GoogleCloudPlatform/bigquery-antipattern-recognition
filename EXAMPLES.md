@@ -87,9 +87,9 @@ docker run \
   --output_file_path $OUTPUT_FOLDER/$OUTPUT_FILENAME
 ```
 
-### Run using advanced analytics 
+### Run using advanced analysis  
 The JoinOrder anti-pattern depends on table size.
-The advanced analytics option allows the tool to fetch table metadata for the
+The advanced analysis option allows the tool to fetch table metadata for the
 JoinOrder anti-pattern. 
 
 ```
