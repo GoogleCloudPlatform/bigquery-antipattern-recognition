@@ -1,13 +1,14 @@
 # BigQuery Optimization via Anti-Pattern Recognition
 
-This utility scans a BigQuery SQL in search for several possible anti-patterns.
+This utility scans a BigQuery SQL in search for several possible anti-patterns. 
+Anti-patterns are specific SQL syntaxes that in some cases might cause 
+performance impact.
 
-These anti-patterns are specific SQL syntaxes that might cause performance impact.
+We recommend using this tool to scan the top 10% slot consuming jobs of your 
+workload. Addressing these anti-patterns in most cases will provide performance 
+significant benefits. 
 
-The recommended use of this tool is to scan the top 10% slot consuming 
-jobs in your workloads. 
-
-For example:
+Example of tool input and output :
 
 Input:
 ```
