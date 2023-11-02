@@ -2,11 +2,15 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
-public class IdentifyDynamicPredicateVisitor extends ParseTreeVisitor {
+public class IdentifyDynamicPredicateVisitor extends ParseTreeVisitor implements
+    AntiPatternVisitor {
 
+  public final static String NAME = "DynamicPredicate";
   private String query;
   private Boolean insideWhere = false;
   private final String DYNAMIC_PREDICATE_SUGGESTION_MESSAGE = "Using subquery in filter at line %d. Converting this dynamic predicate to static might provide better performance.";
@@ -32,7 +36,12 @@ public class IdentifyDynamicPredicateVisitor extends ParseTreeVisitor {
     this.insideWhere = false;
   }
 
-  public ArrayList<String> getResult() {
-    return result;
+  public String getResult() {
+    return result.stream().distinct().collect(Collectors.joining("\n"));
+  }
+
+  @Override
+  public String getNAME() {
+    return NAME;
   }
 }

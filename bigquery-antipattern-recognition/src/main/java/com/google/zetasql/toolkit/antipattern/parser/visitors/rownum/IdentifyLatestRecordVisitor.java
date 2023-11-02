@@ -17,18 +17,22 @@
 package com.google.zetasql.toolkit.antipattern.parser.visitors.rownum;
 
 import com.google.zetasql.parser.ASTNodes;
-import com.google.zetasql.parser.ASTNodes.ASTFromClause;
 import com.google.zetasql.parser.ASTNodes.ASTSelect;
 import com.google.zetasql.parser.ASTNodes.ASTSelectColumn;
 import com.google.zetasql.parser.ASTNodes.ASTTableExpression;
 import com.google.zetasql.parser.ASTNodes.ASTWhereClause;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
-public class IdentifyLatestRecordVisitor extends ParseTreeVisitor {
+public class IdentifyLatestRecordVisitor extends ParseTreeVisitor implements AntiPatternVisitor {
+
+  public final static String NAME = "LatestRecordWithAnalyticFun";
 
   private String query;
   private ASTNodes.ASTSelectColumn selectColWithRowNumNode = null;
@@ -104,7 +108,12 @@ public class IdentifyLatestRecordVisitor extends ParseTreeVisitor {
     return foundFilter;
   }
 
-  public ArrayList<String> getResult() {
-    return result;
+  public String getResult() {
+    return result.stream().distinct().collect(Collectors.joining("\n"));
+  }
+
+  @Override
+  public String getNAME() {
+    return NAME;
   }
 }

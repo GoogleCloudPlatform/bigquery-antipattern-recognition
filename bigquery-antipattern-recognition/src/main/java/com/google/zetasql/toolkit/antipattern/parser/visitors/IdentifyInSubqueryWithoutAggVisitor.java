@@ -19,18 +19,22 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors;
 import com.google.zetasql.parser.ASTNodes.ASTInExpression;
 import com.google.zetasql.parser.ASTNodes.ASTSelect;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
-public class InSubqueryWithoutAggVisitor extends ParseTreeVisitor {
+public class IdentifyInSubqueryWithoutAggVisitor extends ParseTreeVisitor implements
+    AntiPatternVisitor {
 
-  private final String SUBQUERY_IN_WHERE_SUGGESTION_MESSAGE =
-      "Subquery in filter without aggregation at line %d.";
+  public final static String NAME = "SemiJoinWithoutAgg";
+
+  private final String SUBQUERY_IN_WHERE_SUGGESTION_MESSAGE = "Subquery in filter without aggregation at line %d.";
 
   private String query;
   private ArrayList<String> result = new ArrayList<String>();
 
-  public InSubqueryWithoutAggVisitor(String query) {
+  public IdentifyInSubqueryWithoutAggVisitor(String query) {
     this.query = query;
   }
 
@@ -48,7 +52,12 @@ public class InSubqueryWithoutAggVisitor extends ParseTreeVisitor {
     super.visit(node);
   }
 
-  public ArrayList<String> getResult() {
-    return result;
+  public String getResult() {
+    return result.stream().distinct().collect(Collectors.joining("\n"));
+  }
+
+  @Override
+  public String getNAME() {
+    return NAME;
   }
 }

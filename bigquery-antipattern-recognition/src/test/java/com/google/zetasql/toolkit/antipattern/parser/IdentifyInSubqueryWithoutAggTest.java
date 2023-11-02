@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyInSubqueryWithoutAggVisitor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,8 +46,12 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "   `project.dataset.table1` t1 \n"
             + "WHERE \n"
             + "    t1.col2 IN (SELECT col2 FROM `project.dataset.table2`) ";
+
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
+
+    IdentifyInSubqueryWithoutAggVisitor visitor = new IdentifyInSubqueryWithoutAggVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -61,7 +66,9 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "WHERE \n"
             + "    t1.col2 NOT IN (SELECT col2 FROM `project.dataset.table2`) ";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
+    IdentifyInSubqueryWithoutAggVisitor visitor = new IdentifyInSubqueryWithoutAggVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -78,7 +85,9 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "   AND t1.col2 IN (SELECT col2 FROM `project.dataset.table2`) \n"
             + "   AND t1.col3 = 1";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
+    IdentifyInSubqueryWithoutAggVisitor visitor = new IdentifyInSubqueryWithoutAggVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -96,7 +105,9 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "   AND t1.col3 IN (SELECT col3 FROM `project.dataset.table3` GROUP BY col3) \n"
             + "   AND t1.col4 IN (1, 2, 3, 4)";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
+    IdentifyInSubqueryWithoutAggVisitor visitor = new IdentifyInSubqueryWithoutAggVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -111,7 +122,9 @@ public class IdentifyInSubqueryWithoutAggTest {
             + "WHERE \n"
             + "   (t1.col1,t1.col2) IN (SELECT (col1,col2) FROM `project.dataset.table3`) ";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyInSubqueryWithoutAgg().run(parsedQuery, query);
+    IdentifyInSubqueryWithoutAggVisitor visitor = new IdentifyInSubqueryWithoutAggVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 }

@@ -18,11 +18,11 @@ package com.google.zetasql.toolkit.antipattern.cmd;
 
 public class InputQuery {
 
-  private String query;
-  private String queryIdentifier;
-  private String projectId;
-  private String userEmail;
-  private float slotHours;
+  private String query = null;
+  private String queryIdentifier  = null;
+  private String projectId = null;
+  private String userEmail = null;
+  private float slotHours = -1;
 
   public InputQuery(String query, String queryIdentifier) {
     this.query = query;

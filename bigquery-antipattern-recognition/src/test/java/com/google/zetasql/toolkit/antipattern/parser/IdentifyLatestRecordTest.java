@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.rownum.IdentifyLatestRecordVisitor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,7 +54,9 @@ public class IdentifyLatestRecordTest {
         + "ORDER BY\n"
         + "  taxi_id;\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    IdentifyLatestRecordVisitor visitor = new IdentifyLatestRecordVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -73,7 +76,9 @@ public class IdentifyLatestRecordTest {
         + "ORDER BY\n"
         + "  taxi_id;\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    IdentifyLatestRecordVisitor visitor = new IdentifyLatestRecordVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -102,7 +107,9 @@ public class IdentifyLatestRecordTest {
         + "ORDER BY\n"
         + "  taxi_id;\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    IdentifyLatestRecordVisitor visitor = new IdentifyLatestRecordVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -124,7 +131,9 @@ public class IdentifyLatestRecordTest {
         + "ORDER BY\n"
         + "  taxi_id;\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    IdentifyLatestRecordVisitor visitor = new IdentifyLatestRecordVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -148,7 +157,9 @@ public class IdentifyLatestRecordTest {
         + "ORDER BY\n"
         + "  taxi_id;\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    IdentifyLatestRecordVisitor visitor = new IdentifyLatestRecordVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -174,7 +185,9 @@ public class IdentifyLatestRecordTest {
         + "ORDER BY\n"
         + "  taxi_id;\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    IdentifyLatestRecordVisitor visitor = new IdentifyLatestRecordVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -214,7 +227,9 @@ public class IdentifyLatestRecordTest {
         + "ORDER BY\n"
         + "  taxi_id;\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    IdentifyLatestRecordVisitor visitor = new IdentifyLatestRecordVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -250,7 +265,9 @@ public class IdentifyLatestRecordTest {
         + "ORDER BY\n"
         + "  taxi_id;\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyLatestRecord().run(parsedQuery, query);
+    IdentifyLatestRecordVisitor visitor = new IdentifyLatestRecordVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 }

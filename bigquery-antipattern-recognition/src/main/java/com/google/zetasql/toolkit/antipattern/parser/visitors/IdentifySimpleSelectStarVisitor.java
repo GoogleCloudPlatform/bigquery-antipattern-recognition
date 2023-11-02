@@ -19,10 +19,14 @@ package com.google.zetasql.toolkit.antipattern.parser.visitors;
 import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
 import com.google.zetasql.parser.ParseTreeVisitor;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
-public class IdentifySimpleSelectStarVisitor extends ParseTreeVisitor {
+public class IdentifySimpleSelectStarVisitor extends ParseTreeVisitor implements
+    AntiPatternVisitor {
 
+  public final static String NAME = "SimpleSelectStar";
   private final String SUGGESTION_MESSAGE =
       "SELECT * on table: %s. Check that all columns are needed.";
 
@@ -83,11 +87,16 @@ public class IdentifySimpleSelectStarVisitor extends ParseTreeVisitor {
     }
   }
 
-  public ArrayList<String> getResult() {
+  public String getResult() {
     if (isSimpleSelect) {
-      return result;
+      return result.stream().distinct().collect(Collectors.joining("\n"));
     } else {
-      return new ArrayList<String>();
+      return "";
     }
+  }
+
+  @Override
+  public String getNAME() {
+    return NAME;
   }
 }

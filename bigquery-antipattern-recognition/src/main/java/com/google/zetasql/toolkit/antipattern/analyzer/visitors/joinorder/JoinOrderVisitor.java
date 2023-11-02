@@ -4,6 +4,7 @@ import com.google.api.services.bigquery.model.TableReference;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedJoinScan;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedProjectScan;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -12,8 +13,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class JoinOrderVisitor extends ResolvedNodes.Visitor {
+public class JoinOrderVisitor extends ResolvedNodes.Visitor implements AntiPatternVisitor {
 
+  private final static String NAME = "JoinOrder";
   private final String RECOMMENDATION_MESSAGE = "JOIN on tables: [%s] might perform better if tables where joined in the following order: [%s]";
   private BigQueryService service;
   private String result = "";
@@ -24,6 +26,10 @@ public class JoinOrderVisitor extends ResolvedNodes.Visitor {
 
   public String getResult() {
     return result;
+  }
+
+  public String getNAME() {
+    return NAME;
   }
 
   public void visit(ResolvedJoinScan joinScan) {

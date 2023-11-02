@@ -19,10 +19,6 @@ package com.google.zetasql.toolkit.antipattern.util;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
-import com.google.zetasql.toolkit.antipattern.parser.IdentifyDynamicPredicate;
-import com.google.zetasql.toolkit.antipattern.parser.IdentifyLatestRecord;
-import com.google.zetasql.toolkit.antipattern.parser.IdentifySimpleSelectStar;
-import com.google.zetasql.toolkit.antipattern.parser.IdentifyWhereOrder;
 
 public class PrintParserDebugString {
 
@@ -42,7 +38,6 @@ public class PrintParserDebugString {
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
     //System.out.println(parsedQuery);
-    System.out.println(new IdentifyWhereOrder().run(parsedQuery, query));
 
   }
 }

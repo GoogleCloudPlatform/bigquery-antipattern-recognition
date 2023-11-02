@@ -44,17 +44,18 @@ public class BigQueryHelper {
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
   public static TableResult getQueriesFromIS(String projectId, String daysBack, String startTime, String endTime,
-                                             String ISTable, Integer slotsMsMin, Long timeoutInSecs)
+                                             String ISTable, Integer slotsMsMin, Long timeoutInSecs, Float topNPercent)
           throws InterruptedException {
     String timeCriteria;
     if (StringUtils.isBlank(startTime) || StringUtils.isBlank(endTime)) {
       logger.info(
               "Running job on project {}, reading from: {}, scanning last {} days." +
-                      "and selecting queries with minimum {} slotms",
+                      "and selecting queries with minimum {} slotms. "
+                  + " Considering only top {}% slot consuming jobs",
               projectId,
               ISTable,
               daysBack,
-              slotsMsMin);
+              slotsMsMin, topNPercent*100);
       timeCriteria = "  creation_time >= CURRENT_TIMESTAMP - INTERVAL " + daysBack + " DAY\n";
     } else {
       logger.info(
@@ -76,12 +77,12 @@ public class BigQueryHelper {
       }
       timeCriteria = "  creation_time BETWEEN " + startTime + " AND " + endTime + "\n";
     }
-    return getQueriesFromIS(projectId, timeoutInSecs, timeCriteria, ISTable, slotsMsMin);
+    return getQueriesFromIS(projectId, timeoutInSecs, timeCriteria, ISTable, slotsMsMin, topNPercent);
   }
 
   private static TableResult getQueriesFromIS(String projectId, Long timeoutInSecs,
                                              String timeCriteria,
-                                             String ISTable, Integer slotsMsMin)
+                                             String ISTable, Integer slotsMsMin, Float topNPercent)
       throws InterruptedException {
     BigQuery bigquery =
         BigQueryOptions.newBuilder()
@@ -90,25 +91,29 @@ public class BigQueryHelper {
             .build()
             .getService();
 
+    String query = "SELECT\n"
+        + "  project_id,\n"
+        + "  CONCAT(project_id, \":US.\",  job_id) job_id, \n"
+        + "  query, \n"
+        + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours, \n"
+        + "  user_email, \n"
+        + "  PERCENT_RANK() OVER(ORDER BY total_slot_ms desc) perc_rnk \n"
+        + "FROM\n"
+        + ISTable
+        + "\n"
+        + "WHERE \n"
+        + timeCriteria
+        + "  AND total_slot_ms > "+ slotsMsMin+ "\n"
+        + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
+        + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
+        + "  AND query not like '%INFORMATION_SCHEMA%' \n"
+        + "QUALIFY perc_rnk < " + topNPercent + "\n"
+        + "ORDER BY \n"
+        + "  project_id, start_time desc\n";
+
+    logger.info("Reading from INFORMATION_SCHEMA: \n" + query);
     QueryJobConfiguration queryConfig =
-        QueryJobConfiguration.newBuilder(
-                "SELECT\n"
-                    + "  project_id,\n"
-                    + "  CONCAT(project_id, \":US.\",  job_id) job_id, \n"
-                    + "  query, \n"
-                    + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours, \n"
-                    + "  user_email \n"
-                    + "FROM\n"
-                    + ISTable
-                    + "\n"
-                    + "WHERE \n"
-                    + timeCriteria
-                    + "  AND total_slot_ms > "+ slotsMsMin+ "\n"
-                    + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
-                    + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
-                    + "  AND query not like '%INFORMATION_SCHEMA%' \n"
-                    + "ORDER BY \n"
-                    + "  project_id, start_time desc\n")
+        QueryJobConfiguration.newBuilder(query)
             .setUseLegacySql(false)
             .setJobTimeoutMs(TimeUnit.SECONDS.toMillis(timeoutInSecs))
             .build();

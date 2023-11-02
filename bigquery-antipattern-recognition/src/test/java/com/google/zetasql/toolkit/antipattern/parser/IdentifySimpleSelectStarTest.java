@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifySimpleSelectStarVisitor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,7 +41,9 @@ public class IdentifySimpleSelectStarTest {
         "SELECT * on table: project.dataset.table1. Check that all columns are needed.";
     String query = "SELECT * FROM `project.dataset.table1`";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
+    IdentifySimpleSelectStarVisitor visitor = new IdentifySimpleSelectStarVisitor();
+    parsedQuery.accept(visitor);
+    String recommendations = visitor.getResult();
     assertEquals(expected, recommendations);
   }
 
@@ -50,7 +53,9 @@ public class IdentifySimpleSelectStarTest {
         "SELECT * on table: project.dataset.table1. Check that all columns are needed.";
     String query = "SELECT * FROM `project.dataset.table1` LIMIT 1000";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
+    IdentifySimpleSelectStarVisitor visitor = new IdentifySimpleSelectStarVisitor();
+    parsedQuery.accept(visitor);
+    String recommendations = visitor.getResult();
     assertEquals(expected, recommendations);
   }
 
@@ -59,7 +64,9 @@ public class IdentifySimpleSelectStarTest {
     String expected = "";
     String query = "SELECT * FROM `project.dataset.table1` GROUP BY col1";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
+    IdentifySimpleSelectStarVisitor visitor = new IdentifySimpleSelectStarVisitor();
+    parsedQuery.accept(visitor);
+    String recommendations = visitor.getResult();
     assertEquals(expected, recommendations);
   }
 
@@ -68,7 +75,10 @@ public class IdentifySimpleSelectStarTest {
     String expected = "";
     String query = "SELECT * FROM table1, table2";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendations = (new IdentifySimpleSelectStar()).run(parsedQuery);
+    IdentifySimpleSelectStarVisitor visitor = new IdentifySimpleSelectStarVisitor();
+    parsedQuery.accept(visitor);
+    String recommendations = visitor.getResult();
     assertEquals(expected, recommendations);
   }
 }
+ 

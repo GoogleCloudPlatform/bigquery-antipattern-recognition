@@ -139,7 +139,7 @@ limitations under the License.
                 <configuration>
                     <container>
                         <mainClass>
-                            com.google.zetasql.toolkit.antipattern.parser.Main
+                            com.google.zetasql.toolkit.antipattern.Main
                         </mainClass>
                     </container>
                     <from>
@@ -161,6 +161,12 @@ limitations under the License.
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.google.zetasql.toolkit.antipattern.Main</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
                 <executions>
                     <execution>
@@ -180,7 +186,7 @@ limitations under the License.
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.google.zetasql.toolkit.antipattern.parser.Main</mainClass>
+                            <mainClass>com.google.zetasql.toolkit.antipattern.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

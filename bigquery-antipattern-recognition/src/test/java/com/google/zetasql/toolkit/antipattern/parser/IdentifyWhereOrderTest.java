@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
 import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.toolkit.antipattern.parser.visitors.whereorder.IdentifyWhereOrderVisitor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,17 +41,19 @@ public class IdentifyWhereOrderTest {
     String expected = "LIKE filter in line 8 precedes a more selective filter.";
     String query =
         "SELECT \n"
-        + "  repo_name, \n"
-        + "  id,\n"
-        + "  ref\n"
-        + "FROM \n"
-        + "  `bigquery-public-data.github_repos.files` \n"
-        + "WHERE\n"
-        + "  ref like '%master%'\n"
-        + "  and repo_name = 'cdnjs/cdnjs'\n"
-        + ";\n";
+            + "  repo_name, \n"
+            + "  id,\n"
+            + "  ref\n"
+            + "FROM \n"
+            + "  `bigquery-public-data.github_repos.files` \n"
+            + "WHERE\n"
+            + "  ref like '%master%'\n"
+            + "  and repo_name = 'cdnjs/cdnjs'\n"
+            + ";\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyWhereOrder().run(parsedQuery, query);
+    IdentifyWhereOrderVisitor visitor = new IdentifyWhereOrderVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -59,17 +62,19 @@ public class IdentifyWhereOrderTest {
     String expected = "";
     String query =
         "SELECT \n"
-        + "  repo_name, \n"
-        + "  id,\n"
-        + "  ref\n"
-        + "FROM \n"
-        + "  `bigquery-public-data.github_repos.files` \n"
-        + "WHERE\n"
-        + "  repo_name = 'cdnjs/cdnjs'\n"
-        + "  and ref like '%master%'\n"
-        + ";\n";
+            + "  repo_name, \n"
+            + "  id,\n"
+            + "  ref\n"
+            + "FROM \n"
+            + "  `bigquery-public-data.github_repos.files` \n"
+            + "WHERE\n"
+            + "  repo_name = 'cdnjs/cdnjs'\n"
+            + "  and ref like '%master%'\n"
+            + ";\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyWhereOrder().run(parsedQuery, query);
+    IdentifyWhereOrderVisitor visitor = new IdentifyWhereOrderVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -79,24 +84,26 @@ public class IdentifyWhereOrderTest {
         + "LIKE filter in line 15 precedes a more selective filter.";
     String query =
         "SELECT\n"
-        + "   *\n"
-        + "FROM\n"
-        + "   (SELECT \n"
-        + "     repo_name, \n"
-        + "     id,\n"
-        + "     ref\n"
-        + "   FROM \n"
-        + "     `bigquery-public-data.github_repos.files` \n"
-        + "   WHERE\n"
-        + "     ref like '%master%'\n"
-        + "     AND repo_name = 'cdnjs/cdnjs'\n"
-        + "   )\n"
-        + "WHERE\n"
-        + "   col1 like '%asdf%'\n"
-        + "   AND col2 = 'udifj'\n"
-        + ";\n";
+            + "   *\n"
+            + "FROM\n"
+            + "   (SELECT \n"
+            + "     repo_name, \n"
+            + "     id,\n"
+            + "     ref\n"
+            + "   FROM \n"
+            + "     `bigquery-public-data.github_repos.files` \n"
+            + "   WHERE\n"
+            + "     ref like '%master%'\n"
+            + "     AND repo_name = 'cdnjs/cdnjs'\n"
+            + "   )\n"
+            + "WHERE\n"
+            + "   col1 like '%asdf%'\n"
+            + "   AND col2 = 'udifj'\n"
+            + ";\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyWhereOrder().run(parsedQuery, query);
+    IdentifyWhereOrderVisitor visitor = new IdentifyWhereOrderVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -105,21 +112,23 @@ public class IdentifyWhereOrderTest {
     String expected = "LIKE filter in line 11 precedes a more selective filter.";
     String query =
         "SELECT\n"
-        + "  col1\n"
-        + "FROM \n"
-        + "  table1\n"
-        + "WHERE\n"
-        + "  col1 = 1\n"
-        + "  AND col2 in (\n"
-        + "    SELECT id\n"
-        + "    FROM `bigquery-public-data.github_repos.files` \n"
-        + "    WHERE\n"
-        + "      ref like '%master%'\n"
-        + "      and repo_name = 'cdnjs/cdnjs'\n"
-        + "  )\n"
-        + "  AND col3 > 100\n";
+            + "  col1\n"
+            + "FROM \n"
+            + "  table1\n"
+            + "WHERE\n"
+            + "  col1 = 1\n"
+            + "  AND col2 in (\n"
+            + "    SELECT id\n"
+            + "    FROM `bigquery-public-data.github_repos.files` \n"
+            + "    WHERE\n"
+            + "      ref like '%master%'\n"
+            + "      and repo_name = 'cdnjs/cdnjs'\n"
+            + "  )\n"
+            + "  AND col3 > 100\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyWhereOrder().run(parsedQuery, query);
+    IdentifyWhereOrderVisitor visitor = new IdentifyWhereOrderVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -129,21 +138,23 @@ public class IdentifyWhereOrderTest {
         + "LIKE filter in line 11 precedes a more selective filter.";
     String query =
         "SELECT\n"
-        + "  col1\n"
-        + "FROM \n"
-        + "  table1\n"
-        + "WHERE\n"
-        + "  col1 like '%vhbfjdn%'\n"
-        + "  AND col2 in (\n"
-        + "    SELECT id\n"
-        + "    FROM `bigquery-public-data.github_repos.files` \n"
-        + "    WHERE\n"
-        + "      ref like '%master%'\n"
-        + "      and repo_name = 'cdnjs/cdnjs'\n"
-        + "  )\n"
-        + "  AND col3 = 100\n";
+            + "  col1\n"
+            + "FROM \n"
+            + "  table1\n"
+            + "WHERE\n"
+            + "  col1 like '%vhbfjdn%'\n"
+            + "  AND col2 in (\n"
+            + "    SELECT id\n"
+            + "    FROM `bigquery-public-data.github_repos.files` \n"
+            + "    WHERE\n"
+            + "      ref like '%master%'\n"
+            + "      and repo_name = 'cdnjs/cdnjs'\n"
+            + "  )\n"
+            + "  AND col3 = 100\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyWhereOrder().run(parsedQuery, query);
+    IdentifyWhereOrderVisitor visitor = new IdentifyWhereOrderVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 
@@ -164,7 +175,9 @@ public class IdentifyWhereOrderTest {
             + "      repo_name = 'cdnjs/cdnjs'\n"
             + "  )\n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    String recommendation = new IdentifyWhereOrder().run(parsedQuery, query);
+    IdentifyWhereOrderVisitor visitor = new IdentifyWhereOrderVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
     assertEquals(expected, recommendation);
   }
 }
