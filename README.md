@@ -68,6 +68,7 @@ docker run \
     -v ~/.config:/root/.config \
     -i bigquery-antipattern-recognition \
     --read_from_info_schema \
+    --region us \
     --read_from_info_schema_days 1 \
     --processing_project_id <my-project> \
     --output_table "<my-project>.<my-dataset>.antipattern_output_table" \
