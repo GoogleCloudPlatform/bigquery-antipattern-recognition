@@ -116,6 +116,11 @@ Must be set along with `--read_from_info_schema`. <br>
 Defaults to 1.
 </ul>
 
+`--region us`
+<ul>
+Region from which to read information schema  
+</ul>
+
 `--read_from_info_schema_start_time "start-timestamp"` <br>
 `--read_from_info_schema_end_time "end-timestamp"`
 <ul>
