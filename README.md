@@ -68,6 +68,7 @@ docker run \
     -v ~/.config:/root/.config \
     -i bigquery-antipattern-recognition \
     --read_from_info_schema \
+    --region us \
     --read_from_info_schema_days 1 \
     --processing_project_id <my-project> \
     --output_table "<my-project>.<my-dataset>.antipattern_output_table" \
@@ -113,6 +114,11 @@ To read input queries from INFORMATION_SCHEMA.JOBS.
 Specifies how many days of INFORMATION_SCHEMA to read <br> 
 Must be set along with `--read_from_info_schema`. <br>
 Defaults to 1.
+</ul>
+
+`--region us`
+<ul>
+Region from which to read information schema  
 </ul>
 
 `--read_from_info_schema_start_time "start-timestamp"` <br>

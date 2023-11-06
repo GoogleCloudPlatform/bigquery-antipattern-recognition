@@ -28,25 +28,28 @@ import java.util.Optional;
 public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
 
   Iterator<FieldValueList> fieldValueListIterator;
-  String IS_TABLE_DEFAULT = "`region-us`.INFORMATION_SCHEMA.JOBS";
+  String IS_TABLE_DEFAULT = "`region-%s`.INFORMATION_SCHEMA.JOBS";
   String DAYS_BACK_DEFAULT = "30";
   Integer SLOTMS_MIN_DEFAULT = 0;
   Long TIMEOUT_SECS_DEFAULT = 60L;
   Float TOP_N_PERC_DEFAULT = 0.1F;
+  String DEFAULT_REGION = "us";
 
 
   public InformationSchemaQueryIterable(String projectId, String customDaysBack, String startTime, String endTime, String customISTable,
-                                        String infoSchemaSlotmsMin, String customTimeoutInSecs, String customTopNPercent)
+                                        String infoSchemaSlotmsMin, String customTimeoutInSecs, String customTopNPercent, String customRegion)
           throws InterruptedException {
 
     String daysBack = customDaysBack == null ? DAYS_BACK_DEFAULT : customDaysBack;
-    String ISTable = customISTable == null ? IS_TABLE_DEFAULT : customISTable;
+    String region = customRegion == null ? DEFAULT_REGION : customRegion;
+    String ISTable = customISTable == null ? String.format(IS_TABLE_DEFAULT, region) : customISTable;
     Integer slotsMsMin = infoSchemaSlotmsMin == null ? SLOTMS_MIN_DEFAULT : Integer.parseInt(infoSchemaSlotmsMin);
     Long timeoutInSecs = !NumberUtils.isParsable(customTimeoutInSecs) ? TIMEOUT_SECS_DEFAULT : Long.parseLong(customTimeoutInSecs);
     float topNPercent = customTopNPercent == null ? TOP_N_PERC_DEFAULT : Float.parseFloat(customTopNPercent);
 
     TableResult tableResult =
-        BigQueryHelper.getQueriesFromIS(projectId, daysBack, startTime, endTime, ISTable, slotsMsMin, timeoutInSecs, topNPercent);
+        BigQueryHelper.getQueriesFromIS(projectId, daysBack, startTime, endTime, ISTable, slotsMsMin,
+            timeoutInSecs, topNPercent);
 
     fieldValueListIterator = tableResult.iterateAll().iterator();
   }
