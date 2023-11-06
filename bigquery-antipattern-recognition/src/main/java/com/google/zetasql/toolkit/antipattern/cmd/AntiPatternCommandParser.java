@@ -41,7 +41,7 @@ public class AntiPatternCommandParser {
   public static final String READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME = "read_from_info_schema_start_time";
   public static final String READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME = "read_from_info_schema_end_time";
   public static final String READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME = "read_from_info_schema_timeout_in_secs";
-  public static final String REGION_OPTION_NAME = "region";
+  public static final String INFO_SCHEMA_REGION = "info_schema_region";
   public static final String INFO_SCHEMA_MIN_SLOTMS="info_schema_min_slotms";
   public static final String READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME = "info_schema_table_name";
   public static final String PROCESSING_PROJECT_ID_OPTION_NAME = "processing_project_id";
@@ -248,8 +248,8 @@ public class AntiPatternCommandParser {
     options.addOption(ISTopNPercentageJobs);
 
     Option region =
-        Option.builder(REGION_OPTION_NAME)
-            .argName(REGION_OPTION_NAME)
+        Option.builder(INFO_SCHEMA_REGION)
+            .argName(INFO_SCHEMA_REGION)
             .hasArg()
             .required(false)
             .desc("region")
@@ -289,7 +289,7 @@ public class AntiPatternCommandParser {
     String infoSchemaStartTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME);
     String infoSchemaEndTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME);
     String customTopNPercent = cmd.getOptionValue(IS_TOP_N_PERC_JOBS_OPTION_NAME);
-    String region = cmd.getOptionValue(REGION_OPTION_NAME);
+    String region = cmd.getOptionValue(INFO_SCHEMA_REGION);
 
     return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays,
         infoSchemaStartTime, infoSchemaEndTime, infoSchemaTableName, infoSchemaSlotmsMin,

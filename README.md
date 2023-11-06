@@ -68,7 +68,7 @@ docker run \
     -v ~/.config:/root/.config \
     -i bigquery-antipattern-recognition \
     --read_from_info_schema \
-    --region us \
+    --info_schema_region us \
     --read_from_info_schema_days 1 \
     --processing_project_id <my-project> \
     --output_table "<my-project>.<my-dataset>.antipattern_output_table" \
@@ -116,7 +116,7 @@ Must be set along with `--read_from_info_schema`. <br>
 Defaults to 1.
 </ul>
 
-`--region us`
+`--info_schema_region us`
 <ul>
 Region from which to read information schema  
 </ul>
