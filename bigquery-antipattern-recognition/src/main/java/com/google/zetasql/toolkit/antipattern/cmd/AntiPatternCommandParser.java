@@ -16,11 +16,6 @@
 
 package com.google.zetasql.toolkit.antipattern.cmd;
 
-import com.google.api.gax.paging.Page;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
-import com.google.zetasql.toolkit.antipattern.Main;
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.io.File;
 import java.io.IOException;
@@ -46,13 +41,14 @@ public class AntiPatternCommandParser {
   public static final String READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME = "read_from_info_schema_start_time";
   public static final String READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME = "read_from_info_schema_end_time";
   public static final String READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME = "read_from_info_schema_timeout_in_secs";
+  public static final String REGION_OPTION_NAME = "region";
   public static final String INFO_SCHEMA_MIN_SLOTMS="info_schema_min_slotms";
   public static final String READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME = "info_schema_table_name";
   public static final String PROCESSING_PROJECT_ID_OPTION_NAME = "processing_project_id";
   public static final String OUTPUT_TABLE_OPTION_NAME = "output_table";
   public static final String USE_ANALYZER_FLAG_NAME = "advanced_analysis";
   public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
-  public static final String IS_TOP_N_PERC_JOBS = "info_schema_top_n_percentage_of_jobs";
+  public static final String IS_TOP_N_PERC_JOBS_OPTION_NAME = "info_schema_top_n_percentage_of_jobs";
   private Options options;
   private CommandLine cmd;
 
@@ -243,13 +239,22 @@ public class AntiPatternCommandParser {
     options.addOption(anaLyzerDefaultProjectId);
 
     Option ISTopNPercentageJobs =
-        Option.builder(IS_TOP_N_PERC_JOBS)
-            .argName(IS_TOP_N_PERC_JOBS)
+        Option.builder(IS_TOP_N_PERC_JOBS_OPTION_NAME)
+            .argName(IS_TOP_N_PERC_JOBS_OPTION_NAME)
             .hasArg()
             .required(false)
             .desc("Top % of jobs by slot_ms to read from INFORMATION_SCHEMA")
             .build();
     options.addOption(ISTopNPercentageJobs);
+
+    Option region =
+        Option.builder(REGION_OPTION_NAME)
+            .argName(REGION_OPTION_NAME)
+            .hasArg()
+            .required(false)
+            .desc("region")
+            .build();
+    options.addOption(region);
 
     return options;
   }
@@ -283,9 +288,12 @@ public class AntiPatternCommandParser {
     String timeoutInSecs = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME);
     String infoSchemaStartTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME);
     String infoSchemaEndTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME);
-    String customTopNPercent = cmd.getOptionValue(IS_TOP_N_PERC_JOBS);
+    String customTopNPercent = cmd.getOptionValue(IS_TOP_N_PERC_JOBS_OPTION_NAME);
+    String region = cmd.getOptionValue(REGION_OPTION_NAME);
 
-    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays, infoSchemaStartTime, infoSchemaEndTime, infoSchemaTableName, infoSchemaSlotmsMin, timeoutInSecs, customTopNPercent);
+    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays,
+        infoSchemaStartTime, infoSchemaEndTime, infoSchemaTableName, infoSchemaSlotmsMin,
+        timeoutInSecs, customTopNPercent, region);
   }
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {
