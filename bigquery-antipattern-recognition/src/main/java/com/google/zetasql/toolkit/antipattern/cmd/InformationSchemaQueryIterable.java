@@ -49,7 +49,7 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
 
     TableResult tableResult =
         BigQueryHelper.getQueriesFromIS(projectId, daysBack, startTime, endTime, ISTable, slotsMsMin,
-            timeoutInSecs, topNPercent);
+            timeoutInSecs, topNPercent, region);
 
     fieldValueListIterator = tableResult.iterateAll().iterator();
   }
