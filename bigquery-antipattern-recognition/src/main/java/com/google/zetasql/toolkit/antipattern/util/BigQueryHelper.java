@@ -43,8 +43,9 @@ public class BigQueryHelper {
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
-  public static TableResult getQueriesFromIS(String projectId, String daysBack, String startTime, String endTime,
-                                             String ISTable, Integer slotsMsMin, Long timeoutInSecs, Float topNPercent)
+  public static TableResult getQueriesFromIS(String projectId, String daysBack, String startTime,
+      String endTime, String ISTable, Integer slotsMsMin, Long timeoutInSecs, Float topNPercent,
+      String region)
           throws InterruptedException {
     String timeCriteria;
     if (StringUtils.isBlank(startTime) || StringUtils.isBlank(endTime)) {
@@ -77,12 +78,11 @@ public class BigQueryHelper {
       }
       timeCriteria = "  creation_time BETWEEN " + startTime + " AND " + endTime + "\n";
     }
-    return getQueriesFromIS(projectId, timeoutInSecs, timeCriteria, ISTable, slotsMsMin, topNPercent);
+    return getQueriesFromIS(projectId, timeoutInSecs, timeCriteria, ISTable, slotsMsMin, topNPercent, region);
   }
 
   private static TableResult getQueriesFromIS(String projectId, Long timeoutInSecs,
-                                             String timeCriteria,
-                                             String ISTable, Integer slotsMsMin, Float topNPercent)
+      String timeCriteria,String ISTable, Integer slotsMsMin, Float topNPercent, String region)
       throws InterruptedException {
     BigQuery bigquery =
         BigQueryOptions.newBuilder()
@@ -93,7 +93,7 @@ public class BigQueryHelper {
 
     String query = "SELECT\n"
         + "  project_id,\n"
-        + "  CONCAT(project_id, \":US.\",  job_id) job_id, \n"
+        + "  CONCAT(project_id, \":" + region.toUpperCase() +".\",  job_id) job_id, \n"
         + "  query, \n"
         + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours, \n"
         + "  user_email, \n"
