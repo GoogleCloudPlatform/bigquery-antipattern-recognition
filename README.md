@@ -96,7 +96,7 @@ LIMIT 10000;
 
 
 # Deploy to Cloud Run Jobs
-Deploying the anti-pattern recognition tool to a [Cloud Run](https://cloud.google.com/run?hl=en) provides an easy mechanism to periodically scan INFORMATION_SCHEMA for occurrences of anti-patterns in top slot consuming queries.
+Deploying the anti-pattern recognition tool to a [Cloud Run](https://cloud.google.com/run?hl=en) job provides an easy mechanism to periodically scan INFORMATION_SCHEMA for occurrences of anti-patterns in top slot consuming queries.
 
 Refer to this [step-by-step](./CR_DEPLOY.md) on how to deploy this tool using Cloud Run.
 
