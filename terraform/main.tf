@@ -94,6 +94,11 @@ resource "google_bigquery_table" "bq_table" {
         "mode": "NULLABLE"
     },
     {
+        "name": "user_email",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
         "name": "query",
         "type": "STRING",
         "mode": "NULLABLE"
