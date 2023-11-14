@@ -212,7 +212,7 @@ All columns on table: project.dataset.table1 are being selected. Please be sure 
 ```
 
 ## Anti Pattern 2: SEMI-JOIN without aggregation
-Example:
+Input:
 ```
 SELECT 
    t1.col1 
@@ -225,6 +225,16 @@ WHERE
 Output:
 ```
 You are using an IN filter with a subquery without a DISTINCT on the following columns: project.dataset.table1.col2
+```
+
+Corrected query:
+```
+SELECT
+   t1.col1
+FROM
+   `project.dataset.table1` t1
+WHERE
+   t1.col2 not in (select col2 from `project.dataset.table2`);
 ```
 
 ## Anti Pattern 3: Multiple CTEs referenced more than twice
@@ -252,6 +262,26 @@ Output:
 CTE with multiple references: alias a defined at line 2 is referenced 2 times
 ```
 
+Corrected query:
+```
+CREATE TEMP TABLE a AS (
+  SELECT col1,col2 FROM test WHERE col1='abc' 
+  );
+
+WITH  b AS ( 
+    SELECT col2 FROM a 
+  ),
+  c AS (
+  SELECT col1 FROM a 
+  )
+
+SELECT
+  b.col2,
+  c.col1
+FROM
+  b,c;
+```
+
 ## Anti Pattern 4: Using ORDER BY without LIMIT
 Example:
 ```
@@ -270,6 +300,20 @@ Output:
 ORDER BY clause without LIMIT at line 8.
 ```
 
+Corrected query:
+```
+SELECT
+  t.dim1,
+  t.dim2,
+  t.metric1
+FROM
+  `dataset.table` t
+ORDER BY
+  t.metric1 DESC
+LIMIT 
+    1000;
+```
+
 ## Anti Pattern 5: Using REGEXP_CONTAINS when LIKE is an option
 Example:
 ```
@@ -283,26 +327,37 @@ WHERE
 
 Output:
 ```
-REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching).";
+REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not 
+needed (e.g. wildcard matching).";
 ```
 
-
+Corrected query:
+```
+SELECT
+  dim1
+FROM
+  `dataset.table`
+WHERE
+  LIKE '%test%'
+```
 
 ## Anti Pattern 6: Using an analytic functions to determine latest record
 Example:
 ```
-SELECT
+SELECT 
   taxi_id, trip_seconds, fare
 FROM
   (
-  SELECT
+  SELECT 
     taxi_id, trip_seconds, fare,
     row_number() over(partition by taxi_id order by fare desc) rn
-  FROM
+  FROM 
     `bigquery-public-data.chicago_taxi_trips.taxi_trips`
 )
-WHERE
-  rn = 1;
+WHERE 
+  rn = 1
+ORDER BY
+  taxi_id;
 ```
 
 Output:
@@ -310,30 +365,62 @@ Output:
 LatestRecordWithAnalyticFun: Seems like you might be using analytical function row_number in line 7 to filter the latest record in line 12.
 ```
 
+Corrected query:
+```
+SELECT
+  trips.taxi_id, 
+  trips.trip_seconds, 
+  trips.fare,
+FROM
+(
+  SELECT 
+    array_agg(t1 order by fare desc limit 1)[offset(0)] trips
+  FROM 
+    `bigquery-public-data.chicago_taxi_trips.taxi_trips` t1
+  group by 
+    taxi_id
+)
+ORDER BY
+  taxi_id;
+```
+
 ## Anti Pattern 7: Convert Dynamic Predicates into Static
 Example:
 ```
-SELECT
- *
-FROM 
-  comments c
-JOIN 
-  users u ON c.user_id = u.id
-WHERE 
-  u.id IN (
-    SELECT id 
-    FROM users
-    WHERE location LIKE '%New York'
-    GROUP BY id
-    ORDER BY SUM(up_votes) DESC
-    LIMIT 10
-  )
-;
+select *
+from comments c
+join users u on c.user_id = u.id
+where u.id in (
+  -- top upvoted ny user ids
+  select id 
+  from users
+  where location like '%New York'
+  group by id
+  order by sum(up_votes) desc
+  limit 10
+);
 ```
 
 Output:
 ```
 Dynamic Predicate: Using subquery in filter at line 10. Converting this dynamic predicate to static might provide better performance.
+```
+
+Corrected query:
+```
+declare top_nyc_upvotes 
+array<INT64> default(
+  select array_agg(id) from ( 
+    select id from users
+    where location like '%New York'
+    group by id
+    order by sum(up_votes) desc 
+    LIMIT 10));
+
+select *
+from comments c
+join users u on c.user_id = u.id
+where u.id IN UNNEST(top_nyc_upvotes);
 ```
 
 
@@ -355,6 +442,20 @@ WHERE
 Output:
 ```
 WhereOrder: LIKE filter in line 8 precedes a more selective filter.
+```
+
+Corrected query:
+```
+SELECT 
+  repo_name, 
+  id,
+  ref
+FROM 
+  `bigquery-public-data.github_repos.files` 
+WHERE
+  repo_name = 'cdnjs/cdnjs'
+  AND ref like '%master%'
+;
 ```
 
 ## Anti Pattern 9: Join Order 
@@ -386,6 +487,19 @@ Output:
 JoinOrder: JOIN on tables: [bikeshare_stations, bikeshare_trips] might perform 
 better if tables where joined in the following order: 
 [bikeshare_trips, bikeshare_stations]
+```
+
+Corrected query:
+```
+SELECT  
+  t1.station_id,
+  COUNT(1) num_trips_started
+FROM
+  `bigquery-public-data.austin_bikeshare.bikeshare_trips` t2
+JOIN
+  `bigquery-public-data.austin_bikeshare.bikeshare_stations` t1 ON t1.station_id = t2.start_station_id
+GROUP BY
+  t1.station_id
 ```
 
 # Disclaimer
