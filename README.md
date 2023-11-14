@@ -234,7 +234,7 @@ SELECT
 FROM
    `project.dataset.table1` t1
 WHERE
-   t1.col2 not in (select col2 from `project.dataset.table2`);
+   t1.col2 not in (select distinct col2 from `project.dataset.table2`);
 ```
 
 ## Anti Pattern 3: Multiple CTEs referenced more than twice
@@ -242,7 +242,7 @@ Example:
 ```
 WITH
   a AS (
-  SELECT col1,col2 FROM test WHERE col1='abc' 
+  SELECT col1, col2 FROM test WHERE col1='abc' 
   ),
   b AS ( 
     SELECT col2 FROM a 
@@ -265,10 +265,10 @@ CTE with multiple references: alias a defined at line 2 is referenced 2 times
 Corrected query:
 ```
 CREATE TEMP TABLE a AS (
-  SELECT col1,col2 FROM test WHERE col1='abc' 
+  SELECT col1, col2 FROM test WHERE col1='abc' 
   );
 
-WITH  b AS ( 
+WITH b AS ( 
     SELECT col2 FROM a 
   ),
   c AS (
@@ -338,7 +338,7 @@ SELECT
 FROM
   `dataset.table`
 WHERE
-  LIKE '%test%'
+  dim1 LIKE '%test%';
 ```
 
 ## Anti Pattern 6: Using an analytic functions to determine latest record
