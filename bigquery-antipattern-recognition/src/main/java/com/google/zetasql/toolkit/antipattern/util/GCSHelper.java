@@ -43,8 +43,7 @@ public class GCSHelper {
     Page<Blob> blobs =
         storage.list(
             bucketName,
-            Storage.BlobListOption.prefix(prefix),
-            Storage.BlobListOption.currentDirectory());
+            Storage.BlobListOption.prefix(prefix));
 
     for (Blob blob : blobs.iterateAll()) {
       String blobName = blob.getName();
