@@ -35,6 +35,7 @@ public class AntiPatternCommandParser {
   public static final String FILE_PATH_OPTION_NAME = "input_file_path";
   public static final String FOLDER_PATH_OPTION_NAME = "input_folder_path";
   public static final String INPUT_CSV_FILE_OPTION_NAME = "input_csv_file_path";
+  public static final String INPUT_BQ_TABLE_OPTION_NAME = "input_bq_table";
   public static final String OUTPUT_FILE_OPTION_NAME = "output_file_path";
   public static final String READ_FROM_INFO_SCHEMA_FLAG_NAME = "read_from_info_schema";
   public static final String READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME = "read_from_info_schema_days";
@@ -166,6 +167,14 @@ public class AntiPatternCommandParser {
             .build();
     options.addOption(inputCsvFileOption);
 
+    Option inputBqOption =
+    Option.builder(INPUT_BQ_TABLE_OPTION_NAME)
+        .argName(INPUT_BQ_TABLE_OPTION_NAME)
+        .required(false)
+        .desc("name of bigquery table to pull queries from")
+        .build();
+options.addOption(inputBqOption);
+
     Option infoSchemaDays =
         Option.builder(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME)
             .argName(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME)
@@ -271,6 +280,8 @@ public class AntiPatternCommandParser {
         return buildIteratorFromFolderPath(cmd.getOptionValue(FOLDER_PATH_OPTION_NAME));
       } else if (cmd.hasOption(INPUT_CSV_FILE_OPTION_NAME)) {
         return buildIteratorFromCSV(cmd.getOptionValue(INPUT_CSV_FILE_OPTION_NAME));
+      } else if (cmd.hasOption(INPUT_BQ_TABLE_OPTION_NAME)) {
+        return buildIteratorFromBQTable(cmd.getOptionValue(INPUT_BQ_TABLE_OPTION_NAME));
       }
     } catch (IOException | InterruptedException e) {
       System.out.println(e.getMessage());
@@ -310,7 +321,14 @@ public class AntiPatternCommandParser {
 
   private static Iterator<InputQuery> buildIteratorFromCSV(String inputCSVPath) throws IOException {
     logger.info("Using csv file as input source");
+    logger.info(inputCSVPath);
     return new InputCsvQueryIterator(inputCSVPath);
+  }
+  
+  private static Iterator<InputQuery> buildIteratorFromBQTable(String tableName) throws InterruptedException {
+    logger.info("Using bq table as input source");
+    logger.info(tableName);
+    return new InputBigQueryTableIterator(tableName);
   }
 
   private static Iterator<InputQuery> buildIteratorFromFolderPath(String folderPath) {
