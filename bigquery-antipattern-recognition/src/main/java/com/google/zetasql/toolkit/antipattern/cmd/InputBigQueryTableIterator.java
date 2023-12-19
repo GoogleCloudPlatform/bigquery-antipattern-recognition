@@ -28,11 +28,11 @@
  
    Iterator<FieldValueList> fieldValueListIterator; 
  
-   public InputBigQueryTableIterator(String tableName)
+   public InputBigQueryTableIterator(String inputTable)
            throws InterruptedException {
  
      TableResult tableResult =
-         BigQueryHelper.getQueriesFromBQTable(tableName);
+         BigQueryHelper.getQueriesFromBQTable(inputTable);
  
      fieldValueListIterator = tableResult.iterateAll().iterator();
    }

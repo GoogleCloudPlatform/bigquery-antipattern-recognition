@@ -168,12 +168,13 @@ public class AntiPatternCommandParser {
     options.addOption(inputCsvFileOption);
 
     Option inputBqOption =
-    Option.builder(INPUT_BQ_TABLE_OPTION_NAME)
-        .argName(INPUT_BQ_TABLE_OPTION_NAME)
-        .required(false)
-        .desc("name of bigquery table to pull queries from")
-        .build();
-options.addOption(inputBqOption);
+        Option.builder(INPUT_BQ_TABLE_OPTION_NAME)
+          .argName(INPUT_BQ_TABLE_OPTION_NAME)
+          .hasArg()
+          .required(false)
+          .desc("name of bigquery table to pull queries from")
+          .build();
+      options.addOption(inputBqOption);
 
     Option infoSchemaDays =
         Option.builder(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME)
@@ -321,14 +322,13 @@ options.addOption(inputBqOption);
 
   private static Iterator<InputQuery> buildIteratorFromCSV(String inputCSVPath) throws IOException {
     logger.info("Using csv file as input source");
-    logger.info(inputCSVPath);
     return new InputCsvQueryIterator(inputCSVPath);
   }
-  
-  private static Iterator<InputQuery> buildIteratorFromBQTable(String tableName) throws InterruptedException {
+
+
+  private static Iterator<InputQuery> buildIteratorFromBQTable(String inputTable) throws InterruptedException {
     logger.info("Using bq table as input source");
-    logger.info(tableName);
-    return new InputBigQueryTableIterator(tableName);
+    return new InputBigQueryTableIterator(inputTable);
   }
 
   private static Iterator<InputQuery> buildIteratorFromFolderPath(String folderPath) {

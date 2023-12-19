@@ -123,30 +123,30 @@ public class BigQueryHelper {
     return queryJob.getQueryResults();
   }
 
-  public static TableResult getQueriesFromBQTable(String tableName)
-  throws InterruptedException {
-    BigQuery bigquery =
-    BigQueryOptions.newBuilder()
-        .setProjectId("wpe-tam-sandbox-anthos")
-        .setHeaderProvider(headerProvider)
-        .build()
-        .getService();
+public static TableResult getQueriesFromBQTable(String inputTable)
+      throws InterruptedException {
+        BigQuery bigquery =
+        BigQueryOptions.newBuilder()
+            .setProjectId(inputTable.split("\\.")[0])
+            .setHeaderProvider(headerProvider)
+            .build()
+            .getService();
 
-String query = "SELECT\n"
-    + "  id,\n"
-    + "  query"
-    + " FROM \n"
-    + tableName + ";";
+    String query = "SELECT\n"
+        + "  id,\n"
+        + "  query"
+        + " FROM \n"
+        + inputTable + ";";
 
-logger.info("Reading from BigQuery table: \n" + query);
-QueryJobConfiguration queryConfig =
-    QueryJobConfiguration.newBuilder(query)
-        .setUseLegacySql(false)
-        .build();
+    logger.info("Reading from BigQuery table: \n" + query);
+    QueryJobConfiguration queryConfig =
+        QueryJobConfiguration.newBuilder(query)
+            .setUseLegacySql(false)
+            .build();
 
-logger.debug("Running query:\n" + queryConfig.getQuery());
-Job queryJob = bigquery.create(JobInfo.newBuilder(queryConfig).build());
-return queryJob.getQueryResults();
+    logger.debug("Running query:\n" + queryConfig.getQuery());
+    Job queryJob = bigquery.create(JobInfo.newBuilder(queryConfig).build());
+    return queryJob.getQueryResults();
 }
 
   public static void writeResults(

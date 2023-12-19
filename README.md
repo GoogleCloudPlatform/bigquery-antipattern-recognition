@@ -93,6 +93,7 @@ LIMIT 10000;
 * [local file -> terminal](./EXAMPLES.md#local-file---terminal)
 * [local file -> csv](./EXAMPLES.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
+* [bq -> bq](./EXAMPLES.md#bq-table---bq-table)
 
 
 # Deploy to Cloud Run Jobs
@@ -154,6 +155,12 @@ the tool should consider, e.g. if equal to 0.1 only top 10% slot consuming jobs
 will be checked por anti patterns.
 </ul>
 
+### To read from a BigQuery Table
+`--input_bq_table project_id.dataset_id.table_name`
+<ul>
+Specifies a BigQuery table as input, each row is a SQL string to be parsed.<br>
+Columns must be "id (String), query (String)"
+</ul>
 
 ### To read from a files
 `--input_file_path /path/to/file.sql`
