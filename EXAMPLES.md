@@ -6,7 +6,7 @@ docker run \
 ```
 
 ### INFORMATION_SCHEMA -> BQ Table
-In the BigQuery console, run the DDL bellow to create th output table
+In the BigQuery console, run the DDL below to create the output table
 ```SQL 
 CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_output_table (
   job_id STRING,
@@ -44,6 +44,36 @@ FROM
 ORDER BY
   process_timestamp DESC 
 LIMIT 10000;
+```
+
+### BQ Table -> BQ Table
+In the BigQuery console, run the DDL below to create the output table
+```SQL 
+CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_output_table (
+  job_id STRING,
+  user_email STRING,
+  query STRING,
+  recommendation ARRAY<STRUCT<name STRING, description STRING>>,
+  slot_hours FLOAT64,
+  process_timestamp TIMESTAMP
+);
+```
+
+In the BigQuery console, run the DDL below to create the input table
+```SQL 
+CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_input_table (
+  id STRING,
+  query STRING
+);
+```
+To read from a BQ table and write to the BQ output table, run the following
+in the command line:
+```
+gcloud auth login
+
+docker run -i bigquery-antipattern-recognition \
+  --input_bq_table <my-project>.<my-dataset>.antipattern_input_table \
+  --output_table <my-project>.<my-dataset>.antipattern_output_table"
 ```
 
 ### local file -> terminal

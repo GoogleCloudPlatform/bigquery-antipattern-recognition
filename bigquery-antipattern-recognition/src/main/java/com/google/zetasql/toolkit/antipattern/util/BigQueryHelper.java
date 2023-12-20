@@ -123,6 +123,32 @@ public class BigQueryHelper {
     return queryJob.getQueryResults();
   }
 
+public static TableResult getQueriesFromBQTable(String inputTable)
+      throws InterruptedException {
+        BigQuery bigquery =
+        BigQueryOptions.newBuilder()
+            .setProjectId(inputTable.split("\\.")[0])
+            .setHeaderProvider(headerProvider)
+            .build()
+            .getService();
+
+    String query = "SELECT\n"
+        + "  id,\n"
+        + "  query"
+        + " FROM \n"
+        + inputTable + ";";
+
+    logger.info("Reading from BigQuery table: \n" + query);
+    QueryJobConfiguration queryConfig =
+        QueryJobConfiguration.newBuilder(query)
+            .setUseLegacySql(false)
+            .build();
+
+    logger.debug("Running query:\n" + queryConfig.getQuery());
+    Job queryJob = bigquery.create(JobInfo.newBuilder(queryConfig).build());
+    return queryJob.getQueryResults();
+}
+
   public static void writeResults(
       String processingProject, String outputTable, Map<String, Object> rowContent) {
     String[] tableName = outputTable.split("\\.");
