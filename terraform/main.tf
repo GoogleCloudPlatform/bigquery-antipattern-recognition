@@ -17,7 +17,7 @@
 // Declares the variable "services" which lists the Google Cloud services to be enabled.
 variable "services" {
   type    = list(string)
-  default = ["artifactregistry.googleapis.com", "cloudbuild.googleapis.com", "run.googleapis.com", "cloudscheduler.googleapis.com", "iam.googleapis.com"]
+  default = ["artifactregistry.googleapis.com", "cloudbuild.googleapis.com", "run.googleapis.com", "cloudscheduler.googleapis.com", "iam.googleapis.com", "workflows.googleapis.com"]
 }
 
 // Enables the Google Cloud services listed in the "services" variable for the project specified.
@@ -165,7 +165,7 @@ resource "null_resource" "build_and_push_docker" {
   }
 }
 
-// Sets up a Cloud Run Job.
+// Sets up a Cloud Run Job for Information Schema Analysis.
 resource "google_cloud_run_v2_job" "default" {
   name     = var.cloud_run_job_name
   location = var.region
@@ -190,6 +190,68 @@ resource "google_cloud_run_v2_job" "default" {
       launch_stage,
     ]
   }
+}
+
+# Create a service account for Workflows
+resource "google_service_account" "cloud_workflow_sa" {
+  count = var.apply_workflow == true ? 1 : 0
+  account_id   = "workflows-service-account"
+  display_name = "Workflows Service Account"
+}
+
+// Gives the Cloud Worfklows service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
+resource "google_project_iam_member" "cloudrun_invoker_w" {
+  project = var.project_id
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.cloud_workflow_sa.email}"
+}
+
+// Gives the Cloud Worfklows service account the "Bigquery admin" role, allowing it to create BigQuery resources.
+resource "google_project_iam_member" "cloudrun_invoker" {
+  project = var.project_id
+  role    = "roles/bigquery.admin"
+  member  = "serviceAccount:${google_service_account.cloud_workflow_sa.email}"
+}
+
+
+// Sets up a Cloud Run Job for query hashes in a BQ table.
+resource "google_cloud_run_v2_job" "default" {
+  count = var.apply_workflow == true ? 1 : 0
+  name     = var.cloud_run_job_name
+  location = var.region
+  depends_on = [
+    resource.google_project_service.project_service,
+    resource.null_resource.build_and_push_docker
+  ]
+  template {
+    template {
+      containers {
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repository}/recognizer:0.1.1-SNAPSHOT"
+        args  = ["${var.project_id}", "--input_bq_table", "${var.project_id}.${var.bigquery_dataset_name}.${var.input_table}", "--output_table", "${var.project_id}.${var.bigquery_dataset_name}.${var.output_table}"]
+      }
+      max_retries     = 3
+      timeout         = "900s"
+      service_account = google_service_account.cloud_run_job_sa.email
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      launch_stage,
+    ]
+  }
+}
+
+# Define and deploy a workflow
+resource "google_workflows_workflow" "hash_workflow" {
+  count = var.apply_workflow == true ? 1 : 0
+  name            = "hash_workflow"
+  region          = var.region
+  description     = "A sample workflow"
+  service_account = google_service_account.workflows_service_account.id
+  source_contents = templatefile("${path.module}/query_hash_workflow.yaml",{})
+
+  depends_on = [google_project_service.workflows]
 }
 
 // Sets up a Cloud Scheduler Job to regularly trigger the Cloud Run Job.
