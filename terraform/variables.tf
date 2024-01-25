@@ -51,6 +51,18 @@ variable "output_table" {
   description = "BigQuery output table for the Anti Pattern Detector"
 }
 
+// Variable that holds the BigQuery output table name for the Anti Pattern Detector.
+variable "input_table" {
+  type        = string
+  description = "BigQuery output table for the Anti Pattern Detector"
+}
+
+// Boolean variable to determine if a Cloud Scheduler job is to be applied.
+variable "apply_workflow" {
+  type    = bool
+  default = false
+}
+
 // Boolean variable to determine if a Cloud Scheduler job is to be applied.
 variable "apply_scheduler" {
   type    = bool
