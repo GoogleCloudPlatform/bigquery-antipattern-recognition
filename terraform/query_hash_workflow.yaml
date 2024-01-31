@@ -19,8 +19,7 @@ main:
     - assign_vars:
         assign:
         - queryHash: "DECLARE num_days_to_scan INT64 DEFAULT 30;"
-        - queryHash: $${queryHash+" "+ "CREATE TEMP FUNCTION num_stages_with_perf_insights(query_info ANY TYPE) AS ("}
-        - queryHash: $${queryHash+" "+ "COALESCE(("}
+        - queryHash: $${queryHash+" "+ "CREATE TEMP FUNCTION num_stages_with_perf_insights(query_info ANY TYPE) AS (COALESCE(("}
         - queryHash: $${queryHash+" "+ "SELECT SUM(IF(i.slot_contention, 1, 0) + IF(i.insufficient_shuffle_quota, 1, 0))"}
         - queryHash: $${queryHash+" "+ "FROM UNNEST(query_info.performance_insights.stage_performance_standalone_insights) i), 0)"}
         - queryHash: $${queryHash+" "+ "+ COALESCE(ARRAY_LENGTH(query_info.performance_insights.stage_performance_change_insights), 0)"}
@@ -68,36 +67,37 @@ main:
         - queryHash: $${queryHash+" "+ "AND statement_type != 'SCRIPT' GROUP BY statement_type, id;"}
         - queryHash: $${queryHash+" "+ "alter table `optimization_workshop.queries_grouped_by_hash` add column query string, add column job_id string;"}
         - queryHash: $${queryHash+" "+ "update `optimization_workshop.queries_grouped_by_hash` set query = top_10_jobs[OFFSET(0)].query_text, job_id = top_10_jobs[OFFSET(0)].parent_job_id WHERE true;"}
+        - project: ${project_id}
     - runQueriesGroupedByHash:
         call: googleapis.bigquery.v2.jobs.query
         args:
-            projectId: $${args.project}
+            projectId: $${project}
             body:
                 useLegacySql: false
                 query: $${queryHash}
     - runAntiPatternJob:
         call: googleapis.run.v1.namespaces.jobs.run
         args:
-            name: $${"namespaces/" + args.project +  "/jobs/bigquery-antipattern-recognition"}
+            name: $${"namespaces/" + project +  "/jobs/bigquery-antipattern-recognition"}
             location: "us-central1"
     - runJoinAntiPattern:
         call: googleapis.bigquery.v2.jobs.query
         args:
-            projectId: $${args.project}
+            projectId: $${project}
             body:
                 useLegacySql: false
                 query: "CREATE OR REPLACE TABLE optimization_workshop.queries_grouped_by_hash AS (select r.*, o.recommendation from optimization_workshop.queries_grouped_by_hash as r full outer join optimization_workshop.antipattern_output_table as o ON r.id = o.job_id)"
     - runCreateTopJobs:
             call: googleapis.bigquery.v2.jobs.query
             args:
-                projectId: $${args.project}
+                projectId: project
                 body:
                     useLegacySql: false
                     query: "CREATE OR REPLACE TABLE optimization_workshop.top_hash_jobs AS (select id as hash_id, job_id, query, recommendation from optimization_workshop.queries_grouped_by_hash order by total_slots desc limit 5 )"
     - runCreateTopJobsInfoSchema:
         call: googleapis.bigquery.v2.jobs.query
         args:
-            projectId: $${args.project}
+            projectId: $${project}
             body:
                 useLegacySql: false
                 query: "CREATE OR REPLACE TABLE optimization_workshop.top_hash_jobs AS (SELECT j.*, t.recommendation  from  optimization_workshop.top_hash_jobs as t JOIN `region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT as j ON t.job_id = j.job_id)"

@@ -135,19 +135,7 @@ EOF
 
 }
 
-# // Sets up an Artifact Registry repository to store Docker images.
-# module "docker_artifact_registry" {
-#   source = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/artifact-registry"
-#   depends_on = [
-#     resource.google_project_service.project_service
-#   ]
-#   project_id = var.project_id
-#   location   = var.region
-#   format     = "DOCKER"
-#   name       = var.repository
-# }
-
-resource "google_artifact_registry_repository" "my-repo" {
+resource "google_artifact_registry_repository" "bigquery_antipattern" {
   location      = var.region
   repository_id = var.repository
   description   = "example docker repository"
@@ -161,7 +149,7 @@ resource "null_resource" "build_and_push_docker" {
   #     always_run = "${timestamp()}"
   #     }
   depends_on = [
-    resource.google_artifact_registry_repository.my-repo,
+    resource.google_artifact_registry_repository.bigquery_antipattern,
     resource.google_project_service.project_service
   ]
   provisioner "local-exec" {
@@ -173,31 +161,31 @@ resource "null_resource" "build_and_push_docker" {
 }
 
 // Sets up a Cloud Run Job for Information Schema Analysis.
-# resource "google_cloud_run_v2_job" "default" {
-#   name     = var.cloud_run_job_name
-#   location = var.region
-#   depends_on = [
-#     resource.google_project_service.project_service,
-#     resource.null_resource.build_and_push_docker
-#   ]
-#   template {
-#     template {
-#       containers {
-#         image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repository}/recognizer:0.1.1-SNAPSHOT"
-#         args  = ["--read_from_info_schema", "--read_from_info_schema_days", "1", "--processing_project_id", "${var.project_id}", "--output_table", "${var.project_id}.${var.bigquery_dataset_name}.${var.output_table}"]
-#       }
-#       max_retries     = 3
-#       timeout         = "900s"
-#       service_account = google_service_account.cloud_run_job_sa.email
-#     }
-#   }
+resource "google_cloud_run_v2_job" "default" {
+  name     = var.cloud_run_job_name
+  location = var.region
+  depends_on = [
+    resource.google_project_service.project_service,
+    resource.null_resource.build_and_push_docker
+  ]
+  template {
+    template {
+      containers {
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repository}/recognizer:0.1.1-SNAPSHOT"
+        args  = ["--read_from_info_schema", "--read_from_info_schema_days", "1", "--processing_project_id", "${var.project_id}", "--output_table", "${var.project_id}.${var.bigquery_dataset_name}.${var.output_table}"]
+      }
+      max_retries     = 3
+      timeout         = "900s"
+      service_account = google_service_account.cloud_run_job_sa.email
+    }
+  }
 
-#   lifecycle {
-#     ignore_changes = [
-#       launch_stage,
-#     ]
-#   }
-# }
+  lifecycle {
+    ignore_changes = [
+      launch_stage,
+    ]
+  }
+}
 
 # Create a service account for Workflows
 resource "google_service_account" "cloud_workflow_sa" {
@@ -223,7 +211,7 @@ resource "google_project_iam_member" "cloudrun_invoker_wa" {
 // Sets up a Cloud Run Job for query hashes in a BQ table.
 resource "google_cloud_run_v2_job" "hash" {
   count = var.apply_workflow == true ? 1 : 0
-  name     = var.cloud_run_job_name
+  name     = var.cloud_run_job_name_hash
   location = var.region
   depends_on = [
     resource.google_project_service.project_service,
@@ -255,33 +243,33 @@ resource "google_workflows_workflow" "hash_workflow" {
   region          = var.region
   description     = "A sample workflow"
   service_account = google_service_account.cloud_workflow_sa.id
-  source_contents = templatefile("${path.module}/query_hash_workflow.yaml", {})
+  source_contents = templatefile("${path.module}/query_hash_workflow.yaml", {project_id = var.project_id})
 
   depends_on = [resource.google_project_service.project_service,
     resource.null_resource.build_and_push_docker]
 }
 
 // Sets up a Cloud Scheduler Job to regularly trigger the Cloud Run Job.
-# resource "google_cloud_scheduler_job" "job" {
-#   count = var.apply_scheduler == true ? 1 : 0
-#   depends_on = [
-#     resource.google_project_service.project_service,
-#     resource.google_cloud_run_v2_job.default
-#   ]
-#   name     = var.cloud_run_job_name
-#   schedule = var.scheduler_frequency
-#   http_target {
-#     http_method = "POST"
-#     uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${var.cloud_run_job_name}:run"
-#     oauth_token {
-#       service_account_email = google_service_account.cloud_scheduler_sa.email
-#     }
-#   }
-#   retry_config {
-#     max_backoff_duration = "3600s"
-#     max_doublings        = 5
-#     max_retry_duration   = "0s"
-#     min_backoff_duration = "5s"
-#     retry_count          = 0
-#   }
-# }
+resource "google_cloud_scheduler_job" "job" {
+  count = var.apply_scheduler == true ? 1 : 0
+  depends_on = [
+    resource.google_project_service.project_service,
+    resource.google_cloud_run_v2_job.default
+  ]
+  name     = var.cloud_run_job_name
+  schedule = var.scheduler_frequency
+  http_target {
+    http_method = "POST"
+    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${var.cloud_run_job_name}:run"
+    oauth_token {
+      service_account_email = google_service_account.cloud_scheduler_sa.email
+    }
+  }
+  retry_config {
+    max_backoff_duration = "3600s"
+    max_doublings        = 5
+    max_retry_duration   = "0s"
+    min_backoff_duration = "5s"
+    retry_count          = 0
+  }
+}

@@ -38,6 +38,11 @@ variable "cloud_run_job_name" {
   description = "Name for the Cloud Run job"
 }
 
+// Variable that holds the name of the Cloud Run job to be created.
+variable "cloud_run_job_name_hash" {
+  type        = string
+  description = "Name for the Cloud Run job"
+}
 // Variable that holds the service account to be associated with the Cloud Run job.
 variable "cloud_run_job_sa" {
   type        = string

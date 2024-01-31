@@ -18,6 +18,7 @@ project_id            = "afleisc-pso-sandbox"   // The ID of the Google Cloud Pr
 region                = "us-central1"   // The region in which the Artifact Registry, Cloud Run and Cloud Scheduler services will be deployed
 repository            = "example"   // The name of the Artifact Registry repository
 cloud_run_job_name    = "job"   // The name of the Cloud Run job that will be created
+cloud_run_job_name_hash    = "bigquery-antipattern-recognition"   // The name of the Cloud Run job that will be created
 input_table           = "queries_grouped_by_hash"   // (Optional) The BigQuery table that contains the queries to be analyzed (must containt id STRING, query STRING fields)
 output_table          = "antipattern_output"   // The BigQuery table that will be used for storing the results from the Anti Pattern Detector
 apply_scheduler       = false // Determines if a Cloud Scheduler job should be applied, default is false
