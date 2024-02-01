@@ -101,6 +101,9 @@ Deploying the anti-pattern recognition tool to a [Cloud Run](https://cloud.googl
 
 Refer to this [step-by-step](./CR_DEPLOY.md) on how to deploy this tool using Cloud Run.
 
+# Dataform and DBT
+See the [examples page](./EXAMPLES.md#dataform-and-dbt-query-extraction) for information on extracting SQL from Dataform and DBT
+
 # Flags and arguments
 ## Specify Input
 ### To read inline query

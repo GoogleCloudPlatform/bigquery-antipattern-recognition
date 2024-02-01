@@ -131,3 +131,26 @@ docker run \
   --analyzer_default_project bigquery-public-data \
   --input_file_path /samples/queries/input/joinOrder.sql 
 ```
+
+### Dataform and DBT Query Extraction
+
+Dataform and dbt both supply the [dataform](https://docs.dataform.co/dataform-cli#compile-your-code) compile and [dbt compile](https://docs.getdbt.com/reference/commands/compile) commands to view the compiled results in SQL.
+
+This can be useful to run the SQL anti pattern across these compiled results.
+
+For example, you can run the `dbt compile` command, navigate to the `target` directory in your project and upload the compiled model folder to GCS
+
+```
+gsutil cp * gs://my-bucket
+```
+
+Then, use that bucket as an input parameter for the antipattern tool
+
+```
+docker run \
+  -i bigquery-antipattern-recognition \
+  --input_folder_path gs://my-bucket \
+  --output_table <my-project>.<my-dataset>.antipattern_output_table
+```
+
+Note that the tool will recursively search for SQL files recurseivly in the folder that you upload.
