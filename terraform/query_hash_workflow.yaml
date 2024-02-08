@@ -81,7 +81,7 @@ main:
             projectId: $${project}
             body:
                 useLegacySql: false
-                query: $${"CREATE OR REPLACE TABLE optimization_workshop." + input_table + " AS (SELECT id,top_10_jobs[OFFSET(0)].query_text as query FROM optimization_workshop.queries_grouped_by_hash where id is not null)"}
+                query: $${"CREATE OR REPLACE TABLE optimization_workshop." + inputTable + " AS (SELECT id,top_10_jobs[OFFSET(0)].query_text as query FROM optimization_workshop.queries_grouped_by_hash where id is not null)"}
     - runAntiPatternJob:
         call: googleapis.run.v1.namespaces.jobs.run
         args:
@@ -93,4 +93,4 @@ main:
             projectId: $${project}
             body:
                 useLegacySql: false
-                query: $${"CREATE OR REPLACE TABLE optimization_workshop.queries_grouped_by_hash AS (select r.*, o.recommendation from optimization_workshop.queries_grouped_by_hash as r full outer join optimization_workshop." + output_table + " as o ON r.id = o.job_id)"}
+                query: $${"CREATE OR REPLACE TABLE optimization_workshop.queries_grouped_by_hash AS (select r.*, o.recommendation from optimization_workshop.queries_grouped_by_hash as r full outer join optimization_workshop." + outputTable + " as o ON r.id = o.job_id)"}
