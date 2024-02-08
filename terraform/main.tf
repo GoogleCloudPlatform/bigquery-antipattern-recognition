@@ -243,7 +243,7 @@ resource "google_workflows_workflow" "hash_workflow" {
   region          = var.region
   description     = "A sample workflow"
   service_account = google_service_account.cloud_workflow_sa.id
-  source_contents = templatefile("${path.module}/query_hash_workflow.yaml", {project_id = var.project_id})
+  source_contents = templatefile("${path.module}/query_hash_workflow.yaml", {project_id = var.project_id, input_table=var.input_table, output_table=var.output_table})
 
   depends_on = [resource.google_project_service.project_service,
     resource.null_resource.build_and_push_docker]
