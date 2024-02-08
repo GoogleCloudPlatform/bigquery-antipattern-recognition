@@ -194,7 +194,7 @@ resource "google_service_account" "cloud_workflow_sa" {
 }
 
 // Gives the Workflows service account the "Cloud Run Admin" role, allowing it to manage Cloud Run services.
-resource "google_project_iam_member" "cloud_run_service_account" {
+resource "google_project_iam_member" "cloud_run_service_account_w" {
   project = var.project_id
   role    = "roles/run.admin"
   member  = "serviceAccount:${google_service_account.cloud_workflow_sa.email}"
