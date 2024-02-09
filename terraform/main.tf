@@ -189,28 +189,32 @@ resource "google_cloud_run_v2_job" "default" {
 
 # Create a service account for Workflows
 resource "google_service_account" "cloud_workflow_sa" {
+  count = var.apply_workflow == true ? 1 : 0
   account_id   = "workflows-service-account"
   display_name = "Workflows Service Account"
 }
 
 // Gives the Workflows service account the "Cloud Run Admin" role, allowing it to manage Cloud Run services.
 resource "google_project_iam_member" "cloud_run_service_account_w" {
+  count = var.apply_workflow == true ? 1 : 0
   project = var.project_id
   role    = "roles/run.admin"
-  member  = "serviceAccount:${google_service_account.cloud_workflow_sa.email}"
+  member  = "serviceAccount:${google_service_account.cloud_workflow_sa[0].email}"
 }
 // Gives the Cloud Worfklows service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
 resource "google_project_iam_member" "cloudrun_invoker_w" {
+  count = var.apply_workflow == true ? 1 : 0
   project = var.project_id
   role    = "roles/run.invoker"
-  member  = "serviceAccount:${google_service_account.cloud_workflow_sa.email}"
+  member  = "serviceAccount:${google_service_account.cloud_workflow_sa[0].email}"
 }
 
 // Gives the Cloud Worfklows service account the "Bigquery admin" role, allowing it to create BigQuery resources.
 resource "google_project_iam_member" "cloudrun_invoker_wa" {
+  count = var.apply_workflow == true ? 1 : 0
   project = var.project_id
   role    = "roles/bigquery.admin"
-  member  = "serviceAccount:${google_service_account.cloud_workflow_sa.email}"
+  member  = "serviceAccount:${google_service_account.cloud_workflow_sa[0].email}"
 }
 
 
@@ -248,7 +252,7 @@ resource "google_workflows_workflow" "hash_workflow" {
   name            = "hash_workflow"
   region          = var.region
   description     = "A sample workflow"
-  service_account = google_service_account.cloud_workflow_sa.id
+  service_account = google_service_account.cloud_workflow_sa[0].id
   source_contents = templatefile("${path.module}/query_hash_workflow.yaml", {project_id = var.project_id, input_table=var.input_table, output_table=var.output_table})
 
   depends_on = [resource.google_project_service.project_service,
