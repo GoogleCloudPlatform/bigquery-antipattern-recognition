@@ -1,12 +1,20 @@
 # Google Cloud BigQuery Antipattern Recognition
 
-This repository contains the Terraform scripts that build and deploy the BigQuery Antipattern Recognition tool to Cloud Run Jobs. On each execution, the tool is configured to perform antipattern recognition for all jobs run during the previous 24 hours and to write the results to a BigQuery table. Optionally, a Cloud Scheduler cron job can be deployed to run the tool on a schedule.
+This repository contains the Terraform scripts that build and deploy the BigQuery Antipattern Recognition tool to Cloud Run Jobs. On each execution, the tool is configured to perform antipattern recognition for all jobs run during the previous 24 hours and to write the results to a BigQuery table. 
+
+
+There are two optional flags when running the terraform scripts.
+
+1. Optionally, a Cloud Scheduler cron job can be deployed to run the tool on a schedule by setting apply_scheduler = true.
+2. Optionally, a Cloud Workflow can be deployed obtain query hashes, run the antipattern tool, and join the recommendation back on to the hashes. This is useful to run the antipattern tool across queries that may be repeated many times. Read more about query hashes [here](https://github.com/GoogleCloudPlatform/bigquery-utils/tree/master/scripts/optimization#query-analysis). When you want to run the Cloud Workflow, set apply_workflow = true and specify an input table name that will be used for intermediary extraction of query hashes.
 
 Following resources are created when running the code:
 1. Cloud Run Job
 2. Service Account for Cloud Run Job
 3. Cloud Scheduler (optional)
-4. Service Account for Cloud Scheduler
+4. Cloud Workflow (optional)
+5. Service Account for Cloud Scheduler
+6. Service Account for Cloud Workflow (optional)
 5. Artifact Registry
 6. Table in BigQuery Dataset (optional)
 
@@ -62,6 +70,8 @@ Before you begin, ensure you have met the following requirements:
     region = "" # The region in which the Artifact Registry, Cloud Run and Cloud Scheduler services will be deployed
     repository = "" # The name of the Artifact Registry repository
     cloud_run_job_name = "" # The name of the Cloud Run job that will be created
+    apply_workflow = "" # Determines if a Cloud Workflow job should be applied on query hashes, default is false
+    input_table= ""    # Intermediary name for raw query table used for antipattern tool if using hash workflow
     output_table = "" # The BigQuery table that will be used for storing the results from the Anti Pattern Detector
     apply_scheduler = "" # Whether to apply scheduler or not (true or false)
     scheduler_frequency = "" # Schedule frequency for the Cloud Scheduler job, in cron format. Default value is "0 5 * * *"
@@ -75,6 +85,8 @@ Before you begin, ensure you have met the following requirements:
     region = "us-central1"
     repository = "bigquery-antipattern-recognition"
     cloud_run_job_name = "bigquery-antipattern-recognition"
+    apply_workflow = false 
+    input_table= ""
     output_table = "antipattern_output_table"
     apply_scheduler = true
     scheduler_frequency   = "0 5 * * *"
