@@ -9,14 +9,15 @@ There are two optional flags when running the terraform scripts.
 2. Optionally, a Cloud Workflow can be deployed obtain query hashes, run the antipattern tool, and join the recommendation back on to the hashes. This is useful to run the antipattern tool across queries that may be repeated many times. Read more about query hashes [here](https://github.com/GoogleCloudPlatform/bigquery-utils/tree/master/scripts/optimization#query-analysis). When you want to run the Cloud Workflow, set apply_workflow = true, specify an input table name that will be used for intermediary extraction of query hashes, and the cloud_run_job_name_hash of the Cloud Run job.
 
 Following resources are created when running the code:
-1. Cloud Run Job
+1. Cloud Run Job for Information_Schema
 2. Service Account for Cloud Run Job
 3. Cloud Scheduler (optional)
 4. Cloud Workflow (optional)
 5. Service Account for Cloud Scheduler
 6. Service Account for Cloud Workflow (optional)
-5. Artifact Registry
-6. Table in BigQuery Dataset (optional)
+7. Cloud Run Job for Query Hashes (optional)
+8. Artifact Registry
+9. Table in BigQuery Dataset (optional)
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fbigquery-antipattern-recognition&cloudshell_open_in_editor=terraform%2F&cloudshell_tutorial=terraform%2FREADME.md)
 
@@ -70,8 +71,6 @@ Before you begin, ensure you have met the following requirements:
     region = "" # The region in which the Artifact Registry, Cloud Run and Cloud Scheduler services will be deployed
     repository = "" # The name of the Artifact Registry repository
     cloud_run_job_name = "" # The name of the Cloud Run job that will be created
-    apply_workflow = "" # Determines if a Cloud Workflow job should be applied on query hashes, default is false
-    input_table= ""    # Intermediary name for raw query table used for antipattern tool if using hash workflow
     output_table = "" # The BigQuery table that will be used for storing the results from the Anti Pattern Detector
     apply_scheduler = "" # Whether to apply scheduler or not (true or false)
     scheduler_frequency = "" # Schedule frequency for the Cloud Scheduler job, in cron format. Default value is "0 5 * * *"
