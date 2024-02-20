@@ -39,7 +39,7 @@ resource "google_service_account" "cloud_scheduler_sa" {
 }
 
 // Gives the Cloud Scheduler service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
-resource "google_project_iam_member" "cloudrun_invoker" {
+resource "google_project_iam_member" "cloudrun_invoker_is" {
   project = var.project_id
   role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.cloud_scheduler_sa.email}"
@@ -56,21 +56,21 @@ resource "google_service_account" "cloud_run_job_sa" {
 }
 
 // Gives the Cloud Run Job service account the "Cloud Run Admin" role, allowing it to manage Cloud Run services.
-resource "google_project_iam_member" "cloud_run_service_account" {
+resource "google_project_iam_member" "cloud_run_service_account_is" {
   project = var.project_id
   role    = "roles/run.admin"
   member  = "serviceAccount:${google_service_account.cloud_run_job_sa.email}"
 }
 
 // Gives the Cloud Run Job service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
-resource "google_project_iam_member" "cloud_run_invoker_w" {
+resource "google_project_iam_member" "cloud_run_invoker_is" {
   project = var.project_id
   role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.cloud_run_job_sa.email}"
 }
 
 // Gives the Cloud Run Job service account "Bigquery Admin" role, allowing it to read data from BigQuery and insert output into BigQuery.
-resource "google_project_iam_member" "bigquery_admin" {
+resource "google_project_iam_member" "bigquery_admin_is" {
   project = var.project_id
   role    = "roles/bigquery.admin"
   member  = "serviceAccount:${google_service_account.cloud_run_job_sa.email}"
@@ -80,7 +80,7 @@ resource "google_project_iam_member" "bigquery_admin" {
 resource "google_bigquery_table" "bq_table" {
   count = var.create_output_table == true ? 1 : 0
   depends_on = [
-    google_project_iam_member.bigquery_admin
+    google_project_iam_member.bigquery_admin_is
   ]
   dataset_id          = var.bigquery_dataset_name
   table_id            = var.output_table
@@ -187,6 +187,31 @@ resource "google_cloud_run_v2_job" "default" {
   }
 }
 
+// Sets up a Cloud Scheduler Job to regularly trigger the Information Schema Cloud Run Job.
+resource "google_cloud_scheduler_job" "job" {
+  count = var.apply_scheduler == true ? 1 : 0
+  depends_on = [
+    resource.google_project_service.project_service,
+    resource.google_cloud_run_v2_job.default
+  ]
+  name     = var.cloud_run_job_name
+  schedule = var.scheduler_frequency
+  http_target {
+    http_method = "POST"
+    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${var.cloud_run_job_name}:run"
+    oauth_token {
+      service_account_email = google_service_account.cloud_scheduler_sa.email
+    }
+  }
+  retry_config {
+    max_backoff_duration = "3600s"
+    max_doublings        = 5
+    max_retry_duration   = "0s"
+    min_backoff_duration = "5s"
+    retry_count          = 0
+  }
+}
+
 # Create a service account for Workflows
 resource "google_service_account" "cloud_workflow_sa" {
   count = var.apply_workflow == true ? 1 : 0
@@ -195,14 +220,14 @@ resource "google_service_account" "cloud_workflow_sa" {
 }
 
 // Gives the Workflows service account the "Cloud Run Admin" role, allowing it to manage Cloud Run services.
-resource "google_project_iam_member" "cloud_run_service_account_w" {
+resource "google_project_iam_member" "cloud_run_service_account_worflow" {
   count = var.apply_workflow == true ? 1 : 0
   project = var.project_id
   role    = "roles/run.admin"
   member  = "serviceAccount:${google_service_account.cloud_workflow_sa[0].email}"
 }
 // Gives the Cloud Worfklows service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
-resource "google_project_iam_member" "cloudrun_invoker_w" {
+resource "google_project_iam_member" "cloudrun_invoker_worflow" {
   count = var.apply_workflow == true ? 1 : 0
   project = var.project_id
   role    = "roles/run.invoker"
@@ -210,7 +235,7 @@ resource "google_project_iam_member" "cloudrun_invoker_w" {
 }
 
 // Gives the Cloud Worfklows service account the "Bigquery admin" role, allowing it to create BigQuery resources.
-resource "google_project_iam_member" "cloudrun_invoker_wa" {
+resource "google_project_iam_member" "bq_admin_worflow" {
   count = var.apply_workflow == true ? 1 : 0
   project = var.project_id
   role    = "roles/bigquery.admin"
@@ -246,7 +271,7 @@ resource "google_cloud_run_v2_job" "hash" {
   }
 }
 
-# # Define and deploy a workflow
+// Define and deploys the query hash workflow
 resource "google_workflows_workflow" "hash_workflow" {
   count = var.apply_workflow == true ? 1 : 0
   name            = "hash_workflow"
@@ -259,27 +284,4 @@ resource "google_workflows_workflow" "hash_workflow" {
     resource.null_resource.build_and_push_docker]
 }
 
-// Sets up a Cloud Scheduler Job to regularly trigger the Cloud Run Job.
-resource "google_cloud_scheduler_job" "job" {
-  count = var.apply_scheduler == true ? 1 : 0
-  depends_on = [
-    resource.google_project_service.project_service,
-    resource.google_cloud_run_v2_job.default
-  ]
-  name     = var.cloud_run_job_name
-  schedule = var.scheduler_frequency
-  http_target {
-    http_method = "POST"
-    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${var.cloud_run_job_name}:run"
-    oauth_token {
-      service_account_email = google_service_account.cloud_scheduler_sa.email
-    }
-  }
-  retry_config {
-    max_backoff_duration = "3600s"
-    max_doublings        = 5
-    max_retry_duration   = "0s"
-    min_backoff_duration = "5s"
-    retry_count          = 0
-  }
-}
+
