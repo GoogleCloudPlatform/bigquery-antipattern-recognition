@@ -28,23 +28,6 @@ resource "google_project_service" "project_service" {
   disable_on_destroy = false
 }
 
-// Creates a service account for Google Cloud Scheduler.
-resource "google_service_account" "cloud_scheduler_sa" {
-  depends_on = [
-    resource.google_project_service.project_service
-  ]
-  account_id   = "cloud-scheduler-sa"
-  display_name = "Cloud Scheduler service account"
-  project      = var.project_id
-}
-
-// Gives the Cloud Scheduler service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
-resource "google_project_iam_member" "cloudrun_invoker_is" {
-  project = var.project_id
-  role    = "roles/run.invoker"
-  member  = "serviceAccount:${google_service_account.cloud_scheduler_sa.email}"
-}
-
 // Creates a service account for Google Cloud Run Jobs.
 resource "google_service_account" "cloud_run_job_sa" {
   depends_on = [
@@ -187,6 +170,23 @@ resource "google_cloud_run_v2_job" "default" {
   }
 }
 
+// Creates a service account for Google Cloud Scheduler.
+resource "google_service_account" "cloud_scheduler_sa" {
+  depends_on = [
+    resource.google_project_service.project_service, resource.google_cloud_run_v2_job.default
+  ]
+  account_id   = "cloud-scheduler-sa"
+  display_name = "Cloud Scheduler service account"
+  project      = var.project_id
+}
+
+// Gives the Cloud Scheduler service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
+resource "google_project_iam_member" "cloudrun_invoker_is" {
+  project = var.project_id
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.cloud_scheduler_sa.email}"
+}
+
 // Sets up a Cloud Scheduler Job to regularly trigger the Information Schema Cloud Run Job.
 resource "google_cloud_scheduler_job" "job" {
   count = var.apply_scheduler == true ? 1 : 0
@@ -211,77 +211,3 @@ resource "google_cloud_scheduler_job" "job" {
     retry_count          = 0
   }
 }
-
-# Create a service account for Workflows
-resource "google_service_account" "cloud_workflow_sa" {
-  count = var.apply_workflow == true ? 1 : 0
-  account_id   = "workflows-service-account"
-  display_name = "Workflows Service Account"
-}
-
-// Gives the Workflows service account the "Cloud Run Admin" role, allowing it to manage Cloud Run services.
-resource "google_project_iam_member" "cloud_run_service_account_worflow" {
-  count = var.apply_workflow == true ? 1 : 0
-  project = var.project_id
-  role    = "roles/run.admin"
-  member  = "serviceAccount:${google_service_account.cloud_workflow_sa[0].email}"
-}
-// Gives the Cloud Worfklows service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
-resource "google_project_iam_member" "cloudrun_invoker_worflow" {
-  count = var.apply_workflow == true ? 1 : 0
-  project = var.project_id
-  role    = "roles/run.invoker"
-  member  = "serviceAccount:${google_service_account.cloud_workflow_sa[0].email}"
-}
-
-// Gives the Cloud Worfklows service account the "Bigquery admin" role, allowing it to create BigQuery resources.
-resource "google_project_iam_member" "bq_admin_worflow" {
-  count = var.apply_workflow == true ? 1 : 0
-  project = var.project_id
-  role    = "roles/bigquery.admin"
-  member  = "serviceAccount:${google_service_account.cloud_workflow_sa[0].email}"
-}
-
-
-// Sets up a Cloud Run Job for query hashes in a BQ table.
-resource "google_cloud_run_v2_job" "hash" {
-  count = var.apply_workflow == true ? 1 : 0
-  name     = var.cloud_run_job_name_hash
-  location = var.region
-  depends_on = [
-    resource.google_project_service.project_service,
-    resource.null_resource.build_and_push_docker
-  ]
-  template {
-    template {
-      containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repository}/recognizer:0.1.1-SNAPSHOT"
-        args  = ["${var.project_id}", "--input_bq_table", "${var.project_id}.${var.bigquery_dataset_name}.${var.input_table}", "--output_table", "${var.project_id}.${var.bigquery_dataset_name}.${var.output_table}"]
-      }
-      max_retries     = 3
-      timeout         = "900s"
-      service_account = google_service_account.cloud_run_job_sa.email
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [
-      launch_stage,
-    ]
-  }
-}
-
-// Define and deploys the query hash workflow
-resource "google_workflows_workflow" "hash_workflow" {
-  count = var.apply_workflow == true ? 1 : 0
-  name            = "hash_workflow"
-  region          = var.region
-  description     = "A sample workflow"
-  service_account = google_service_account.cloud_workflow_sa[0].id
-  source_contents = templatefile("${path.module}/query_hash_workflow.yaml", {project_id = var.project_id, input_table=var.input_table, output_table=var.output_table})
-
-  depends_on = [resource.google_project_service.project_service,
-    resource.null_resource.build_and_push_docker]
-}
-
-
