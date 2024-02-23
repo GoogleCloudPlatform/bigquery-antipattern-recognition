@@ -146,7 +146,7 @@ Must be set along with `--read_from_info_schema`. <br>
 Defaults to 60.
 </ul>
 
-``--info_schema_table_name" \`region-us\`.INFORMATION_SCHEMA.JOBS" \``
+``--info_schema_table_name "\`<my-project>.region-us\`.INFORMATION_SCHEMA.JOBS" \``
 <ul>
 Specifies what variant of INFORMATION_SCHEMA.JOBS to read from.
 </ul>
