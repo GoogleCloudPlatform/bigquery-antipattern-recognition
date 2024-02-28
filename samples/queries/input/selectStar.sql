@@ -1,1 +1,1 @@
-select * from table1;
+select * from t`bigquery-public-data`.stackoverflow.comments;
