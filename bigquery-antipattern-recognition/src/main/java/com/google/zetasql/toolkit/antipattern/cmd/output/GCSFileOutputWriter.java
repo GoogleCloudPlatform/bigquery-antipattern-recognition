@@ -1,9 +1,8 @@
 package com.google.zetasql.toolkit.antipattern.cmd.output;
 
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
-import com.google.zetasql.toolkit.antipattern.Main;
+import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.util.List;
 import org.slf4j.Logger;
@@ -22,12 +21,12 @@ public class GCSFileOutputWriter extends AntiPatternOutputWriter {
     gcsFilePath = outputDir;
   }
 
-  public void writeRecForQuery(
-      InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns) {
+  public void writeRecForQuery(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns,
+                               AntiPatternCommandParser cmdParser) {
       if(outputStrBuilder.length()==0) {
-        outputStrBuilder.append(OutputCSVWriterHelper.CSV_HEADER);
+        outputStrBuilder.append(OutputCSVWriterHelper.getHeader(cmdParser));
       }
-      outputStrBuilder.append(OutputCSVWriterHelper.getOutputStringForRecord(inputQuery, visitorsThatFoundPatterns));
+      outputStrBuilder.append(OutputCSVWriterHelper.getOutputStringForRecord(inputQuery, visitorsThatFoundPatterns, cmdParser));
 
       // every ~400 MB
       if(outputStrBuilder.length()>=NUM_CHARACTERS_TO_WRITE) {
