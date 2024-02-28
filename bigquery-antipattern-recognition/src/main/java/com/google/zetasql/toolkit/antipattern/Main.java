@@ -23,6 +23,7 @@ import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyRegexpCont
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifySimpleSelectStarVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.rownum.IdentifyLatestRecordVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.whereorder.IdentifyWhereOrderVisitor;
+import com.google.zetasql.toolkit.antipattern.rewriter.gemini.GeminiRewriter;
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryAPIResourceProvider;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
@@ -67,20 +68,23 @@ public class Main {
 
     Iterator<InputQuery> inputQueriesIterator = cmdParser.getInputQueries();
     AntiPatternOutputWriter outputWriter = getOutputWriter(cmdParser);
-
+    Boolean rewriteSQL = cmdParser.rewriteSQL();
+    outputWriter.setRewriteSQL(rewriteSQL);
+    String procesingProject = cmdParser.getProcessingProject();
     InputQuery inputQuery;
 
     while (inputQueriesIterator.hasNext()) {
       inputQuery = inputQueriesIterator.next();
       logger.info("Parsing query: " + inputQuery.getQueryId());
-      checkForAntiPatternsInQuery(inputQuery, outputWriter);
+      checkForAntiPatternsInQuery(inputQuery, outputWriter, cmdParser);
       countQueriesRead += 1;
     }
     logResultStats();
     outputWriter.close();
   }
 
-  private static void checkForAntiPatternsInQuery(InputQuery inputQuery, AntiPatternOutputWriter outputWriter)
+  private static void checkForAntiPatternsInQuery(InputQuery inputQuery, AntiPatternOutputWriter outputWriter,
+                                                  AntiPatternCommandParser cmdParser)
       throws IOException {
 
     try {
@@ -91,6 +95,11 @@ public class Main {
       // analyzer visitor
       if (cmdParser.useAnalyzer()) {
         checkForAntiPatternsInQueryWithAnalyzerVisitors(inputQuery, visitorsThatFoundAntiPatterns);
+      }
+
+      // rewrite
+      if(cmdParser.rewriteSQL()) {
+        GeminiRewriter.rewriteSQL(inputQuery, visitorsThatFoundAntiPatterns, cmdParser.getProcessingProject());
       }
 
       // write output
