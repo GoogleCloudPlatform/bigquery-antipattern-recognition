@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor implements AntiPatternVisitor {
 
-  public final String NAME = "CTEsEvalMultipleTimes";
+  public final static String NAME = "CTEsEvalMultipleTimes";
   private final String MULTIPLE_CTE_SUGGESTION_MESSAGE =
       "CTE with multiple references: alias %s defined at line %d is referenced %d times.";
 

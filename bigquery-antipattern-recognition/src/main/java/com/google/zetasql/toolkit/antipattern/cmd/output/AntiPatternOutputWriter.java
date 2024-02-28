@@ -11,8 +11,12 @@ public abstract class AntiPatternOutputWriter {
 
   private boolean rewriteSQL = false;
 
-  public abstract void writeRecForQuery(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns,
-                                        AntiPatternCommandParser cmdParser) throws IOException;
+  public void writeRecForQuery(InputQuery inputQuery,
+      List<AntiPatternVisitor> visitorsThatFoundPatterns) throws IOException {};
+
+  public void writeRecForQuery(InputQuery inputQuery,
+      List<AntiPatternVisitor> visitorsThatFoundPatterns, AntiPatternCommandParser cmdParser)
+      throws IOException {};
 
   public void close() throws IOException {};
 
