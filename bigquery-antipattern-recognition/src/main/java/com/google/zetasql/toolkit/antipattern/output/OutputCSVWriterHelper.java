@@ -1,4 +1,4 @@
-package com.google.zetasql.toolkit.antipattern.cmd.output;
+package com.google.zetasql.toolkit.antipattern.output;
 
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;

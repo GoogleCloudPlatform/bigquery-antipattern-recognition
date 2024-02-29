@@ -1,16 +1,15 @@
-package com.google.zetasql.toolkit.antipattern.cmd.output;
+package com.google.zetasql.toolkit.antipattern.output;
 
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OutputToLogWriter extends AntiPatternOutputWriter {
+public class LogOutputWriter extends OutputWriter {
 
-  private static final Logger logger = LoggerFactory.getLogger(OutputToLogWriter.class);
+  private static final Logger logger = LoggerFactory.getLogger(LogOutputWriter.class);
 
   public void writeRecForQuery(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns,
                                AntiPatternCommandParser cmdParser) {

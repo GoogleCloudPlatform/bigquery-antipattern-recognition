@@ -1,4 +1,4 @@
-package com.google.zetasql.toolkit.antipattern.cmd.output;
+package com.google.zetasql.toolkit.antipattern.output;
 
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
@@ -8,16 +8,16 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GCSFileOutputWriter extends AntiPatternOutputWriter {
+public class GcsCsvOutputWriter extends OutputWriter {
 
-  private static final Logger logger = LoggerFactory.getLogger(GCSFileOutputWriter.class);
+  private static final Logger logger = LoggerFactory.getLogger(GcsCsvOutputWriter.class);
   private String gcsFilePath;
   public String csvFileExtension = ".csv";
   private StringBuilder outputStrBuilder = new StringBuilder();
   private final static int NUM_CHARACTERS_TO_WRITE = 200000000;
   private int file_num = -1;
 
-  public GCSFileOutputWriter(String outputDir)  {
+  public GcsCsvOutputWriter(String outputDir)  {
     gcsFilePath = outputDir;
   }
 

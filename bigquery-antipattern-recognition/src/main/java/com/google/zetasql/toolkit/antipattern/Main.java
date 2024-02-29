@@ -10,11 +10,8 @@ import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.antipattern.analyzer.visitors.joinorder.JoinOrderVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.cmd.output.AntiPatternOutputWriter;
-import com.google.zetasql.toolkit.antipattern.cmd.output.BQOutputWriter;
-import com.google.zetasql.toolkit.antipattern.cmd.output.GCSFileOutputWriter;
-import com.google.zetasql.toolkit.antipattern.cmd.output.LocalFileOutputWriter;
-import com.google.zetasql.toolkit.antipattern.cmd.output.OutputToLogWriter;
+import com.google.zetasql.toolkit.antipattern.output.OutputWriter;
+import com.google.zetasql.toolkit.antipattern.output.OutputWriterFactory;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyCTEsEvalMultipleTimesVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyDynamicPredicateVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyInSubqueryWithoutAggVisitor;
@@ -24,8 +21,7 @@ import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifySimpleSele
 import com.google.zetasql.toolkit.antipattern.parser.visitors.rownum.IdentifyLatestRecordVisitor;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.whereorder.IdentifyWhereOrderVisitor;
 import com.google.zetasql.toolkit.antipattern.rewriter.gemini.GeminiRewriter;
-import com.google.zetasql.toolkit.antipattern.rewriter.prompt.PromptMaker;
-import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
+import com.google.zetasql.toolkit.antipattern.rewriter.prompt.PromptYamlReader;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryAPIResourceProvider;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService;
@@ -68,18 +64,18 @@ public class Main {
     }
 
     Iterator<InputQuery> inputQueriesIterator = cmdParser.getInputQueries();
-    AntiPatternOutputWriter outputWriter = getOutputWriter(cmdParser);
+    OutputWriter outputWriter = OutputWriterFactory.getOutputWriter(cmdParser);
     Boolean rewriteSQL = cmdParser.rewriteSQL();
     outputWriter.setRewriteSQL(rewriteSQL);
-    PromptMaker promptMaker = null;
+    PromptYamlReader promptYamlReader = null;
     if(rewriteSQL) {
-      promptMaker = new PromptMaker();
+      promptYamlReader = new PromptYamlReader();
     }
     InputQuery inputQuery;
     while (inputQueriesIterator.hasNext()) {
       inputQuery = inputQueriesIterator.next();
       logger.info("Parsing query: " + inputQuery.getQueryId());
-      checkForAntiPatternsInQuery(inputQuery, outputWriter, cmdParser, promptMaker);
+      checkForAntiPatternsInQuery(inputQuery, outputWriter, cmdParser, promptYamlReader);
       countQueriesRead += 1;
     }
     logResultStats();
@@ -87,8 +83,8 @@ public class Main {
   }
 
   private static void checkForAntiPatternsInQuery(InputQuery inputQuery,
-      AntiPatternOutputWriter outputWriter, AntiPatternCommandParser cmdParser,
-      PromptMaker promptMaker) {
+      OutputWriter outputWriter, AntiPatternCommandParser cmdParser,
+      PromptYamlReader promptYamlReader) {
 
     try {
       List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
@@ -103,7 +99,7 @@ public class Main {
       // rewrite
       if(cmdParser.rewriteSQL()) {
         GeminiRewriter.rewriteSQL(inputQuery, visitorsThatFoundAntiPatterns,
-            cmdParser.getProcessingProject(), promptMaker);
+            cmdParser.getProcessingProject(), promptYamlReader);
       }
 
       // write output
@@ -181,40 +177,25 @@ public class Main {
     }
   }
 
+  // THE ORDER HERE MATTERS
+  // this is also the order in which the rewrites get applied
   private static List<AntiPatternVisitor> getParserVisitorList(String query) {
     return new ArrayList<>(Arrays.asList(
         new IdentifySimpleSelectStarVisitor(),
         new IdentifyInSubqueryWithoutAggVisitor(query),
-        new IdentifyCTEsEvalMultipleTimesVisitor(query),
+        new IdentifyDynamicPredicateVisitor(query),
         new IdentifyOrderByWithoutLimitVisitor(query),
         new IdentifyRegexpContainsVisitor(query),
+        new IdentifyCTEsEvalMultipleTimesVisitor(query),
         new IdentifyLatestRecordVisitor(query),
-        new IdentifyDynamicPredicateVisitor(query),
         new IdentifyWhereOrderVisitor(query)
+
     ));
   }
 
   private static void setVisitorMetricsMap(List<AntiPatternVisitor> parserVisitorList ) {
     visitorMetricsMap = new HashMap<>();
     parserVisitorList.stream().forEach(visitor -> visitorMetricsMap.put(visitor.getNAME(), 0));
-  }
-
-  private static AntiPatternOutputWriter getOutputWriter(AntiPatternCommandParser cmdParser) {
-    if (cmdParser.hasOutputFileOptionName()){
-      if(GCSHelper.isGCSPath(cmdParser.getOutputFileOptionName())){
-        return new GCSFileOutputWriter(cmdParser.getOutputFileOptionName());
-      } else {
-        return new LocalFileOutputWriter(cmdParser.getOutputFileOptionName());
-      }
-    }
-    else if(cmdParser.hasOutputTable()) {
-      BQOutputWriter outputWriter = new BQOutputWriter(cmdParser.getOutputTable());
-      outputWriter.setProcessingProjectName(cmdParser.getProcessingProject());
-      return outputWriter;
-    }
-    else {
-      return new OutputToLogWriter();
-    }
   }
 
   private static void setAnalyzerOptions() {
@@ -237,10 +218,6 @@ public class Main {
     StringBuilder statsString = new StringBuilder();
     statsString.append("\n\n* Queries read: " + countQueriesRead);
     statsString.append("\n* Queries with anti patterns: " + countQueriesWithAntipattern);
-
-    // for (HashMap.Entry<String, Integer> entry : visitorMetricsMap.entrySet()) {
-    //   statsString.append(String.format("\n* %s: %d", entry.getKey(), entry.getValue()));
-    // }
     logger.info(statsString.toString());
   }
 }

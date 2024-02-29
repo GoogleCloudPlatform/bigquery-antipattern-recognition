@@ -2,7 +2,7 @@ package com.google.zetasql.toolkit.antipattern.rewriter.prompt;
 
 import java.util.List;
 
-public class GenericPrompt {
+public class PromptDetails {
   private String name;
   private String description;
   private List<String> examples;

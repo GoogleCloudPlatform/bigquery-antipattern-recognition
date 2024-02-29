@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.rewriter.prompt.PromptMaker;
+import com.google.zetasql.toolkit.antipattern.rewriter.prompt.PromptYamlReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,11 +24,11 @@ public class GeminiRewriter {
     private static final String API_URI_TEMPLATE = "https://us-central1-aiplatform.googleapis.com/v1/projects/%s/locations/us-central1/publishers/google/models/gemini-1.0-pro:streamGenerateContent?alt=sse";
 
     public static void rewriteSQL(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundAntiPatterns,
-                                  String projectId, PromptMaker promptMaker) throws IOException {
+                                  String projectId, PromptYamlReader promptYamlReader) throws IOException {
         try {
             String queryStr = inputQuery.getQuery();
             for (AntiPatternVisitor visitor : visitorsThatFoundAntiPatterns) {
-                String prompt = promptMaker.getAntiPatternNameToPrompt().get(
+                String prompt = promptYamlReader.getAntiPatternNameToPrompt().get(
                     visitor.getNAME());
                 if (prompt != null) {
                     prompt = String.format(prompt, queryStr);

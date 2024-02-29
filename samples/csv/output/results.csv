@@ -2,42 +2,40 @@ id,recommendation,optimized_sql
 1,"SimpleSelectStar: SELECT * on table: table1. Check that all columns are needed.","null"
 2,"CTEsEvalMultipleTimes: CTE with multiple references: alias a defined at line 1 is referenced 2 times.","CREATE TEMP TABLE A AS
 SELECT
-  reference_bases,
-  start_position,
-  COUNT(1) AS ct
-FROM
-  `bigquery-public-data.human_genome_variants.1000_genomes_phase_3_optimized_schema_variants_20150220`
-WHERE
-  reference_bases IN ('AT', 'TA', 'AT')
-GROUP BY
-  1,
-  2;
-
-WITH B AS (
-  SELECT
-    reference_bases,
-    COUNT(1) AS ct
-  FROM
-    A
-  GROUP BY
-    1
+   reference_bases,
+   start_position,
+   count(1) ct
+ FROM
+   `bigquery-public-data.human_genome_variants.1000_genomes_phase_3_optimized_schema_variants_20150220`
+ WHERE
+   reference_bases in ('AT', 'TA', 'AT')
+ GROUP BY
+   1, 2
+;
+WITH B as (
+ SELECT
+   reference_bases, 
+   count(1) ct
+ FROM
+   A
+ GROUP BY
+   1
 )
 SELECT
-  A.*,
-  A.ct / B.ct
+ A.*,
+ A.ct / B.ct
 FROM
-  A
+ A
 JOIN
-  B
-  ON B.reference_bases = A.reference_bases;"
+ B ON B.reference_bases = A.reference_bases"
 3,"SemiJoinWithoutAgg: Subquery in filter without aggregation at line 6.
-DynamicPredicate: Using subquery in filter at line 6. Converting this dynamic predicate to static might provide better performance.","DECLARE var1 [DATATYPE] DEFAULT (SELECT DISTINCT col2 FROM table2);
-SELECT
-  col1
-FROM
-  table1
-WHERE
-  col2 NOT IN (var1);"
+DynamicPredicate: Using subquery in filter at line 6. Converting this dynamic predicate to static might provide better performance.","declare var1 [DATATYPE] DEFAULT (select distinct col2 from table2); --add corresponding datatype here
+select
+	col1
+from
+	table1 
+where
+	col2 not in var1;"
 4,"OrderByWithoutLimit: ORDER BY clause without LIMIT at line 5.","select
 	col1
 from
@@ -45,17 +43,18 @@ from
 order by
 	col1
 limit 1000;"
-5,"StringComparison: REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching).","select
+5,"StringComparison: REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching).","SELECT
   t1.title
-from
+FROM
   `bigquery-public-data.samples.wikipedia` t1
-where
-  t1.title like '%shakespeare%';"
+WHERE
+  t1.title LIKE '%shakespeare%';"
 6,"LatestRecordWithAnalyticFun: Seems like you might be using analytical function row_number in line 7 to filter the latest record in line 12.","SELECT
   taxi_id,
   trip_seconds,
   fare
-FROM (
+FROM
+  (
   SELECT
     taxi_id,
     trip_seconds,
@@ -65,7 +64,10 @@ FROM (
         taxi_id,
         trip_seconds,
         fare
-      ) ORDER BY fare DESC LIMIT 1
+      )
+      ORDER BY
+        fare DESC
+      LIMIT 1
     )[OFFSET(0)] AS event
   FROM
     `bigquery-public-data.chicago_taxi_trips.taxi_trips`

@@ -8,18 +8,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PromptMaker {
+public class PromptYamlReader {
 
   private final static String EXAMPLE_HEADER = "Example %d:\n";
   private final static String YAML_FILE_NAME = "antiPatternExamples.yaml";
 
   private final static Map<String, String> antiPatternNameToPrompt = new HashMap<>();
 
-  private PromptHandler promptHandler;
+  private PromptDetailsList promptDetailsList;
 
-  public PromptMaker() throws IOException {
+  public PromptYamlReader() throws IOException {
     populatePromptHandler();
-    for(GenericPrompt prompt: promptHandler.getPrompts()) {
+    for(PromptDetails prompt: promptDetailsList.getPrompts()) {
       String promptStr = String.format(RewriterConstants.PROMPT_TEMPLATE,
           RewriterConstants.PROMPT_HEADER,
           prompt.getDescription(),
@@ -33,7 +33,7 @@ public class PromptMaker {
     ClassLoader classLoader = getClass().getClassLoader();
     File file = new File(classLoader.getResource(YAML_FILE_NAME).getFile());
     final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    promptHandler = mapper.readValue(file, PromptHandler.class);
+    promptDetailsList = mapper.readValue(file, PromptDetailsList.class);
   }
 
   private String getExampleString(List<String> examples) {

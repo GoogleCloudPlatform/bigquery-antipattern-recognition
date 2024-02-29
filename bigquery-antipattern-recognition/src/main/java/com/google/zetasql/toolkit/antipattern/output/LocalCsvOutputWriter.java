@@ -1,4 +1,4 @@
-package com.google.zetasql.toolkit.antipattern.cmd.output;
+package com.google.zetasql.toolkit.antipattern.output;
 
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
@@ -11,14 +11,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LocalFileOutputWriter extends AntiPatternOutputWriter {
+public class LocalCsvOutputWriter extends OutputWriter {
 
-  private static final Logger logger = LoggerFactory.getLogger(LocalFileOutputWriter.class);
+  private static final Logger logger = LoggerFactory.getLogger(LocalCsvOutputWriter.class);
 
   private String filePath;
   private FileWriter csvWriter;
 
-  public LocalFileOutputWriter(String outputDir)  {
+  public LocalCsvOutputWriter(String outputDir)  {
     filePath = outputDir;
   }
 

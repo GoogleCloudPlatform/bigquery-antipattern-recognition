@@ -10,7 +10,6 @@ import com.google.cloud.storage.StorageOptions;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.zetasql.toolkit.antipattern.cmd.output.GCSFileOutputWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
