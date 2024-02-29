@@ -21,7 +21,7 @@ public class OutputCSVWriterHelper {
         visitor->String.format(REC_FORMAT, visitor.getNAME(), visitor.getResult()))
         .collect(Collectors.joining("\n"));
 
-    return buildRecord(inputQuery, visitorsThatFoundPatterns, cmdParser, rec);
+    return buildRecord(inputQuery, cmdParser, rec);
   }
 
   public static String getHeader(AntiPatternCommandParser cmdParser) {
@@ -41,8 +41,8 @@ public class OutputCSVWriterHelper {
     }
   }
 
-  public static String buildRecord(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns,
-                                   AntiPatternCommandParser cmdParser, String rec) {
+  public static String buildRecord(InputQuery inputQuery, AntiPatternCommandParser cmdParser,
+      String rec) {
     String output_record_format = getOutputRecFormat(cmdParser);
     if(cmdParser.rewriteSQL()) {
       return String.format(

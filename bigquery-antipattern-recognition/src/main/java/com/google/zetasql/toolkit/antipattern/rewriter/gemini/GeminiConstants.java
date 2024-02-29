@@ -1,6 +1,6 @@
 package com.google.zetasql.toolkit.antipattern.rewriter.gemini;
 
-public final class Constants {
+public final class GeminiConstants {
 
     public static final String GEMINI_API_HTTP_POST_BODY = "{\n" +
             "  \"contents\": {\n" +

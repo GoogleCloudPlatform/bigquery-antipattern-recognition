@@ -1,0 +1,124 @@
+prompts:
+  - name: WhereOrder
+    description: |
+      You know that the order of predicates in a where condition impacts
+      performance. More restrictive filters such as equality filters should be
+      applied first. More complex filters such as a like filter should be
+      applied last. This will increase performance.
+    examples:
+    - "Input:\n select col1 from table1 where col2 like '%%asd%%' AND col3 = 'a';\n\
+      Output:\n select col1 from table1 where col3 = 'a' and col2 like '%%asd%%';\n\
+      Since the more restrictive equality filter is applied first then query will perform better"
+    - "Input:\n select col1 from table2 where col2 like '%%asd%%' AND col3 = 'a';\n\
+      Output:\n select col1 from table2 where col3 = 'a' and col2 like '%%asd%%';\n\
+      Since the more restrictive equality filter is applied first then query will perform better"
+  - name: StringComparison
+    description: | 
+      You now that in a predicate in a where string using a like is simpler and 
+      more efficient than using regexp_contains. Simple regex such as 
+      `col1 = regexp_contains(col1, '.*some_string.*')` can be re written to 
+      like `col1 like '%%some_string%%'`.
+    examples:
+        - "select col1 from table1 where col1 = regexp_contains(col1, '.*some_string.*')\n\
+           Performance will increase by using a like condition in the filter instead of the regexp_contains\n\
+           select col1 from table1 where col1 like '%%some_string%%';"
+  - name: SemiJoinWithoutAgg
+    description: |
+      You know that having a query predicate in a where without an aggregation might cause an issue.
+      For example
+      SELECT col1 FROM table1 WHERE col2 in (select col1 from table2)
+      The sub-query used for the IN filter (select col1 from table2) does not have an aggregation.
+      Performance will increase if a distinct is added.
+    examples:
+    - "SELECT col1 FROM table1 WHERE col2 in (select col1 from table2)\n\
+       performance will increase by adding a DISTINCT to the subquery as shown below\n\
+       SELECT col1 FROM table1 WHERE col2 in (select distinct col1 from table2)"
+  - name: CTEsEvalMultipleTimes
+    description: |
+      You now that contents of a WITH statement will be inlined every place the alias is referenced. 
+      This could lead to negative performance impact. For better performance a WITH statement referenced more than once 
+      should be re written as a temp table to avoid computing the same statement more than once.
+    examples:
+    - "with a as (select col1 from table1 group by col1),\n\
+        b as (select col1 from a),\n\
+        c as (select col1 from a)\n\
+       SELECT\n\
+           b.col1, c.col1\n\
+       FROM\n\
+           b,c\n\
+       Performance will increase by making the initial with statement a temp table.\n\
+       create temp table a as (select col1 from table1 group by col1);\n\
+       with b as (select col1 from a),\n\
+       c as (select col1 from a)\n\
+       SELECT\n\
+           b.col1, c.col1\n\
+       FROM\n\
+           b,c\n"
+  - name: OrderByWithoutLimit
+    description: |
+      You now that ordering a large amount of rows has a considerable computational cost. 
+      Performance enhancements can be obtained be adding a LIMIT after the outermost order by
+    examples:
+    - "select col1 from table1 order by col1;\n\
+       Performance will increase by adding a limit\n\
+       select col1 from table1 order by col1 limit 1000;\n"
+  - name: LatestRecordWithAnalyticFun
+    description: |
+      You now that ROW_NUMBER() function is frequently used to get the latest record of a given partition. 
+      You also know using ARRAY_AGG() in BigQuery instead of ROW_NUMBER() for this purpose yields better performance
+    examples:
+    - "select\n\
+         * except(rn)\n\
+       from (\n\
+         select *,\n\ 
+           row_number() over(\n\
+             partition by id \n\
+             order by created_at desc) rn\n\
+         from \n\
+           `dataset.table` t\n\
+       )\n\
+       where rn = 1\n\
+       Performance will increase by using an ARRAY_AGG() as shown below.\n\
+       select  \n\
+         event.* \n\
+       from (\n\
+         select array_agg(\n\
+           t order by t.created_at desc limit 1\n\
+         )[offset(0)] event\n\
+         from \n\
+           `dataset.table` t\n\ 
+         group by \n\
+           id);\n"
+  - name: DynamicPredicate
+    description: |
+      You know that computing a query within a predicate in a where is not ideal for performance.
+      It is best to compute the sub-query and store the result in a variable
+      Note this is only applicable when the sub-query returns a single value, this is then operators such as equal, 
+      lesser than or greater than are used
+    examples:
+    - "select col1 from table1 where col2 = (select max(col3) from table2)\n\
+       it would be better to rewrite as follows:\n\
+       declare var1 [DATATYPE] DEFAULT (select 'a'); --add corresponding datatype here\n\
+       select col1 from table1 where col2 = var1;\n\
+       Note that since we do not know the datatype of the column used in the\n\ 
+       predicate we will leave a placeholder [dataype] so that somebody can manually replace the datatype\n"
+  - name: JoinOrder
+    description: |
+      You know that for optimal performance the first table in a JOIN should be te largest.
+    examples:
+    - "SELECT\n\ 
+           col1,\n\
+           count(1) ct\n\
+       FROM \n\
+           table1 t1\n\
+       JOIN\n\
+           table2 t2 ON t1.col2=t2.col2;\n\
+           
+       Assuming table2 is bigger than table1 the following syntax would yield a higher performance:
+       SELECT \n\
+           col1,\n\
+           count(1) ct\n\
+       FROM \n\
+           table2 t2\n\
+       JOIN\n\
+           table1 t1 ON t1.col2=t2.col2\n;"

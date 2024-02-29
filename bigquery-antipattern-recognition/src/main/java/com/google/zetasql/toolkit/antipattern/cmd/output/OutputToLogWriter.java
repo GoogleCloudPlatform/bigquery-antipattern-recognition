@@ -22,7 +22,7 @@ public class OutputToLogWriter extends AntiPatternOutputWriter {
       outputStrBuilder.append("\n* "+ visitor.getNAME() + ": " + visitor.getResult());
     }
     if(cmdParser.rewriteSQL() && inputQuery.getOptimizedQuery() != null) {
-      outputStrBuilder.append("\nOptimized query:\n");
+      outputStrBuilder.append("\n* Optimized query:\n");
       outputStrBuilder.append(inputQuery.getOptimizedQuery());
     }
     outputStrBuilder.append("\n"+"-".repeat(50));

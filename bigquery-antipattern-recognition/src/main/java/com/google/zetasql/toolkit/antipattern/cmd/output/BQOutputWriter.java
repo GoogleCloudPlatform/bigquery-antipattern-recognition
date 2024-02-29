@@ -3,6 +3,7 @@ package com.google.zetasql.toolkit.antipattern.cmd.output;
 import com.google.api.client.util.DateTime;
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.Main;
+import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
@@ -40,7 +41,8 @@ public class BQOutputWriter extends AntiPatternOutputWriter {
   }
 
 
-  public void writeRecForQuery(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundPatterns) {
+  public void writeRecForQuery(InputQuery inputQuery,
+      List<AntiPatternVisitor> visitorsThatFoundPatterns, AntiPatternCommandParser cmdParser) {
 
     List<Map<String, String>> rec_list = new ArrayList<>();
     for(AntiPatternVisitor visitor: visitorsThatFoundPatterns) {
