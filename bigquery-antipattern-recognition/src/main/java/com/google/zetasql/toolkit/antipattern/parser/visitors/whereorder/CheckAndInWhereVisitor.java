@@ -47,7 +47,10 @@ public class CheckAndInWhereVisitor extends ParseTreeVisitor {
     while(andNodeExprIterator.hasNext()) {
       ASTExpression astExpression = andNodeExprIterator.next();
       if(astExpression instanceof ASTNodes.ASTBinaryExpression) {
-        whereOpTypeList.add(((ASTNodes.ASTBinaryExpression) astExpression).getOp());
+        Op op = ((ASTNodes.ASTBinaryExpression) astExpression).getOp();
+        if(OPCODE_COSTS.get(op)!=null){
+          whereOpTypeList.add(op);
+        }
       }
     }
     if(!Ordering.from(COMPARATOR).isOrdered(whereOpTypeList)) {
