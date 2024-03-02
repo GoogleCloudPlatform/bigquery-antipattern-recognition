@@ -38,7 +38,10 @@ public class IdentifyWhereOrderTest {
 
   @Test
   public void SimpleWhereOrderTest() {
-    String expected = "LIKE filter in line 8 precedes a more selective filter.";
+    String expected = "SubOptimal order of predicates in WHERE, line 7. Consider applying more "
+        + "restrictive filters first. For example a '=' or a '>' filter usually is usually more "
+        + "restrictive than a like '%' filter. The following order might provide performance "
+        + "benefits is '=', '>', '<', '<>', 'like'";
     String query =
         "SELECT \n"
             + "  repo_name, \n"
@@ -80,8 +83,14 @@ public class IdentifyWhereOrderTest {
 
   @Test
   public void SubQueryWhereOrderTest() {
-    String expected = "LIKE filter in line 11 precedes a more selective filter.\n"
-        + "LIKE filter in line 15 precedes a more selective filter.";
+    String expected = "SubOptimal order of predicates in WHERE, line 10. Consider applying more "
+        + "restrictive filters first. For example a '=' or a '>' filter usually is usually more "
+        + "restrictive than a like '%' filter. The following order might provide performance "
+        + "benefits is '=', '>', '<', '<>', 'like'\n"
+        + "SubOptimal order of predicates in WHERE, line 14. Consider applying more restrictive "
+        + "filters first. For example a '=' or a '>' filter usually is usually more restrictive "
+        + "than a like '%' filter. The following order might provide performance benefits is "
+        + "'=', '>', '<', '<>', 'like'";
     String query =
         "SELECT\n"
             + "   *\n"
@@ -109,7 +118,10 @@ public class IdentifyWhereOrderTest {
 
   @Test
   public void WhereOrderSubqueryInWhereTest() {
-    String expected = "LIKE filter in line 11 precedes a more selective filter.";
+    String expected = "SubOptimal order of predicates in WHERE, line 10. Consider applying more "
+        + "restrictive filters first. For example a '=' or a '>' filter usually is usually more "
+        + "restrictive than a like '%' filter. The following order might provide performance "
+        + "benefits is '=', '>', '<', '<>', 'like'";
     String query =
         "SELECT\n"
             + "  col1\n"
@@ -134,8 +146,14 @@ public class IdentifyWhereOrderTest {
 
   @Test
   public void WhereOrderSubqueryInWhereWithLikeInFistLevelTest() {
-    String expected = "LIKE filter in line 6 precedes a more selective filter.\n"
-        + "LIKE filter in line 11 precedes a more selective filter.";
+    String expected = "SubOptimal order of predicates in WHERE, line 5. Consider applying more "
+        + "restrictive filters first. For example a '=' or a '>' filter usually is usually more "
+        + "restrictive than a like '%' filter. The following order might provide performance "
+        + "benefits is '=', '>', '<', '<>', 'like'\n"
+        + "SubOptimal order of predicates in WHERE, line 10. Consider applying more restrictive "
+        + "filters first. For example a '=' or a '>' filter usually is usually more restrictive "
+        + "than a like '%' filter. The following order might provide performance benefits is "
+        + "'=', '>', '<', '<>', 'like'";
     String query =
         "SELECT\n"
             + "  col1\n"
@@ -174,6 +192,26 @@ public class IdentifyWhereOrderTest {
             + "    WHERE\n"
             + "      repo_name = 'cdnjs/cdnjs'\n"
             + "  )\n";
+    ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+    IdentifyWhereOrderVisitor visitor = new IdentifyWhereOrderVisitor(query);
+    parsedQuery.accept(visitor);
+    String recommendation = visitor.getResult();
+    assertEquals(expected, recommendation);
+  }
+
+  @Test
+  public void WhereOrderSubqueryInWhereCorrectOrderAllTypesTest() {
+    String expected = "";
+    String query =
+        "SELECT col1 FROM tbl1 WHERE \n"
+            + "col1=1 \n"
+            + "AND col2>1 \n"
+            + "AND col3<1 \n"
+            + "AND col6 >= 1\n"
+            + "AND col7 <= 1\n"
+            + "AND col5 <> 1\n"
+            + "AND col5 != 1\n"
+            + "AND col4 like '%a%' \n";
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
     IdentifyWhereOrderVisitor visitor = new IdentifyWhereOrderVisitor(query);
     parsedQuery.accept(visitor);

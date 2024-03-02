@@ -1,10 +1,8 @@
 package com.google.zetasql.toolkit.antipattern.parser.visitors.whereorder;
 
 import com.google.zetasql.parser.ASTNodes;
-import com.google.zetasql.parser.ASTNodes.ASTExpression;
 import com.google.zetasql.parser.ParseTreeVisitor;
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -15,7 +13,11 @@ public class IdentifyWhereOrderVisitor extends ParseTreeVisitor implements AntiP
   public final static String NAME = "WhereOrder";
   private String query;
   private Boolean insideWhere = false;
-  private final String WHERE_ORDER_SUGGESTION_MESSAGE = "LIKE filter in line %d precedes a more selective filter.";
+  private final String WHERE_ORDER_SUGGESTION_MESSAGE = "SubOptimal order of predicates in WHERE, line %d. "
+      + "Consider applying more restrictive filters first. For example a '=' or a '>' filter usually "
+      + "is usually more restrictive than a like '%%' filter. The following order might provide "
+      + "performance benefits is '=', '>', '<', '<>', 'like'";
+
   private ArrayList<String> result = new ArrayList<String>();
   private Stack<ASTNodes.ASTWhereClause> whereNodeStack = new Stack<>();
   public IdentifyWhereOrderVisitor(String query) {
@@ -27,9 +29,9 @@ public class IdentifyWhereOrderVisitor extends ParseTreeVisitor implements AntiP
     if(whereNode.getExpression() instanceof ASTNodes.ASTAndExpr) {
       CheckAndInWhereVisitor checkAndInWhereVisitor = new CheckAndInWhereVisitor(query);
       whereNode.accept(checkAndInWhereVisitor);
-      ASTExpression likeFilterBeforeEqualFilter = checkAndInWhereVisitor.getLikeFilterBeforeEqualFilter();
-      if(likeFilterBeforeEqualFilter!=null){
-        int lineNum = ZetaSQLStringParsingHelper.countLine(query, likeFilterBeforeEqualFilter.getParseLocationRange().start());
+
+      if(checkAndInWhereVisitor.hasSuboptimalOrder()){
+        int lineNum = ZetaSQLStringParsingHelper.countLine(query, whereNode.getParseLocationRange().start());
         result.add(String.format(WHERE_ORDER_SUGGESTION_MESSAGE, lineNum));
       }
     }
