@@ -17,7 +17,7 @@ prompts:
       Since the more restrictive are applied first the perform is better"
   - name: StringComparison
     description: | 
-      You now that in a predicate in a where string using a like is simpler and 
+      You know that in a predicate in a where string using a like is simpler and 
       more efficient than using regexp_contains. Simple regex such as 
       `col1 = regexp_contains(col1, '.*some_string.*')` can be re written to 
       like `col1 like '%%some_string%%'`.
@@ -38,7 +38,7 @@ prompts:
        SELECT col1 FROM table1 WHERE col2 in (select distinct col1 from table2)"
   - name: CTEsEvalMultipleTimes
     description: |
-      You now that contents of a WITH statement will be inlined every place the alias is referenced. 
+      You know that contents of a WITH statement will be inlined every place the alias is referenced. 
       This could lead to negative performance impact. For better performance a WITH statement referenced more than once 
       should be re written as a temp table to avoid computing the same statement more than once.
     examples:
@@ -59,7 +59,7 @@ prompts:
            b,c\n"
   - name: OrderByWithoutLimit
     description: |
-      You now that ordering a large amount of rows has a considerable computational cost. 
+      You know that ordering a large amount of rows has a considerable computational cost. 
       Performance enhancements can be obtained be adding a LIMIT after the outermost order by
     examples:
     - "select col1 from table1 order by col1;\n\
@@ -67,7 +67,7 @@ prompts:
        select col1 from table1 order by col1 limit 1000;\n"
   - name: LatestRecordWithAnalyticFun
     description: |
-      You now that ROW_NUMBER() function is frequently used to get the latest record of a given partition. 
+      You know that ROW_NUMBER() function is frequently used to get the latest record of a given partition. 
       You also know using ARRAY_AGG() in BigQuery instead of ROW_NUMBER() for this purpose yields better performance
     examples:
     - "select\n\
@@ -114,7 +114,7 @@ prompts:
        Since the var is an array we need to UNNEST it in the where clause, that is why we have ... unique_key in UNNEST(var1)"
   - name: JoinOrder
     description: |
-      You know that for optimal performance the first table in a JOIN should be te largest.
+      You know that for optimal performance the first table in a JOIN should be the largest.
     examples:
     - "SELECT\n\ 
            col1,\n\
