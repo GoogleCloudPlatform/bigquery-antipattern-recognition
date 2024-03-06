@@ -50,6 +50,7 @@ public class AntiPatternCommandParser {
   public static final String USE_ANALYZER_FLAG_NAME = "advanced_analysis";
   public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
   public static final String IS_TOP_N_PERC_JOBS_OPTION_NAME = "info_schema_top_n_percentage_of_jobs";
+  public static final String REWRITE_SQL_FLAG_NAME = "rewrite_sql";
   private Options options;
   private CommandLine cmd;
 
@@ -84,6 +85,10 @@ public class AntiPatternCommandParser {
 
   public boolean isReadingFromInfoSchema() {
     return cmd.hasOption(READ_FROM_INFO_SCHEMA_FLAG_NAME);
+  }
+
+  public boolean rewriteSQL() {
+    return cmd.hasOption(REWRITE_SQL_FLAG_NAME);
   }
 
   public boolean hasOutputTable() {
@@ -130,6 +135,14 @@ public class AntiPatternCommandParser {
             .desc("flag specifying if the queries should be read from INFORMATION_SCHEMA")
             .build();
     options.addOption(useInfoSchemaFlag);
+
+    Option rewriteSQLFlag =
+            Option.builder(REWRITE_SQL_FLAG_NAME)
+                    .argName(REWRITE_SQL_FLAG_NAME)
+                    .required(false)
+                    .desc("flag specifying if the queries should be rwwritten using an LLM")
+                    .build();
+    options.addOption(rewriteSQLFlag);
 
     Option procesingProjectOption =
         Option.builder(PROCESSING_PROJECT_ID_OPTION_NAME)

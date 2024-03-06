@@ -22,6 +22,7 @@ public class InputQuery {
   private String queryIdentifier  = null;
   private String projectId = null;
   private String userEmail = null;
+  private String optimizedQuery = null;
   private float slotHours = -1;
 
   public InputQuery(String query, String queryIdentifier) {
@@ -68,5 +69,13 @@ public class InputQuery {
 
   public float getSlotHours() {
     return slotHours;
+  }
+
+  public String getOptimizedQuery() {
+    return optimizedQuery;
+  }
+
+  public void setOptimizedQuery(String optimizedQuery) {
+    this.optimizedQuery = optimizedQuery;
   }
 }

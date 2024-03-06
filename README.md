@@ -54,6 +54,7 @@ CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_output_table (
   query STRING,
   recommendation ARRAY<STRUCT<name STRING, description STRING>>,
   slot_hours FLOAT64,
+  optimized_sql STRING,
   process_timestamp TIMESTAMP
 );
 ```
@@ -94,6 +95,34 @@ LIMIT 10000;
 * [local file -> csv](./EXAMPLES.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
 * [bq -> bq](./EXAMPLES.md#bq-table---bq-table)
+
+
+# Rewrite Using AI (beta)
+This tool has an experimental feature that will output the rewritten query.\
+This functionality is activated using the `--rewrite_sql` flag.\
+(This feature is available in all outputs: logs, files, BigQuery table).
+
+**Prerequisite**: enable [Vertex AI API](https://pantheon.corp.google.com/vertex-ai)
+
+Input
+```
+docker run \
+    -v ~/.config:/root/.config \
+    -i bigquery-antipattern-recognition \
+    --query "select col1 from table1 where col2 like '%abc%' and col3=1" \
+    --rewrite_sql \
+    --processing_project_id <my-project>
+```
+
+Output
+```
+--------------------------------------------------
+Recommendations for query: query provided by cli:
+* WhereOrder: LIKE filter in line 1 precedes a more selective filter.
+* Optimized query:
+select col1 from table1 where col3=1 and col2 like '%abc%'
+--------------------------------------------------
+```
 
 
 # Deploy to Cloud Run Jobs
@@ -201,10 +230,17 @@ Specifies table to which write results to. Assumes that the table already exits.
 <ul>
 Specifies what project provides the compute used to read from INFORMATION_SCHEMA <br> 
 and/or to write to output table (i.e. project where BQ jobs will execute) <br>
-Only needed if the input is INFORMATION_SCHEMA or if the output is a BQ table. 
+Needed if the input is INFORMATION_SCHEMA or if the output is a BQ table. <br>
+Needed if using sql rewrite 
 </ul>
 
 
+## Using AI for rewrite
+`--rewrite_sql` 
+<ul>
+If used a rewritted SQL will be provided. The rewrite will be performed using an LLM.<br>
+This is an experimental feature. Requires processing_project_id to be specified.
+</ul>
 
 # Anti patterns
 ## Anti Pattern 1: Selecting all columns

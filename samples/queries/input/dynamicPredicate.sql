@@ -1,16 +1,9 @@
-SELECT
- *
-FROM
-  comments c
-JOIN
-  users u ON c.user_id = u.id
-WHERE
-  u.id IN (
-    SELECT id
-    FROM users
-    WHERE location LIKE '%New York'
-    GROUP BY id
-    ORDER BY SUM(up_votes) DESC
-    LIMIT 10
-  )
-;
+SELECT 
+  *
+FROM 
+`bigquery-public-data`.stackoverflow.comments c
+WHERE 
+  c.id = (
+  SELECT max(id) 
+  FROM `bigquery-public-data`.stackoverflow.users 
+);

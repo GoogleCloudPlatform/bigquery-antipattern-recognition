@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class BigQueryHelper {
   private static final String USER_AGENT_HEADER = "user-agent";
   private static final String USER_AGENT_VALUE =
-      "google-pso-tool/bq-anti-pattern-recognition/0.1.0";
+      "google-pso-tool/antipattern-tool/0.1.0";
   private static final HeaderProvider headerProvider =
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);

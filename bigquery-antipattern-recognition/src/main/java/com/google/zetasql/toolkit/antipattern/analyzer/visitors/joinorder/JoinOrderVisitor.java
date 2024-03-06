@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class JoinOrderVisitor extends ResolvedNodes.Visitor implements AntiPatternVisitor {
 
-  private final static String NAME = "JoinOrder";
+  public final static String NAME = "JoinOrder";
   private final String RECOMMENDATION_MESSAGE = "JOIN on tables: [%s] might perform better if tables where joined in the following order: [%s]";
   private BigQueryService service;
   private String result = "";

@@ -1,8 +1,9 @@
-select
-	col1
-from
-	table1 
-where
-	col2 not in (select col2 from table2)
-;
-
+SELECT 
+  *
+FROM 
+`bigquery-public-data`.stackoverflow.comments c
+WHERE 
+  c.id in (
+  SELECT id 
+  FROM `bigquery-public-data`.stackoverflow.users 
+); 

@@ -14,6 +14,7 @@ CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_output_table (
   query STRING,
   recommendation ARRAY<STRUCT<name STRING, description STRING>>,
   slot_hours FLOAT64,
+  optimized_sql STRING,
   process_timestamp TIMESTAMP
 );
 ```
@@ -55,6 +56,7 @@ CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_output_table (
   query STRING,
   recommendation ARRAY<STRUCT<name STRING, description STRING>>,
   slot_hours FLOAT64,
+  optimized_sql STRING,
   process_timestamp TIMESTAMP
 );
 ```
