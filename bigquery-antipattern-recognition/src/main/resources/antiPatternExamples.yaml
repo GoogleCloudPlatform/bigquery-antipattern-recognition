@@ -12,8 +12,8 @@ prompts:
     - "Input:\n select col1 from table1 where col2 like '%%asd%%' AND col3 = 'a';\n\
       Output:\n select col1 from table1 where col3 = 'a' and col2 like '%%asd%%';\n\
       Since the more restrictive equality filter is applied first then query will perform better"
-    - "Input:\n select col1 from tbl1 where col4 like '%a%' and col1=1 and col2>1 and col6 >= 1 and col5 != 1 and col7 <= 1 and col3<1 and col5 <> 1;\n\
-      Output:\n select col1 from tbl1 where col1=1 and col3<1 and col2>1 and col6 >= 1 and col7 <= 1 and col5 != 1 and col5 <> 1 and col4 like '%a%';\n\
+    - "Input:\n select col1 from tbl1 where col4 like '%%a%%' and col1=1 and col2>1 and col6 >= 1 and col5 != 1 and col7 <= 1 and col3<1 and col5 <> 1;\n\
+      Output:\n select col1 from tbl1 where col1=1 and col3<1 and col2>1 and col6 >= 1 and col7 <= 1 and col5 != 1 and col5 <> 1 and col4 like '%%a%%';\n\
       Since the more restrictive are applied first the perform is better"
   - name: StringComparison
     description: | 
