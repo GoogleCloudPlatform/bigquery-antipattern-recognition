@@ -4,14 +4,17 @@ prompts:
       You know that the order of predicates in a where condition impacts
       performance. More restrictive filters such as equality filters should be
       applied first. More complex filters such as a like filter should be
-      applied last. This will increase performance.
+      applied last. This will increase performance. The ideal order is to have 
+      equality filters '=', followed by greater than '>' or lesser than '<' filters,
+      followed by 'greater than or equal' '>=' or 'lesser than or equal' '<=', 
+      followed by not equal '!=' or '<>' filters, followed by like filters
     examples:
     - "Input:\n select col1 from table1 where col2 like '%%asd%%' AND col3 = 'a';\n\
       Output:\n select col1 from table1 where col3 = 'a' and col2 like '%%asd%%';\n\
       Since the more restrictive equality filter is applied first then query will perform better"
-    - "Input:\n select col1 from table2 where col2 like '%%asd%%' AND col3 = 'a';\n\
-      Output:\n select col1 from table2 where col3 = 'a' and col2 like '%%asd%%';\n\
-      Since the more restrictive equality filter is applied first then query will perform better"
+    - "Input:\n select col1 from tbl1 where col4 like '%%a%%' and col1=1 and col2>1 and col6 >= 1 and col5 != 1 and col7 <= 1 and col3<1 and col5 <> 1;\n\
+      Output:\n select col1 from tbl1 where col1=1 and col3<1 and col2>1 and col6 >= 1 and col7 <= 1 and col5 != 1 and col5 <> 1 and col4 like '%%a%%';\n\
+      Since the more restrictive are applied first the perform is better"
   - name: StringComparison
     description: | 
       You know that in a predicate in a where string using a like is simpler and 
@@ -102,6 +105,13 @@ prompts:
        select col1 from table1 where col2 = var1;\n\
        Note that since we do not know the datatype of the column used in the\n\ 
        predicate we will leave a placeholder [dataype] so that somebody can manually replace the datatype\n"
+    - "select descript FROM dataset.tbl2 WHERE unique_key in (select sk FROM dataset.tbl1);\n\
+       it would be better to rewrite as follows:\n\
+       DECLARE var1 ARRAY<[DATATYPE]> DEFAULT (select ARRAY_AGG(sk) FROM dataset.tbl1 );  --add corresponding datatype here\n\
+       select descript FROM dataset.tbl2 WHERE unique_key in UNNEST(var1);\n\  
+       Note that since this is an IN filter, we need to store the result of the subquery in an array that is why we have DECLARE var1 ARRAY<[DATATYPE]\n\
+       Since we don't know the datatype of sk we will leave a placeholder [DATATYPE] so that somebody can manually replace the datatype\n\
+       Since the var is an array we need to UNNEST it in the where clause, that is why we have ... unique_key in UNNEST(var1)"
   - name: JoinOrder
     description: |
       You know that for optimal performance the first table in a JOIN should be the largest.
