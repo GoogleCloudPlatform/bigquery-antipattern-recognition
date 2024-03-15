@@ -69,9 +69,10 @@ docker run \
     -v ~/.config:/root/.config \
     -i bigquery-antipattern-recognition \
     --read_from_info_schema \
+    --info_schema_project <project-name-with-info-schema-to-be-read> \
     --info_schema_region us \
     --read_from_info_schema_days 1 \
-    --processing_project_id <my-project> \
+    --processing_project_id <my-processing-project> \
     --output_table "<my-project>.<my-dataset>.antipattern_output_table" \
     --info_schema_top_n_percentage_of_jobs 0.1  
 
@@ -154,6 +155,13 @@ Must be set along with `--read_from_info_schema`. <br>
 Defaults to 1.
 </ul>
 
+
+`--info_schema_project <project-name>`
+<ul>
+Name of the project for which information schema will be read. <br>
+This is the project with the queries that you want to optimize.
+</ul>
+
 `--info_schema_region us`
 <ul>
 Region from which to read information schema  
@@ -231,7 +239,7 @@ Specifies table to which write results to. Assumes that the table already exits.
 Specifies what project provides the compute used to read from INFORMATION_SCHEMA <br> 
 and/or to write to output table (i.e. project where BQ jobs will execute) <br>
 Needed if the input is INFORMATION_SCHEMA or if the output is a BQ table. <br>
-Needed if using sql rewrite 
+Needed if using sql rewrite. 
 </ul>
 
 
