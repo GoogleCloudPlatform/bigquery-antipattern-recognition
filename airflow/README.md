@@ -1,6 +1,7 @@
-### Build the project 
+### Build the project (in Cloud Shell terminal)
+Run the following commands in [Cloud Shell](https://cloud.google.com/shell/docs/launching-cloud-shell). 
 ```bash
- # in cloud shell terminal
+ # in cloud shell
 git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
 cd bigquery-antipattern-recognition
 mvn clean package jib:dockerBuild -DskipTests
@@ -8,11 +9,10 @@ mvn clean package jib:dockerBuild -DskipTests
 
 ### Create composer env (optional if you already have a composer env)
 ```bash
-export PROJECT_ID="" 
 export REGION="us-central1" 
-export COMPOSER_ENV_NAME="example-environment"
+export COMPOSER_ENV_NAME="antipattern-example-env"
 
-gcloud composer environments create $PROJECT_ID \
+gcloud composer environments create $COMPOSER_ENV_NAME \
   --location $REGION \
   --image-version composer-2.6.4-airflow-2.6.3
 
@@ -30,9 +30,9 @@ gsutil cp bigquery-antipattern-recognition/target/bigquery-antipattern-recogniti
 #### Upload quickstart dag to composer env
 ```bash
 gcloud composer environments storage dags import \
-  --environment $COMPOSER_ENV_NAME  \
+  --environment $COMPOSER_ENV_NAME \
   --location $REGION \
-  --source antipattern_recognition_dag.py
+  --source ./airflow/antipattern_recognition_dag.py
 ```
 
 #### Run dag
