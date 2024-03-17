@@ -1,4 +1,4 @@
-### Build the project (in Cloud Shell terminal)
+### Build the project (in Cloud Shell)
 Run the following commands in [Cloud Shell](https://cloud.google.com/shell/docs/launching-cloud-shell). 
 ```bash
  # in cloud shell
