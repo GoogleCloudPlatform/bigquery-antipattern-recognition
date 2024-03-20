@@ -17,6 +17,15 @@ default_args = {
     "start_date": YESTERDAY,
 }
 
+bash_command = '''java -jar \
+    /home/airflow/gcs/plugins/bigquery-antipattern-recognition-0.1.1-SNAPSHOT-jar-with-dependencies.jar \
+    --processing_project_id <processing-project-id> \
+    --read_from_info_schema \
+    --info_schema_region us \
+    --read_from_info_schema_days 1 \
+    --output_table "<project-id>.<dataset>.antipattern_output_table"  \
+    --info_schema_top_n_percentage_of_jobs .01
+'''
 with models.DAG(
     "antipattern_recognition_dag",
     catchup=False,
@@ -25,7 +34,7 @@ with models.DAG(
 ) as dag:
     # Print the dag_run id from the Airflow logs
     print_dag_run_conf = bash.BashOperator(
-        task_id="run_antipattern_recognition_tool", bash_command='java -jar /home/airflow/gcs/plugins/bigquery-antipattern-recognition-0.1.1-SNAPSHOT-jar-with-dependencies.jar --query "select * from table1"'
+        task_id="run_antipattern_recognition_tool", bash_command=bash_command
     )
 
 
