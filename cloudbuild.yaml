@@ -1,0 +1,27 @@
+steps:
+  # - name: 'gcr.io/cloud-builders/mvn'
+  #   args: [
+  #     'clean',
+  #     'package', 
+  #     'jib:build',
+  #     '-DskipTests',
+  #     '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
+  #   ] 
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run', 
+      'deploy', 
+      'bigquery-antipattern-tool', # Replace with your Cloud Run service name
+      '--image', 
+      'us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/:LATEST',
+      '--region',
+      'us-central1',  # Replace with your Cloud Run region
+      '--platform',
+      'managed',
+      '--allow-unauthenticated' # Optional if you want public access 
+    ]
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+
+
