@@ -45,6 +45,7 @@ public class AntiPatternCommandParser {
   public static final String INFO_SCHEMA_REGION = "info_schema_region";
   public static final String INFO_SCHEMA_MIN_SLOTMS="info_schema_min_slotms";
   public static final String READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME = "info_schema_table_name";
+  public static final String INFO_SCHEMA_PROJECT = "info_schema_project";
   public static final String PROCESSING_PROJECT_ID_OPTION_NAME = "processing_project_id";
   public static final String OUTPUT_TABLE_OPTION_NAME = "output_table";
   public static final String USE_ANALYZER_FLAG_NAME = "advanced_analysis";
@@ -279,6 +280,17 @@ public class AntiPatternCommandParser {
             .build();
     options.addOption(region);
 
+
+    Option info_schema_project =
+        Option.builder(INFO_SCHEMA_PROJECT)
+            .argName(INFO_SCHEMA_PROJECT)
+            .hasArg()
+            .required(false)
+            .desc("project for which information schema will be read. This is the "
+                + "project with the queries that you want to optimize")
+            .build();
+    options.addOption(info_schema_project);
+
     return options;
   }
 
@@ -315,10 +327,11 @@ public class AntiPatternCommandParser {
     String infoSchemaEndTime = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME);
     String customTopNPercent = cmd.getOptionValue(IS_TOP_N_PERC_JOBS_OPTION_NAME);
     String region = cmd.getOptionValue(INFO_SCHEMA_REGION);
+    String infoSchemaProject = cmd.getOptionValue(INFO_SCHEMA_PROJECT);
 
     return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays,
         infoSchemaStartTime, infoSchemaEndTime, infoSchemaTableName, infoSchemaSlotmsMin,
-        timeoutInSecs, customTopNPercent, region);
+        timeoutInSecs, customTopNPercent, region, infoSchemaProject);
   }
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {

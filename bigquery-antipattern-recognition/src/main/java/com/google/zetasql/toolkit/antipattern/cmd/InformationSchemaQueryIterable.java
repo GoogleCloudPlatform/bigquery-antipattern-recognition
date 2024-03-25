@@ -28,7 +28,7 @@ import java.util.Optional;
 public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
 
   Iterator<FieldValueList> fieldValueListIterator;
-  String IS_TABLE_DEFAULT = "`region-%s`.INFORMATION_SCHEMA.JOBS";
+  String IS_TABLE_DEFAULT = "`%s.region-%s`.INFORMATION_SCHEMA.JOBS";
   String DAYS_BACK_DEFAULT = "30";
   Integer SLOTMS_MIN_DEFAULT = 0;
   Long TIMEOUT_SECS_DEFAULT = 60L;
@@ -36,19 +36,21 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
   String DEFAULT_REGION = "us";
 
 
-  public InformationSchemaQueryIterable(String projectId, String customDaysBack, String startTime, String endTime, String customISTable,
-                                        String infoSchemaSlotmsMin, String customTimeoutInSecs, String customTopNPercent, String customRegion)
+  public InformationSchemaQueryIterable(String processingProjectId, String customDaysBack, String startTime,
+      String endTime, String customISTable, String infoSchemaSlotmsMin, String customTimeoutInSecs,
+      String customTopNPercent, String customRegion, String customInfoSchemaProject)
           throws InterruptedException {
 
     String daysBack = customDaysBack == null ? DAYS_BACK_DEFAULT : customDaysBack;
     String region = customRegion == null ? DEFAULT_REGION : customRegion;
-    String ISTable = customISTable == null ? String.format(IS_TABLE_DEFAULT, region) : customISTable;
+    String infoSchemaProject = customInfoSchemaProject == null ? processingProjectId : customInfoSchemaProject;
+    String ISTable = customISTable == null ? String.format(IS_TABLE_DEFAULT, infoSchemaProject, region) : customISTable;
     Integer slotsMsMin = infoSchemaSlotmsMin == null ? SLOTMS_MIN_DEFAULT : Integer.parseInt(infoSchemaSlotmsMin);
     Long timeoutInSecs = !NumberUtils.isParsable(customTimeoutInSecs) ? TIMEOUT_SECS_DEFAULT : Long.parseLong(customTimeoutInSecs);
     float topNPercent = customTopNPercent == null ? TOP_N_PERC_DEFAULT : Float.parseFloat(customTopNPercent);
 
     TableResult tableResult =
-        BigQueryHelper.getQueriesFromIS(projectId, daysBack, startTime, endTime, ISTable, slotsMsMin,
+        BigQueryHelper.getQueriesFromIS(processingProjectId, daysBack, startTime, endTime, ISTable, slotsMsMin,
             timeoutInSecs, topNPercent, region);
 
     fieldValueListIterator = tableResult.iterateAll().iterator();
