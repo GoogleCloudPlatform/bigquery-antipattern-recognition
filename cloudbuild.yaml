@@ -7,6 +7,9 @@ steps:
       '-DskipTests',
       '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
     ]
+  # Install beta components
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args: ['components', 'install', 'beta'] 
   # Update the Cloud Run Job
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'  
     args: 
@@ -15,7 +18,7 @@ steps:
       - 'jobs'
       - 'update'
       - 'bigquery-antipattern-tool' 
-      - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
+      - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/:latest'
       - '--region=us-central1' # Replace with your desired region 
   # - name: 'gcr.io/cloud-builders/gcloud' ###
   #   args: [
