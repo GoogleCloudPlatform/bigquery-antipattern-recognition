@@ -39,6 +39,26 @@ steps:
       'dvt',
       '--region=us-central1'
     ]
+  - name: 'python:3.7'  # Or another suitable image
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+      - CREATE OR REPLACE TABLE bigquery-antipattern-test.antipattern_test_data.dvt_set AS (
+      - SELECT * FROM `bigquery-antipattern-test.antipattern_test_data.dvt_results` WHERE validation_status != "success"
+      - )
+
+  - name: 'python:3.7'  # Or another suitable image
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if [[ $(bq show --format=prettyjson bigquery-antipattern-test.antipattern_test_data.dvt_set | jq '.totalRows') -gt 0 ]]; then
+          echo "Table has results, failing the build"
+          exit 1
+        else
+          echo "Table is empty, build success"
+        fi
 
 options:
   logging: CLOUD_LOGGING_ONLY
