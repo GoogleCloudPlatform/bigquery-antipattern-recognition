@@ -6,7 +6,17 @@ steps:
       'jib:build',
       '-DskipTests',
       '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
-    ] 
+    ]
+  # Update the Cloud Run Job
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'  
+    args: 
+      - 'beta'
+      - 'run'
+      - 'jobs'
+      - 'update'
+      - 'bigquery-antipattern-tool' 
+      - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
+      - '--region=us-central1' # Replace with your desired region 
   # - name: 'gcr.io/cloud-builders/gcloud' ###
   #   args: [
   #     'run', 
