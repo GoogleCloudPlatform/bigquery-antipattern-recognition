@@ -7,6 +7,8 @@ steps:
       '-DskipTests',
       '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
     ]
+    id: 'build-new-image'
+
   # Update the Cloud Run Job
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk' 
     entrypoint: 'gcloud' # Add this line 
@@ -18,6 +20,7 @@ steps:
       - 'bigquery-antipattern-tool' 
       - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
       - '--region=us-central1' # Replace with your desired region 
+    id: 'update-cloud-run-job'
 
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
@@ -27,6 +30,8 @@ steps:
       'bigquery-antipattern-tool',
       '--region=us-central1'
     ]
+    id: 'execute-cloud-run-job'
+
   - name: 'gcr.io/cloud-builders/gcloud'
     args: 
       - 'bq'
@@ -35,6 +40,15 @@ steps:
       - 'SELECT COUNT(*) = 0 AS is_empty FROM `bigquery-antipattern-test.antipattern_test_data.test_results`' 
     entrypoint: 'bash'
     id: 'check-table-empty'
+  
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: 
+      - 'bq'
+      - 'query'
+      - '--use_legacy_sql=false'
+      - 'TRUNCATE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data`' 
+    entrypoint: 'bash'
+    id: 'truncate-run-output-table'
 
 options:
   logging: CLOUD_LOGGING_ONLY
