@@ -1,14 +1,15 @@
 steps:
-  - name: 'gcr.io/cloud-builders/mvn'
-    args: [
-      'clean',
-      'package', 
-      'jib:build',
-      '-DskipTests',
-      '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
-    ]
+  # - name: 'gcr.io/cloud-builders/mvn'
+  #   args: [
+  #     'clean',
+  #     'package', 
+  #     'jib:build',
+  #     '-DskipTests',
+  #     '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
+  #   ]
   # Install beta components
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud' # Add this line
     args: ['components', 'install', 'beta'] 
   # Update the Cloud Run Job
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'  
