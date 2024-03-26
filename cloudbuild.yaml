@@ -1,60 +1,40 @@
 steps:
-  - name: 'gcr.io/cloud-builders/mvn'
-    args: [
-      'clean',
-      'package', 
-      'jib:build',
-      '-DskipTests',
-      '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
-    ]
-  # Update the Cloud Run Job
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk' 
-    entrypoint: 'gcloud' # Add this line
-    args: 
-      - 'beta'
-      - 'run'
-      - 'jobs'
-      - 'update'
-      - 'bigquery-antipattern-tool' 
-      - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
-      - '--region=us-central1' # Replace with your desired region 
+  # - name: 'gcr.io/cloud-builders/mvn'
+  #   args: [
+  #     'clean',
+  #     'package', 
+  #     'jib:build',
+  #     '-DskipTests',
+  #     '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
+  #   ]
+  # # Update the Cloud Run Job
+  # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk' 
+  #   entrypoint: 'gcloud' # Add this line
+  #   args: 
+  #     - 'beta'
+  #     - 'run'
+  #     - 'jobs'
+  #     - 'update'
+  #     - 'bigquery-antipattern-tool' 
+  #     - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
+  #     - '--region=us-central1' # Replace with your desired region 
 
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args: [
-      'run', 
-      'jobs',
-      'execute',
-      'bigquery-antipattern-tool',
-      '--region=us-central1'
-    ]
   # - name: 'gcr.io/cloud-builders/gcloud'
   #   args: [
   #     'run', 
   #     'jobs',
   #     'execute',
-  #     'dvt',
+  #     'bigquery-antipattern-tool',
   #     '--region=us-central1'
   #   ]
-  # - name: 'python:3.7'  # Or another suitable image
-  #   entrypoint: 'bash'
-  #   args:
-  #     - '-c'
-  #     - |
-  #     - CREATE OR REPLACE TABLE bigquery-antipattern-test.antipattern_test_data.dvt_set AS (
-  #     - SELECT * FROM `bigquery-antipattern-test.antipattern_test_data.dvt_results` WHERE validation_status != "success"
-  #     - )
-
-  # - name: 'python:3.7'  # Or another suitable image
-  #   entrypoint: 'bash'
-  #   args:
-  #     - '-c'
-  #     - |
-  #       if [[ $(bq show --format=prettyjson bigquery-antipattern-test.antipattern_test_data.dvt_set | jq '.totalRows') -gt 0 ]]; then
-  #         echo "Table has results, failing the build"
-  #         exit 1
-  #       else
-  #         echo "Table is empty, build success"
-  #       fi
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: 
+      - 'bq'
+      - 'query'
+      - '--use_legacy_sql=false'
+      - 'SELECT COUNT(*) = 0 AS is_empty FROM `bigquery-antipattern-test.antipattern_test_data.test_results`' 
+    entrypoint: 'bash'
+    id: 'check-table-empty'
 
 options:
   logging: CLOUD_LOGGING_ONLY
