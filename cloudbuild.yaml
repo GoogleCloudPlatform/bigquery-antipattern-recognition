@@ -9,7 +9,7 @@ steps:
   #   ]
   # # Update the Cloud Run Job
   # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk' 
-  #   entrypoint: 'gcloud' # Add this line
+  #   entrypoint: 'gcloud' # Add this line 
   #   args: 
   #     - 'beta'
   #     - 'run'
