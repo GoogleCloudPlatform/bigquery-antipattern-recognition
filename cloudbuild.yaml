@@ -19,7 +19,7 @@ steps:
       - 'update'
       - 'bigquery-antipattern-tool' 
       - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
-      - '--region=us-central1' # Replace with your desired region 
+      - '--region=us-central1' # Replace with your desired region
     id: 'update-cloud-run-job'
 
   - name: 'gcr.io/cloud-builders/gcloud'
