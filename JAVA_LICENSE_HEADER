@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Google LLC
+ * Copyright (C) $YEAR Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,19 +13,3 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-package com.google.zetasql.toolkit.antipattern.rewriter.prompt;
-
-public class RewriterConstants {
-
-    public final static String PROMPT_TEMPLATE = "%s"
-        + "\n%s"
-        + "\nConsider the following examples:"
-        + "\n%s"
-        + "\n%s";
-
-    public static final String PROMPT_HEADER = "You are a proficient data engineer. \n" +
-        "You are an expert in BigQuery SQL rewrite and optimization.";
-
-    public static final String PROMPT_FOOTER = "re-write the following SQL accordingly\n%s";
-}
