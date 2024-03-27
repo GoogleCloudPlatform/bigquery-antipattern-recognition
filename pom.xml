@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright 2023 Google LLC
+Copyright 2024 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ limitations under the License.
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <google.cloud.jib.version>3.3.2</google.cloud.jib.version>
+        <spotless-maven-plugin.version>2.1.0</spotless-maven-plugin.version>
     </properties>
 
     <modules>
@@ -42,6 +43,44 @@ limitations under the License.
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>${google.cloud.jib.version}</version>
             </plugin>
+
+        <plugin>
+            <groupId>com.diffplug.spotless</groupId>
+            <artifactId>spotless-maven-plugin</artifactId>
+            <version>${spotless-maven-plugin.version}</version>
+            <configuration>
+                <formats>
+                    <!-- Avoid trailing whitespace and require ending newline. -->
+                    <format>
+                        <includes>
+                            <include>bigquery-antipattern-recognition/src/main/java/**/*.java</include>
+                            <include>bigquery-antipattern-recognition/src/test/java/**/*.java</include>
+                        </includes>
+                        <trimTrailingWhitespace/>
+                        <endWithNewline/>
+                    </format>
+                </formats>
+                <java>
+                    <googleJavaFormat>
+                        <version>1.7</version>
+                        <style>GOOGLE</style>
+                    </googleJavaFormat>
+                    <licenseHeader>
+                        <file>JAVA_LICENSE_HEADER</file>
+                    </licenseHeader>
+                </java>
+            </configuration>
+            <!-- Bind to verify. -->
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
+                    <phase>package</phase>
+                </execution>
+            </executions>
+        </plugin>
+
         </plugins>
     </build>
 

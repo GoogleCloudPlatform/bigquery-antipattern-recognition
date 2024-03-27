@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,40 +14,35 @@
  * limitations under the License.
  */
 
+package com.google.zetasql.toolkit.antipattern.cmd;
 
- package com.google.zetasql.toolkit.antipattern.cmd;
+import com.google.cloud.bigquery.FieldValueList;
+import com.google.cloud.bigquery.TableResult;
+import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
 
- import com.google.cloud.bigquery.FieldValueList;
- import com.google.cloud.bigquery.TableResult;
- import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
+import java.util.Iterator;
 
- 
- import java.util.Iterator;
- 
- public class InputBigQueryTableIterator implements Iterator<InputQuery> {
- 
-   Iterator<FieldValueList> fieldValueListIterator; 
- 
-   public InputBigQueryTableIterator(String inputTable)
-           throws InterruptedException {
- 
-     TableResult tableResult =
-         BigQueryHelper.getQueriesFromBQTable(inputTable);
- 
-     fieldValueListIterator = tableResult.iterateAll().iterator();
-   }
- 
-   @Override
-   public boolean hasNext() {
-     return fieldValueListIterator.hasNext();
-   }
- 
-   @Override
-   public InputQuery next() {
-     FieldValueList row = fieldValueListIterator.next();
-     String job_id = row.get("id").getStringValue();
-     String query = row.get("query").getStringValue();
-     return new InputQuery(query, job_id);
-   }
- }
- 
+public class InputBigQueryTableIterator implements Iterator<InputQuery> {
+
+  Iterator<FieldValueList> fieldValueListIterator;
+
+  public InputBigQueryTableIterator(String inputTable) throws InterruptedException {
+
+    TableResult tableResult = BigQueryHelper.getQueriesFromBQTable(inputTable);
+
+    fieldValueListIterator = tableResult.iterateAll().iterator();
+  }
+
+  @Override
+  public boolean hasNext() {
+    return fieldValueListIterator.hasNext();
+  }
+
+  @Override
+  public InputQuery next() {
+    FieldValueList row = fieldValueListIterator.next();
+    String job_id = row.get("id").getStringValue();
+    String query = row.get("query").getStringValue();
+    return new InputQuery(query, job_id);
+  }
+}

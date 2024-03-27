@@ -81,4 +81,3 @@ public class IdentifySimpleSelectStarTest {
     assertEquals(expected, recommendations);
   }
 }
- 

@@ -23,10 +23,10 @@ import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class IdentifySimpleSelectStarVisitor extends ParseTreeVisitor implements
-    AntiPatternVisitor {
+public class IdentifySimpleSelectStarVisitor extends ParseTreeVisitor
+    implements AntiPatternVisitor {
 
-  public final static String NAME = "SimpleSelectStar";
+  public static final String NAME = "SimpleSelectStar";
   private final String SUGGESTION_MESSAGE =
       "SELECT * on table: %s. Check that all columns are needed.";
 
