@@ -53,7 +53,7 @@ steps:
       - 'TRUNCATE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data`' 
     entrypoint: 'bash'
     id: 'truncate-run-output-table'
-    waitFor: ['check-empty-table']
+    waitFor: ['check-table-empty']
 
 
 options:
