@@ -21,6 +21,7 @@ steps:
       - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
       - '--region=us-central1' # Replace with your desired region
     id: 'update-cloud-run-job'
+    waitFor: ['build-new-image']
 
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
@@ -31,6 +32,7 @@ steps:
       '--region=us-central1'
     ]
     id: 'execute-cloud-run-job'
+    waitFor: ['update-cloud-run-job']
 
   - name: 'gcr.io/cloud-builders/gcloud'
     args: 
@@ -40,6 +42,8 @@ steps:
       - 'SELECT COUNT(*) = 0 AS is_empty FROM `bigquery-antipattern-test.antipattern_test_data.test_results`' 
     entrypoint: 'bash'
     id: 'check-table-empty'
+    waitFor: ['execute-cloud-run-job']
+
   
   - name: 'gcr.io/cloud-builders/gcloud'
     args: 
@@ -49,6 +53,8 @@ steps:
       - 'TRUNCATE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data`' 
     entrypoint: 'bash'
     id: 'truncate-run-output-table'
+    waitFor: ['check-empty-table']
+
 
 options:
   logging: CLOUD_LOGGING_ONLY
