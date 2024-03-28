@@ -24,7 +24,7 @@ steps:
     ]
     id: 'build-new-image'
 
-  # Update the Cloud Run Job
+  # Update the Antipattern Cloud Run Job
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk' 
     entrypoint: 'gcloud' 
     args: 
