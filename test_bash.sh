@@ -7,7 +7,7 @@ TABLE="test_results"
 
 # Run the BigQuery query and capture the output
 result=$(bq query --use_legacy_sql=false \
-   "SELECT COUNT(*) = 0 AS is_empty FROM \`$PROJECT_ID.$DATASET.$TABLE\`")
+   "SELECT COUNT(*) = 0 AS is_empty FROM `$PROJECT_ID.$DATASET.$TABLE`")
 
 # Check the 'is_empty' column in the result
 if [[ $result == *"true"* ]]; then
