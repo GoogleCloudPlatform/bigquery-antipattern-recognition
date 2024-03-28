@@ -38,6 +38,7 @@ steps:
     id: 'update-cloud-run-job'
     waitFor: ['build-new-image']
 
+  # Run the Antipattern Cloud Run Job
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
       'run', 
