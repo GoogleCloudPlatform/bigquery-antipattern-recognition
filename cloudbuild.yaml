@@ -59,10 +59,8 @@ steps:
   #   entrypoint: 'bash'
   #   id: 'check-table-empty'
   #   waitFor: ['execute-cloud-run-job']
-  - name: 'gcr.io/cloud-builders/bash'  # Can also use a generic base image
-    args: 
-    - '-c'
-    - |  # Inline script starts here
+- name: 'bash'
+  script: |
       result=$(bq query --use_legacy_sql=false "SELECT COUNT(*) = 0 AS is_empty FROM `bigquery-antipattern-test.antipattern_test_data.test_results`")
       # Check the 'is_empty' column in the result
       if [[ $result == *"true"* ]]; then
