@@ -72,15 +72,15 @@ steps:
         exit 1
       fi
 
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args: 
-      - 'bq'
-      - 'query'
-      - '--use_legacy_sql=false'
-      - 'TRUNCATE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data`' 
-    entrypoint: 'bash'
-    id: 'truncate-run-output-table'
-    waitFor: ['check-table-empty']
+  # - name: 'gcr.io/cloud-builders/gcloud'
+  #   args: 
+  #     - 'bq'
+  #     - 'query'
+  #     - '--use_legacy_sql=false'
+  #     - 'TRUNCATE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data`' 
+  #   entrypoint: 'bash'
+  #   id: 'truncate-run-output-table'
+  #   waitFor: ['check-table-empty']
 
 options:
   logging: CLOUD_LOGGING_ONLY
