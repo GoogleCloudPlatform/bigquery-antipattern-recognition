@@ -59,16 +59,19 @@ steps:
   #   entrypoint: 'bash'
   #   id: 'check-table-empty'
   #   waitFor: ['execute-cloud-run-job']
-- name: 'bash'
-  script: |
-      result=$(bq query --use_legacy_sql=false "SELECT COUNT(*) = 0 AS is_empty FROM `bigquery-antipattern-test.antipattern_test_data.test_results`")
-      # Check the 'is_empty' column in the result
-      if [[ $result == *"true"* ]]; then
-        echo "true"  # Table is empty
-      else
-        echo "false" # Table is not empty
-        exit 1
-      fi
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'  # Optional but recommended
+  args:
+  - '-c'
+  - |
+    result=$(bq query --use_legacy_sql=false "SELECT COUNT(*) = 0 AS is_empty FROM `bigquery-antipattern-test.antipattern_test_data.test_results`")
+    # Check the 'is_empty' column in the result
+    if [[ $result == *"true"* ]]; then
+      echo "true"  # Table is empty
+    else
+      echo "false" # Table is not empty
+      exit 1
+    fi
 
   # - name: 'gcr.io/cloud-builders/gcloud'
   #   args: 
