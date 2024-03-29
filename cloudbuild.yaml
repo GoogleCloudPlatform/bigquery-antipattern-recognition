@@ -14,7 +14,7 @@
 # limitations under the License.
 
 steps:
-  # Create new image in AR
+  # Create new image in AR.
   - name: 'gcr.io/cloud-builders/mvn'
     args: [
       'clean',
