@@ -436,5 +436,3 @@ better if tables where joined in the following order:
 
 # Disclaimer
 This is not an officially supported Google product.
-
-# testing
