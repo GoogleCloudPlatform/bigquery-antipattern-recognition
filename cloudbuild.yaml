@@ -66,6 +66,7 @@ steps:
         exit 1
       fi
     id: 'check-table-empty'
+    waitFor: ['execute-cloud-run-job']
 
   # Truncate output table for cleanup
   - name: 'gcr.io/cloud-builders/gcloud'
