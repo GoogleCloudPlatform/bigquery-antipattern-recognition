@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 steps:
-  # Create new image in AR.
+  # Create new image in Artifact Registry.
   - name: 'gcr.io/cloud-builders/mvn'
     args: [
       'clean',
@@ -57,6 +57,7 @@ steps:
     args:
     - '-c'
     - |
+      sleep 20
       result=$(bq query --use_legacy_sql=false "SELECT COUNT(*) = 0 AS is_empty FROM \`bigquery-antipattern-test.antipattern_test_data.test_results\`")
       # Check the 'is_empty' column in the result
       if [[ $result == *"true"* ]]; then
