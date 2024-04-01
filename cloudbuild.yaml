@@ -14,7 +14,17 @@
 # limitations under the License.
 
 steps:
-  # Create new image in Artifact Registry. s
+  # Truncate output table if the previous build failed
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: 
+      - 'bq'
+      - 'query'
+      - '--use_legacy_sql=false'
+      - 'CREATE OR REPLACE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data` AS SELECT * FROM `bigquery-antipattern-test.antipattern_test_data.output_data` LIMIT 0' 
+    entrypoint: 'bash'
+    id: 'truncate-run-output-table-init'
+    
+  # Create new image in Artifact Registry.
   - name: 'gcr.io/cloud-builders/mvn'
     args: [
       'clean',
@@ -24,6 +34,7 @@ steps:
       '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
     ]
     id: 'build-new-image'
+    waitFor: ['truncate-run-output-table-init']
 
   # Update the Antipattern Cloud Run Job with new image
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk' 
