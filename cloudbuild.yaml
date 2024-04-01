@@ -75,7 +75,7 @@ steps:
       - 'bq'
       - 'query'
       - '--use_legacy_sql=false'
-      - 'TRUNCATE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data`' 
+      - 'CREATE OR REPLACE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data` AS SELECT * FROM `bigquery-antipattern-test.antipattern_test_data.output_data` LIMIT 0' 
     entrypoint: 'bash'
     id: 'truncate-run-output-table'
     waitFor: ['check-table-empty']
