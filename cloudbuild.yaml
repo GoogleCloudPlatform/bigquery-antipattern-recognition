@@ -69,7 +69,7 @@ steps:
     id: 'check-table-empty'
     waitFor: ['execute-cloud-run-job']
 
-  # Truncate output table for cleanup 
+  # Truncate output table for cleanup
   - name: 'gcr.io/cloud-builders/gcloud'
     args: 
       - 'bq'
