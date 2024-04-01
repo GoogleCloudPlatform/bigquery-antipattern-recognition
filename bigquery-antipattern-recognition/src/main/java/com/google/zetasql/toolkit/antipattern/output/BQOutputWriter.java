@@ -45,8 +45,8 @@ public class BQOutputWriter extends OutputWriter {
     List<Map<String, String>> rec_list = new ArrayList<>();
     for(AntiPatternVisitor visitor: visitorsThatFoundPatterns) {
       Map<String, String> rec = new HashMap<>();
-      rec.put(REC_NAME_COL_NAME, visitor.getNAME());
-      rec.put(DESCRIPTION_COL_NAME, visitor.getResult());
+      rec.put(REC_NAME_COL_NAME, "reeee");
+      rec.put(DESCRIPTION_COL_NAME, "rooooon");
       rec_list.add(rec);
     }
 
