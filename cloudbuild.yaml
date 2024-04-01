@@ -1,0 +1,87 @@
+#
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+  # Create new image in Artifact Registry.
+  - name: 'gcr.io/cloud-builders/mvn'
+    args: [
+      'clean',
+      'package', 
+      'jib:build',
+      '-DskipTests',
+      '-Djib.to.image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
+    ]
+    id: 'build-new-image'
+
+  # Update the Antipattern Cloud Run Job with new image
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk' 
+    entrypoint: 'gcloud' 
+    args: 
+      - 'beta'
+      - 'run'
+      - 'jobs'
+      - 'update'
+      - 'bigquery-antipattern-tool' 
+      - '--image=us-central1-docker.pkg.dev/bigquery-antipattern-test/bigquery-antipattern-tool/$BUILD_ID'
+      - '--region=us-central1' 
+    id: 'update-cloud-run-job'
+    waitFor: ['build-new-image']
+
+  # Run the Antipattern Cloud Run Job
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run', 
+      'jobs',
+      'execute',
+      'bigquery-antipattern-tool',
+      '--region=us-central1'
+    ]
+    id: 'execute-cloud-run-job'
+    waitFor: ['update-cloud-run-job']
+
+  # Check if output_data and output_data_reference match
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash' 
+    args:
+    - '-c'
+    - |
+      sleep 20
+      result=$(bq query --use_legacy_sql=false "SELECT COUNT(*) = 0 AS is_empty FROM \`bigquery-antipattern-test.antipattern_test_data.test_results\`")
+      # Check the 'is_empty' column in the result
+      if [[ $result == *"true"* ]]; then
+        echo "true"  # Table is empty
+      else
+        echo "false" # Table is not empty
+        exit 1
+      fi
+    id: 'check-table-empty'
+    waitFor: ['execute-cloud-run-job']
+
+  # Truncate output table for cleanup 
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: 
+      - 'bq'
+      - 'query'
+      - '--use_legacy_sql=false'
+      - 'TRUNCATE TABLE `bigquery-antipattern-test.antipattern_test_data.output_data`' 
+    entrypoint: 'bash'
+    id: 'truncate-run-output-table'
+    waitFor: ['check-table-empty']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+
+
