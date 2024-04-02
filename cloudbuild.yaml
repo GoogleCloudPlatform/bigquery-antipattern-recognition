@@ -14,7 +14,7 @@
 # limitations under the License.
 
 steps:
-  # Truncate output table if the previous build failed
+  # Truncate output table if the previous build failed.
   - name: 'gcr.io/cloud-builders/gcloud'
     args: 
       - 'bq'
