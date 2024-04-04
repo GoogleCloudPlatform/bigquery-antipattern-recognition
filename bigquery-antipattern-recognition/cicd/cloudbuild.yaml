@@ -1,0 +1,31 @@
+#
+# Copyright (C) 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+#
+
+
+
+steps:
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', '${YOUR_REPOSITORY}', '--branch', '${YOUR_BRANCH}', '--single-branch', '--depth', '1', '${YOUR_INPUT_FOLDER}']
+  - name: 'gcr.io/cloud-builders/docker' 
+    args: [
+       "run",
+       "-v",
+       "/workspace/${YOUR_INPUT_FOLDER}:/workspace/${YOUR_INPUT_FOLDER}",
+       "-i",
+       "${YOUR_ANTI_PATTERN_IMAGE}",
+       "--input_folder_path",
+       "/workspace/${YOUR_INPUT_FOLDER}" 
+    ]
