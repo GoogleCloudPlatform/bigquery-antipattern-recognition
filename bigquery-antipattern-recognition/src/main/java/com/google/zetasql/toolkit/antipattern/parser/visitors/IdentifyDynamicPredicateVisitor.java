@@ -57,7 +57,7 @@ public class IdentifyDynamicPredicateVisitor extends ParseTreeVisitor implements
   }
 
   @Override
-  public String getNAME() {
+  public String getName() {
     return NAME;
   }
 }

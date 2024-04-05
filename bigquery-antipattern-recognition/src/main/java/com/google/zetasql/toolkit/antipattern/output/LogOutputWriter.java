@@ -34,7 +34,7 @@ public class LogOutputWriter extends OutputWriter {
     outputStrBuilder.append("\n"+"-".repeat(50));
     outputStrBuilder.append("\nRecommendations for query: "+ inputQuery.getQueryId());
     for(AntiPatternVisitor visitor: visitorsThatFoundPatterns) {
-      outputStrBuilder.append("\n* "+ visitor.getNAME() + ": " + visitor.getResult());
+      outputStrBuilder.append("\n* "+ visitor.getName() + ": " + visitor.getResult());
     }
     if(cmdParser.rewriteSQL() && inputQuery.getOptimizedQuery() != null) {
       outputStrBuilder.append("\n* Optimized query:\n");

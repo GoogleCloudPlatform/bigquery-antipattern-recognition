@@ -71,7 +71,7 @@ public class IdentifyRegexpContainsVisitor extends ParseTreeVisitor implements A
   }
 
   @Override
-  public String getNAME() {
+  public String getName() {
     return NAME;
   }
 }

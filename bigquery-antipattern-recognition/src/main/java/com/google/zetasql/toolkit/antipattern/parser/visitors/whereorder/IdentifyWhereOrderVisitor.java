@@ -43,7 +43,7 @@ public class IdentifyWhereOrderVisitor extends ParseTreeVisitor implements AntiP
   }
 
   @Override
-  public String getNAME() {
+  public String getName() {
     return NAME;
   }
 }

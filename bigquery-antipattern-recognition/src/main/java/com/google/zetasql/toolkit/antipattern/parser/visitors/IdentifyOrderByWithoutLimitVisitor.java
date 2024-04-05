@@ -52,7 +52,7 @@ public class IdentifyOrderByWithoutLimitVisitor extends ParseTreeVisitor impleme
   }
 
   @Override
-  public String getNAME() {
+  public String getName() {
     return NAME;
   }
 }

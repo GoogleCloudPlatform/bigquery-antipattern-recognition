@@ -96,7 +96,7 @@ public class IdentifySimpleSelectStarVisitor extends ParseTreeVisitor
   }
 
   @Override
-  public String getNAME() {
+  public String getName() {
     return NAME;
   }
 }

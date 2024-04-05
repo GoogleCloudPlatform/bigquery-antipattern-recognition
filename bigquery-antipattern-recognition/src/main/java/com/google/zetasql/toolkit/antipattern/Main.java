@@ -140,17 +140,17 @@ public class Main {
     for (AntiPatternVisitor visitor : parserVisitorList) {
       try{
         logger.info("Parsing query with id: " + inputQuery.getQueryId() +
-            " for anti-pattern: " + visitor.getNAME());
+            " for anti-pattern: " + visitor.getName());
         ASTStatement parsedQuery = Parser.parseStatement( inputQuery.getQuery(), languageOptions);
         parsedQuery.accept((ParseTreeVisitor) visitor);
         String result = visitor.getResult();
         if(result.length() > 0) {
           visitorsThatFoundAntiPatterns.add(visitor);
-          visitorMetricsMap.merge(visitor.getNAME(), 1, Integer::sum);
+          visitorMetricsMap.merge(visitor.getName(), 1, Integer::sum);
         }
       } catch (Exception e) {
         logger.error("Error parsing query with id: " + inputQuery.getQueryId() +
-            " for anti-pattern:" + visitor.getNAME());
+            " for anti-pattern:" + visitor.getName());
         logger.error(e.getMessage(), e);
       }
     }
@@ -172,13 +172,13 @@ public class Main {
       catalog.addAllTablesUsedInQuery(query, analyzerOptions);
     }
     JoinOrderVisitor visitor = new JoinOrderVisitor(service);
-    if(visitorMetricsMap.get(visitor.getNAME()) == null) {
-      visitorMetricsMap.put(visitor.getNAME(), 0);
-      visitorMetricsMap.merge(visitor.getNAME(), 1, Integer::sum);
+    if(visitorMetricsMap.get(visitor.getName()) == null) {
+      visitorMetricsMap.put(visitor.getName(), 0);
+      visitorMetricsMap.merge(visitor.getName(), 1, Integer::sum);
     }
     try {
       logger.info("Analyzing query with id: " + inputQuery.getQueryId() +
-          " For anti-pattern:" + visitor.getNAME());
+          " For anti-pattern:" + visitor.getName());
       Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
       statementIterator.forEachRemaining(statement -> statement.accept(visitor));
 
@@ -188,7 +188,7 @@ public class Main {
       }
     } catch (Exception e) {
       logger.error("Error analyzing query with id: " + inputQuery.getQueryId() +
-          " For anti-pattern:" + visitor.getNAME());
+          " For anti-pattern:" + visitor.getName());
       logger.error(e.getMessage(), e);
     }
   }
@@ -211,7 +211,7 @@ public class Main {
 
   private static void setVisitorMetricsMap(List<AntiPatternVisitor> parserVisitorList ) {
     visitorMetricsMap = new HashMap<>();
-    parserVisitorList.stream().forEach(visitor -> visitorMetricsMap.put(visitor.getNAME(), 0));
+    parserVisitorList.stream().forEach(visitor -> visitorMetricsMap.put(visitor.getName(), 0));
   }
 
   private static void setAnalyzerOptions() {

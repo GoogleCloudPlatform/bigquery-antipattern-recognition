@@ -23,7 +23,6 @@ import com.google.zetasql.parser.ASTNodes.ASTTableExpression;
 import com.google.zetasql.parser.ASTNodes.ASTWhereClause;
 import com.google.zetasql.parser.ParseTreeVisitor;
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.AntipatternParserVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,7 +112,7 @@ public class IdentifyLatestRecordVisitor extends ParseTreeVisitor implements Ant
   }
 
   @Override
-  public String getNAME() {
+  public String getName() {
     return NAME;
   }
 }
