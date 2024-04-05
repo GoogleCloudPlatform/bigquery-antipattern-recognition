@@ -14,18 +14,16 @@
 # the License.
 #
 
-
-
 steps:
   - name: 'gcr.io/cloud-builders/git'
-    args: ['clone', '${YOUR_REPOSITORY}', '--branch', '${YOUR_BRANCH}', '--single-branch', '--depth', '1', '${YOUR_INPUT_FOLDER}']
+    args: ['clone', '${GITHUB_REPOSITORY}', '--branch', '${GITHUB_BRANCH}', '--single-branch', '--depth', '1', '${INPUT_FOLDER}']
   - name: 'gcr.io/cloud-builders/docker' 
     args: [
        "run",
        "-v",
-       "/workspace/${YOUR_INPUT_FOLDER}:/workspace/${YOUR_INPUT_FOLDER}",
+       "/workspace/${INPUT_FOLDER}:/workspace/${INPUT_FOLDER}",
        "-i",
-       "${YOUR_ANTI_PATTERN_IMAGE}",
+       "${ANTI_PATTERN_IMAGE}",
        "--input_folder_path",
-       "/workspace/${YOUR_INPUT_FOLDER}" 
+       "/workspace/${INPUT_FOLDER}" 
     ]
