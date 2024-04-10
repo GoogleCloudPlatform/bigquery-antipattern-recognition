@@ -36,7 +36,7 @@ public class OutputCSVWriterHelper {
       AntiPatternCommandParser cmdParser) {
     String rec =
         visitorsThatFoundPatterns.stream()
-            .map(visitor -> String.format(REC_FORMAT, visitor.getNAME(), visitor.getResult()))
+            .map(visitor -> String.format(REC_FORMAT, visitor.getName(), visitor.getResult()))
             .collect(Collectors.joining("\n"));
 
     return buildRecord(inputQuery, cmdParser, rec);

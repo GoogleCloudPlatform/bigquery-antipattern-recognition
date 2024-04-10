@@ -44,7 +44,7 @@ public class JoinOrderVisitor extends ResolvedNodes.Visitor implements AntiPatte
     return result;
   }
 
-  public String getNAME() {
+  public String getName() {
     return NAME;
   }
 

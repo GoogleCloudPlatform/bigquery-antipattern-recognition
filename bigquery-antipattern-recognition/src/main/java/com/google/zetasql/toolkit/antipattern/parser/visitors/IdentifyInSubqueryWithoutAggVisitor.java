@@ -57,7 +57,7 @@ public class IdentifyInSubqueryWithoutAggVisitor extends ParseTreeVisitor implem
   }
 
   @Override
-  public String getNAME() {
+  public String getName() {
     return NAME;
   }
 }

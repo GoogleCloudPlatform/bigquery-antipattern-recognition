@@ -44,7 +44,7 @@ public class GeminiRewriter {
         try {
             String queryStr = inputQuery.getQuery();
             for (AntiPatternVisitor visitor : visitorsThatFoundAntiPatterns) {
-                String prompt = promptYamlReader.getAntiPatternNameToPrompt().get(visitor.getNAME());
+                String prompt = promptYamlReader.getAntiPatternNameToPrompt().get(visitor.getName());
                 if (prompt != null) {
                     prompt = String.format(prompt, queryStr).replace("%%","%");
                     queryStr = processPrompt(prompt, projectId);
