@@ -2,7 +2,7 @@
 
 ## Overview
 
-One option to deploy the BigQuery Anti Pattern Recognition tool is to run it as part of a CI/CD process to check SQL files present in a Github repository. The following example assums all SQL files are present in one folder.
+One option to deploy the BigQuery Anti Pattern Recognition tool is to run it as part of a CI/CD process to check SQL files present in a Github repository. The following example assumes all SQL files are present in one folder.
 
 In order to deploy the tool for CI/CD, you'll need to:
 * Package the tool into a container and push it to Artifact Registry.
@@ -11,6 +11,14 @@ In order to deploy the tool for CI/CD, you'll need to:
 
 ## Package the tool into a container and push it to Artifact Registry
 
+1. Set environment variables
+
+```bash
+export PROJECT_ID=""  # Project ID where resources are created
+export REGION="us-central1"  # Region for Artifact Registry
+export REPOSITORY="bigquery-antipattern-recognition"  # Artifact Registry repository name
+export CONTAINER_IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/recognizer:0.1.1-SNAPSHOT"
+```
 1. Create an Artifact Registry Repository, if necessary
 
     ``` bash
@@ -43,6 +51,11 @@ Example: enter input/** if your SQL files are present in the input/ folder.
 ## Modify the cloudbuild.yaml sample and add it to your repo.
 
 ** Important: Grant your Cloud Build service account the `Artifact Registry Reader` role before continuing.
+
+```bash
+gcloud iam roles grant roles/artifactregistry.reader \
+    serviceAccount:<PROJECT_ID>@cloudbuild.iam.gserviceaccount.com 
+```
 
 ### Public Github Repositories
 If your Github repository is public, copy the cloudbuild_public_repo.yaml into the root of your directory, rename it to `cloudbuild.yaml` and replace the following variables:
