@@ -135,8 +135,8 @@ public static TableResult getQueriesFromBQTable(String inputTable)
     String query = "SELECT\n"
         + "  id,\n"
         + "  query"
-        + " FROM \n"
-        + inputTable + ";";
+        + " FROM \n`"
+        + inputTable + "`;";
 
     logger.info("Reading from BigQuery table: \n" + query);
     QueryJobConfiguration queryConfig =
