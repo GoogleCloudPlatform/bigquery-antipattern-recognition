@@ -11,7 +11,7 @@ public final class GeminiConstants {
             "  },\n" +
             "  \"safety_settings\": {\n" +
             "    \"category\": \"HARM_CATEGORY_SEXUALLY_EXPLICIT\",\n" +
-            "    \"threshold\": \"BLOCK_LOW_AND_ABOVE\"\n" +
+            "    \"threshold\": \"BLOCK_ONLY_HIGH\"\n" +
             "  },\n" +
             "  \"generation_config\": {\n" +
             "    \"temperature\": 0.2,\n" +
