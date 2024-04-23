@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-import com.google.zetasql.toolkit.antipattern.rewriter.prompt.PromptYamlReader;
+import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,29 +33,32 @@ import java.net.HttpURLConnection;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GeminiRewriter {
 
     private static final Logger logger = LoggerFactory.getLogger(GeminiRewriter.class);
-    private static final String API_URI_TEMPLATE = "https://us-central1-aiplatform.googleapis.com/v1/projects/%s/locations/us-central1/publishers/google/models/gemini-1.0-pro:streamGenerateContent?alt=sse";
+    private static final String API_URI_TEMPLATE = "https://us-central1-aiplatform.googleapis.com/v1/projects/%s/locations/us-central1/publishers/google/models/gemini-1.5-pro-preview-0409:generateContent?alt=sse";
 
-    public static void rewriteSQL(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundAntiPatterns,
-                                  String projectId, PromptYamlReader promptYamlReader) throws IOException {
-        try {
-            String queryStr = inputQuery.getQuery();
-            for (AntiPatternVisitor visitor : visitorsThatFoundAntiPatterns) {
-                String prompt = promptYamlReader.getAntiPatternNameToPrompt().get(visitor.getName());
-                if (prompt != null) {
-                    prompt = String.format(prompt, queryStr).replace("%%","%");
-                    queryStr = processPrompt(prompt, projectId);
-                }
+
+    public static void rewriteSQL(InputQuery inputQuery,
+                                  List<AntiPatternVisitor> visitorsThatFoundAntiPatterns,
+                                  AntiPatternHelper antiPatternHelper) throws IOException {
+
+        String queryStr = inputQuery.getQuery();
+        QueryVisitorRewriter queryVisitorRewriter = new QueryVisitorRewriter(antiPatternHelper);
+        for (AntiPatternVisitor visitor : visitorsThatFoundAntiPatterns) {
+            try {
+                queryStr = queryVisitorRewriter.rewriteSQL(queryStr, visitor, 3);
+            } catch (Exception e) {
+                logger.error("Could not rewrite SQL for visitor: " + visitor.getName() + ". Error: " + e.getMessage());
             }
-            if (!queryStr.equals(inputQuery.getQuery())) {
-                inputQuery.setOptimizedQuery(queryStr);
-            }
-        } catch (Exception e) {
-            logger.error("Could not rewrite SQL. " + e.getMessage());
         }
+        if (!queryStr.equals(inputQuery.getQuery())) {
+            inputQuery.setOptimizedQuery(queryStr);
+        }
+
     }
 
     public static String processPrompt(String prompt, String projectId) throws IOException {
@@ -92,8 +95,13 @@ public class GeminiRewriter {
                 }
                 String res = response.toString();
                 String optimizedSQL = getSqlFromRes(res);
-                optimizedSQL = optimizedSQL.replace("```sql", "")
-                    .replace("```", "").trim();
+                Pattern pattern = Pattern.compile("```(?:sql)?(.*?)```", Pattern.DOTALL);
+                Matcher matcher = pattern.matcher(optimizedSQL);
+                if (matcher.find()) {
+                    optimizedSQL = matcher.group(1).trim();
+                } else {
+                    optimizedSQL = optimizedSQL.trim();
+                }
                 return optimizedSQL;
             }
         } else {
