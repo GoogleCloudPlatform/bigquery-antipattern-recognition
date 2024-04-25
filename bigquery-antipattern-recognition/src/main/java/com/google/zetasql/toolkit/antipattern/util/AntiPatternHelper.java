@@ -33,10 +33,15 @@ public class AntiPatternHelper {
     private final String project;
     private final LanguageOptions languageOptions;
     private final Boolean useAnalizer;
-    public AntiPatternHelper(String project, Boolean useAnalizer, LanguageOptions languageOptions) {
+    public AntiPatternHelper(String project, Boolean useAnalizer) {
         this.project = project;
-        this.languageOptions = languageOptions;
         this.useAnalizer = useAnalizer;
+
+        this.languageOptions = new LanguageOptions();
+        languageOptions.enableMaximumLanguageFeatures();
+        languageOptions.setSupportsAllStatementKinds();
+        languageOptions.enableReservableKeyword("QUALIFY");
+
         if (useAnalizer) {
             this.analyzerOptions = new AnalyzerOptions();
             this.analyzer = getAnalyzer(this.analyzerOptions);
@@ -48,26 +53,30 @@ public class AntiPatternHelper {
     }
 
     public void checkForAntiPatternsInQueryWithParserVisitors(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundAntiPatterns) {
-
         List<AntiPatternVisitor> parserVisitorList = getParserVisitorList(inputQuery.getQuery());
+
+        checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns, parserVisitorList);
+    }
+
+    public void checkForAntiPatternsInQueryWithParserVisitors(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundAntiPatterns, List<AntiPatternVisitor> parserVisitorList) {
         if(this.visitorMetricsMap == null) {
             setVisitorMetricsMap(parserVisitorList);
         }
 
-        for (AntiPatternVisitor visitor : parserVisitorList) {
+        for (AntiPatternVisitor visitorThatFoundAntiPattern : parserVisitorList) {
             logger.info("Parsing query with id: " + inputQuery.getQueryId() +
-                    " for anti-pattern: " + visitor.getName());
-            ASTNodes.ASTStatement parsedQuery = Parser.parseStatement( inputQuery.getQuery(), this.languageOptions); // Take this out, because it's going to keep failing for each visitor
+                    " for anti-pattern: " + visitorThatFoundAntiPattern.getName());
+            ASTNodes.ASTStatement parsedQuery = Parser.parseStatement( inputQuery.getQuery(), this.languageOptions);
             try{
-                parsedQuery.accept((ParseTreeVisitor) visitor);
-                String result = visitor.getResult();
+                parsedQuery.accept((ParseTreeVisitor) visitorThatFoundAntiPattern);
+                String result = visitorThatFoundAntiPattern.getResult();
                 if(result.length() > 0) {
-                    visitorsThatFoundAntiPatterns.add(visitor);
-                    this.visitorMetricsMap.merge(visitor.getName(), 1, Integer::sum);
+                    visitorsThatFoundAntiPatterns.add(visitorThatFoundAntiPattern);
+                    this.visitorMetricsMap.merge(visitorThatFoundAntiPattern.getName(), 1, Integer::sum);
                 }
             } catch (Exception e) {
                 logger.error("Error parsing query with id: " + inputQuery.getQueryId() +
-                        " for anti-pattern:" + visitor.getName());
+                        " for anti-pattern:" + visitorThatFoundAntiPattern.getName());
                 logger.error(e.getMessage(), e);
             }
         }

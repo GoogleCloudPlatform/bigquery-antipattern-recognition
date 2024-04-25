@@ -44,13 +44,15 @@ public class GeminiRewriter {
 
     public static void rewriteSQL(InputQuery inputQuery,
                                   List<AntiPatternVisitor> visitorsThatFoundAntiPatterns,
-                                  AntiPatternHelper antiPatternHelper) throws IOException {
+                                  AntiPatternHelper antiPatternHelper,
+                                  Integer llmRestries,
+                                  Boolean llmBestEffort) throws IOException {
 
         String queryStr = inputQuery.getQuery();
-        QueryVisitorRewriter queryVisitorRewriter = new QueryVisitorRewriter(antiPatternHelper);
+        QueryVisitorRewriter queryVisitorRewriter = new QueryVisitorRewriter(antiPatternHelper, llmBestEffort);
         for (AntiPatternVisitor visitor : visitorsThatFoundAntiPatterns) {
             try {
-                queryStr = queryVisitorRewriter.rewriteSQL(queryStr, visitor, 3);
+                queryStr = queryVisitorRewriter.rewriteSQL(queryStr, visitor, llmRestries);
             } catch (Exception e) {
                 logger.error("Could not rewrite SQL for visitor: " + visitor.getName() + ". Error: " + e.getMessage());
             }

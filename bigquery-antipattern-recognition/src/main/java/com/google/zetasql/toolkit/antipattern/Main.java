@@ -16,7 +16,6 @@
 
 package com.google.zetasql.toolkit.antipattern;
 
-import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import com.google.zetasql.toolkit.antipattern.output.OutputWriter;
@@ -42,11 +41,7 @@ public class Main {
   public static void main(String[] args) throws ParseException, IOException {
     cmdParser = new AntiPatternCommandParser(args);
 
-    LanguageOptions languageOptions = new LanguageOptions();
-    languageOptions.enableMaximumLanguageFeatures();
-    languageOptions.setSupportsAllStatementKinds();
-    languageOptions.enableReservableKeyword("QUALIFY");
-    AntiPatternHelper antiPatternHelper = new AntiPatternHelper(cmdParser.getProcessingProject(), cmdParser.useAnalyzer(), languageOptions);
+    AntiPatternHelper antiPatternHelper = new AntiPatternHelper(cmdParser.getProcessingProject(), cmdParser.useAnalyzer());
 
     Iterator<InputQuery> inputQueriesIterator = cmdParser.getInputQueries();
     OutputWriter outputWriter = OutputWriterFactory.getOutputWriter(cmdParser);
@@ -81,7 +76,8 @@ public class Main {
 
       // rewrite
       if(cmdParser.rewriteSQL()) {
-        GeminiRewriter.rewriteSQL(inputQuery, visitorsThatFoundAntiPatterns, antiPatternHelper);
+        GeminiRewriter.rewriteSQL(inputQuery, visitorsThatFoundAntiPatterns, antiPatternHelper,
+                cmdParser.getLlmRetriesSQL(), cmdParser.getLlmBestEffort());
       }
 
       // write output

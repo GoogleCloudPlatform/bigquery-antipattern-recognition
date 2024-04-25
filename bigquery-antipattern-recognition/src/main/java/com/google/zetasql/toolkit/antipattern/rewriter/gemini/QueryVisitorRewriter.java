@@ -2,7 +2,9 @@ package com.google.zetasql.toolkit.antipattern.rewriter.gemini;
 
 import com.google.zetasql.SqlException;
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
+import com.google.zetasql.toolkit.antipattern.analyzer.visitors.joinorder.JoinOrderVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
+import com.google.zetasql.toolkit.antipattern.exceptions.TTLExpiredDuringRewriteException;
 import com.google.zetasql.toolkit.antipattern.rewriter.prompt.PromptYamlReader;
 import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
 import org.slf4j.Logger;
@@ -12,25 +14,24 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class QueryVisitorRewriter {
     private static final Logger logger = LoggerFactory.getLogger(QueryVisitorRewriter.class);
     private final PromptYamlReader promptYamlReader;
     private final AntiPatternHelper antiPatternHelper;
+    private final Boolean llmBestEffort;
 
-    public QueryVisitorRewriter(AntiPatternHelper antiPatternHelper) throws IOException {
+    public QueryVisitorRewriter(AntiPatternHelper antiPatternHelper, boolean llmBestEffort) throws IOException {
         this.promptYamlReader = new PromptYamlReader();
         this.antiPatternHelper = antiPatternHelper;
+        this.llmBestEffort = llmBestEffort;
+
     }
 
     public String rewriteSQL(String inputQuery,
                              AntiPatternVisitor visitor,
-                             Integer TTL) throws Exception {
-        TTL--;
-        if (TTL < 0) {
-            throw new Exception("LLM couldn't solve the specific anti pattern");
-        }
+                             Integer llmRetries) throws Exception {
         String prompt = this.promptYamlReader.getAntiPatternNameToPrompt().get(visitor.getName());
 
         if (prompt == null) {
@@ -40,37 +41,58 @@ public class QueryVisitorRewriter {
         prompt = String.format(prompt, inputQuery).replace("%%","%");
         String queryStr = GeminiRewriter.processPrompt(prompt, this.antiPatternHelper.getProject());
 
-        queryStr = checkAntiPattern(queryStr, visitor, TTL);
+        queryStr = checkAntiPattern(queryStr, visitor, llmRetries);
 
         return queryStr;
     }
 
     public String checkAntiPattern(String queryStr,
-                                   AntiPatternVisitor visitor,
-                                   Integer TTL) throws Exception {
+                                   AntiPatternVisitor visitorThatFoundAntiPattern,
+                                   Integer llmRetries) throws Exception {
         InputQuery inputQuery = new InputQuery(queryStr, "intermediate_rewrite");
         List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
         try {
+
+            // get only the visitor that we want to check
+            List<AntiPatternVisitor> parserVisitorList = antiPatternHelper
+                    .getParserVisitorList(inputQuery.getQuery())
+                    .stream()
+                    .filter(ap -> Objects.equals(ap.getName(), visitorThatFoundAntiPattern.getName()))
+                    .collect(Collectors.toList());
+
             // parser visitors
-            this.antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
+            this.antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns, parserVisitorList);
 
             // analyzer visitor
-            if (this.antiPatternHelper.getUseAnalizer()) {
+            if (this.antiPatternHelper.getUseAnalizer() && visitorThatFoundAntiPattern.getName().equals(JoinOrderVisitor.NAME)) {
                 this.antiPatternHelper.checkForAntiPatternsInQueryWithAnalyzerVisitors(inputQuery, visitorsThatFoundAntiPatterns);
             }
-            Optional<AntiPatternVisitor> newAntiPattern = visitorsThatFoundAntiPatterns.stream().filter(ap -> Objects.equals(ap.getName(), visitor.getName())).findFirst();
-            if (newAntiPattern.isPresent()) { // Check if the problem is no more
-                queryStr = this.rewriteSQL(queryStr, visitor, TTL);
+
+            if (! visitorsThatFoundAntiPatterns.isEmpty()) {
+                if (llmRetries <= 0) {
+                    if (this.llmBestEffort) {
+                        return queryStr;
+                    } else {
+                        throw new TTLExpiredDuringRewriteException("LLM couldn't solve the specific anti pattern");
+                    }
+                }
+                llmRetries--;
+                queryStr = this.rewriteSQL(queryStr, visitorThatFoundAntiPattern, llmRetries);
             }
             return queryStr;
         } catch (SqlException sqlException) {
             logger.error("The generated query has a syntax error :" + sqlException.getMessage());
-            queryStr = this.fixSyntaxError(queryStr, sqlException.getMessage(), this.antiPatternHelper.getProject());
-            if (TTL < 0) {
-                throw new Exception("LLM couldn't solve the specific anti pattern");
+            if (llmRetries <= 0) {
+                if (this.llmBestEffort) {
+                    return queryStr;
+                } else {
+                    throw new TTLExpiredDuringRewriteException("LLM couldn't solve the specific anti pattern");
+                }
             }
-            TTL--;
-            return this.checkAntiPattern(queryStr, visitor, TTL);
+            llmRetries--;
+
+            queryStr = this.fixSyntaxError(queryStr, sqlException.getMessage(), this.antiPatternHelper.getProject());
+            return this.checkAntiPattern(queryStr, visitorThatFoundAntiPattern, llmRetries);
         }
     }
 

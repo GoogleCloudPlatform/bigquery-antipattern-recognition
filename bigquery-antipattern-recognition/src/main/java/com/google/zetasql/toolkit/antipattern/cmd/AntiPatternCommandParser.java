@@ -52,6 +52,8 @@ public class AntiPatternCommandParser {
   public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
   public static final String IS_TOP_N_PERC_JOBS_OPTION_NAME = "info_schema_top_n_percentage_of_jobs";
   public static final String REWRITE_SQL_FLAG_NAME = "rewrite_sql";
+  public static final String LLM_RETRIES_FLAG_NAME = "llm_retries";
+  public static final String LLM_BEST_EFFORT_FLAG_NAME = "llm_best_effort";
   private Options options;
   private CommandLine cmd;
 
@@ -90,6 +92,15 @@ public class AntiPatternCommandParser {
 
   public boolean rewriteSQL() {
     return cmd.hasOption(REWRITE_SQL_FLAG_NAME);
+  }
+
+  public boolean getLlmBestEffort() {
+    return cmd.hasOption(LLM_BEST_EFFORT_FLAG_NAME);
+  }
+
+  public Integer getLlmRetriesSQL() {
+    String llmRetriesArg = cmd.getOptionValue(LLM_RETRIES_FLAG_NAME, "1");
+      return Integer.parseInt(llmRetriesArg);
   }
 
   public boolean hasOutputTable() {
@@ -141,9 +152,26 @@ public class AntiPatternCommandParser {
             Option.builder(REWRITE_SQL_FLAG_NAME)
                     .argName(REWRITE_SQL_FLAG_NAME)
                     .required(false)
-                    .desc("flag specifying if the queries should be rwwritten using an LLM")
+                    .desc("flag specifying if the queries should be rewritten using an LLM")
                     .build();
     options.addOption(rewriteSQLFlag);
+
+    Option llmBestEffortFlag =
+            Option.builder(LLM_BEST_EFFORT_FLAG_NAME)
+                    .argName(LLM_BEST_EFFORT_FLAG_NAME)
+                    .required(false)
+                    .desc("flag specifying that LLM results will be kept even if the validation fails")
+                    .build();
+    options.addOption(llmBestEffortFlag);
+
+    Option llmRetriesSQLFlag =
+            Option.builder(LLM_RETRIES_FLAG_NAME)
+                    .argName(LLM_RETRIES_FLAG_NAME)
+                    .hasArg()
+                    .required(false)
+                    .desc("flag specifying if a badly rewritten query using an LLM should try to genreate correctly again")
+                    .build();
+    options.addOption(llmRetriesSQLFlag);
 
     Option procesingProjectOption =
         Option.builder(PROCESSING_PROJECT_ID_OPTION_NAME)
