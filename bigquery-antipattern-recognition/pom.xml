@@ -21,7 +21,7 @@ limitations under the License.
 
     <groupId>com.google.cloud.tools</groupId>
     <artifactId>bigquery-antipattern-recognition</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
