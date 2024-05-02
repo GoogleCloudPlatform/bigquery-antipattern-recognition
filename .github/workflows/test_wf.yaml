@@ -1,6 +1,8 @@
-name: build-on-release
-run-name: build on release
-on: [push]
+name: publish-docker-image-on-release
+run-name: publish docker image on release
+on:
+  release:
+    types: [created]
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -12,7 +14,7 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Docker build
+    - name: Build and publish docker image
       run: |
         mvn package jib:dockerBuild -DskipTests    
         docker tag bigquery-antipattern-recognition ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
