@@ -3,7 +3,7 @@ run-name: publish docker image on release
 on:
   release:
     types: [published]
-    branches: [main, wf]
+    branches: [main]
 jobs:
   publish:
     runs-on: ubuntu-latest
