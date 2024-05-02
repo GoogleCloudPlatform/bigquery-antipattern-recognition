@@ -1,12 +1,19 @@
-name: learn-github-actions
-run-name: build on telease
+name: build-on-release
+run-name: build on release
 on: [push]
 jobs:
-  check-bats-version:
+  publish:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
       with:
-        node-version: '20'
-    - run: mvn clean package jib:dockerBuild -DskipTests
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Docker build
+    - run: |
+        mvn package jib:dockerBuild -DskipTests    
+        docker tag bigquery-antipattern-recognition ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
+        docker push ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
