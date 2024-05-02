@@ -13,7 +13,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Docker build
-    - run: |
+      run: |
         mvn package jib:dockerBuild -DskipTests    
         docker tag bigquery-antipattern-recognition ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
         docker push ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
