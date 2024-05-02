@@ -20,19 +20,22 @@ public class QueryVisitorRewriter {
     private static final Logger logger = LoggerFactory.getLogger(QueryVisitorRewriter.class);
     private final PromptYamlReader promptYamlReader;
     private final AntiPatternHelper antiPatternHelper;
-    private final Boolean llmBestEffort;
+    private final Boolean llmStrictValidation;
 
-    public QueryVisitorRewriter(AntiPatternHelper antiPatternHelper, boolean llmBestEffort) throws IOException {
+    public QueryVisitorRewriter(AntiPatternHelper antiPatternHelper, boolean llmStrictValidation) throws IOException {
         this.promptYamlReader = new PromptYamlReader();
         this.antiPatternHelper = antiPatternHelper;
-        this.llmBestEffort = llmBestEffort;
+        this.llmStrictValidation = llmStrictValidation;
 
     }
 
+    // Retries will be used:
+    // 1- In case the antipattern is still there
+    // 2- In case the query is syntactically invalid
     public String rewriteSQL(String inputQuery,
-                             AntiPatternVisitor visitor,
+                             AntiPatternVisitor visitorThatFoundAntiPattern,
                              Integer llmRetries) throws Exception {
-        String prompt = this.promptYamlReader.getAntiPatternNameToPrompt().get(visitor.getName());
+        String prompt = this.promptYamlReader.getAntiPatternNameToPrompt().get(visitorThatFoundAntiPattern.getName());
 
         if (prompt == null) {
             return  inputQuery; // No changes so it can use the same query
@@ -40,8 +43,7 @@ public class QueryVisitorRewriter {
 
         prompt = String.format(prompt, inputQuery).replace("%%","%");
         String queryStr = GeminiRewriter.processPrompt(prompt, this.antiPatternHelper.getProject());
-
-        queryStr = checkAntiPattern(queryStr, visitor, llmRetries);
+        queryStr = checkAntiPattern(queryStr, visitorThatFoundAntiPattern, llmRetries);
 
         return queryStr;
     }
@@ -70,11 +72,10 @@ public class QueryVisitorRewriter {
 
             if (! visitorsThatFoundAntiPatterns.isEmpty()) {
                 if (llmRetries <= 0) {
-                    if (this.llmBestEffort) {
-                        return queryStr;
-                    } else {
+                    if (this.llmStrictValidation) {
                         throw new TTLExpiredDuringRewriteException("LLM couldn't solve the specific anti pattern");
                     }
+                    return queryStr;
                 }
                 llmRetries--;
                 queryStr = this.rewriteSQL(queryStr, visitorThatFoundAntiPattern, llmRetries);
@@ -83,11 +84,10 @@ public class QueryVisitorRewriter {
         } catch (SqlException sqlException) {
             logger.error("The generated query has a syntax error :" + sqlException.getMessage());
             if (llmRetries <= 0) {
-                if (this.llmBestEffort) {
-                    return queryStr;
-                } else {
+                if (this.llmStrictValidation) {
                     throw new TTLExpiredDuringRewriteException("LLM couldn't solve the specific anti pattern");
                 }
+                return queryStr;
             }
             llmRetries--;
 

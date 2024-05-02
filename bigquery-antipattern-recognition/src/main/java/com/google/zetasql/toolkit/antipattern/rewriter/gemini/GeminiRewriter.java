@@ -46,10 +46,10 @@ public class GeminiRewriter {
                                   List<AntiPatternVisitor> visitorsThatFoundAntiPatterns,
                                   AntiPatternHelper antiPatternHelper,
                                   Integer llmRestries,
-                                  Boolean llmBestEffort) throws IOException {
+                                  Boolean llmStrictValidation) throws IOException {
 
         String queryStr = inputQuery.getQuery();
-        QueryVisitorRewriter queryVisitorRewriter = new QueryVisitorRewriter(antiPatternHelper, llmBestEffort);
+        QueryVisitorRewriter queryVisitorRewriter = new QueryVisitorRewriter(antiPatternHelper, llmStrictValidation);
         for (AntiPatternVisitor visitor : visitorsThatFoundAntiPatterns) {
             try {
                 queryStr = queryVisitorRewriter.rewriteSQL(queryStr, visitor, llmRestries);

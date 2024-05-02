@@ -53,7 +53,7 @@ public class AntiPatternCommandParser {
   public static final String IS_TOP_N_PERC_JOBS_OPTION_NAME = "info_schema_top_n_percentage_of_jobs";
   public static final String REWRITE_SQL_FLAG_NAME = "rewrite_sql";
   public static final String LLM_RETRIES_FLAG_NAME = "llm_retries";
-  public static final String LLM_BEST_EFFORT_FLAG_NAME = "llm_best_effort";
+  public static final String LLM_STRICT_VALIDATION_FLAG_NAME = "llm_strict_validation";
   private Options options;
   private CommandLine cmd;
 
@@ -94,8 +94,8 @@ public class AntiPatternCommandParser {
     return cmd.hasOption(REWRITE_SQL_FLAG_NAME);
   }
 
-  public boolean getLlmBestEffort() {
-    return cmd.hasOption(LLM_BEST_EFFORT_FLAG_NAME);
+  public boolean getLlmStrictValidation() {
+    return cmd.hasOption(LLM_STRICT_VALIDATION_FLAG_NAME);
   }
 
   public Integer getLlmRetriesSQL() {
@@ -156,20 +156,22 @@ public class AntiPatternCommandParser {
                     .build();
     options.addOption(rewriteSQLFlag);
 
-    Option llmBestEffortFlag =
-            Option.builder(LLM_BEST_EFFORT_FLAG_NAME)
-                    .argName(LLM_BEST_EFFORT_FLAG_NAME)
+    Option llmStrictValidation =
+            Option.builder(LLM_STRICT_VALIDATION_FLAG_NAME)
+                    .argName(LLM_STRICT_VALIDATION_FLAG_NAME)
                     .required(false)
-                    .desc("flag specifying that LLM results will be kept even if the validation fails")
+                    .desc("flag specifying that LLM results will be discarded if the validation fails (Syntactically " +
+                            "invalid or antipattern still present)")
                     .build();
-    options.addOption(llmBestEffortFlag);
+    options.addOption(llmStrictValidation);
 
     Option llmRetriesSQLFlag =
             Option.builder(LLM_RETRIES_FLAG_NAME)
                     .argName(LLM_RETRIES_FLAG_NAME)
                     .hasArg()
                     .required(false)
-                    .desc("flag specifying if a badly rewritten query using an LLM should try to genreate correctly again")
+                    .desc("flag specifying the number of retries when the LLM generates an incorrect SQL " +
+                            "query (Syntactically invalid or antipattern still present)")
                     .build();
     options.addOption(llmRetriesSQLFlag);
 

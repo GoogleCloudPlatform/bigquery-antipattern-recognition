@@ -77,7 +77,7 @@ public class Main {
       // rewrite
       if(cmdParser.rewriteSQL()) {
         GeminiRewriter.rewriteSQL(inputQuery, visitorsThatFoundAntiPatterns, antiPatternHelper,
-                cmdParser.getLlmRetriesSQL(), cmdParser.getLlmBestEffort());
+                cmdParser.getLlmRetriesSQL(), cmdParser.getLlmStrictValidation());
       }
 
       // write output
