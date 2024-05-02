@@ -2,7 +2,7 @@ name: publish-docker-image-on-release
 run-name: publish docker image on release
 on:
   release:
-    types: [created]
+    types: [published]
 jobs:
   publish:
     runs-on: ubuntu-latest
