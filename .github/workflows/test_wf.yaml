@@ -1,5 +1,5 @@
 name: learn-github-actions
-run-name: test run
+run-name: build on telease
 on: [push]
 jobs:
   check-bats-version:
@@ -9,4 +9,4 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
-    - run: echo 1
+    - run: mvn clean package jib:dockerBuild -DskipTests
