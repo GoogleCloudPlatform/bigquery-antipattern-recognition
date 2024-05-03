@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: publish-docker-image-on-release
+name: publish-on-release
 run-name: publish docker image and prebuilt jar on release
 on:
   release:
     types: [published]
-    branches: [main, wf_onrealeas]
+    branches: [main]
 jobs:
   publish:
     runs-on: ubuntu-latest
