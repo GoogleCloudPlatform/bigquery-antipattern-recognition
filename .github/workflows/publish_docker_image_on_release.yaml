@@ -18,10 +18,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        mvn package jib:dockerBuild -DskipTests
-        docker tag bigquery-antipattern-recognition ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
-        docker push ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
-        RELEASE_VERSION=${GITHUB_REF#refs/*/}
-        cp ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition-1.0.0-jar-with-dependencies.jar ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition.jar
-        gh release upload RELEASE_VERSION ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition.jar
+        RELEASE_VERSION=${GITHUB_REF#refs/v*/}
+        echo RELEASE_VERSION
         
