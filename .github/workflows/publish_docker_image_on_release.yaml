@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: publish-docker-image-on-release
-run-name: publish docker image on release
+run-name: publish docker image and prebuilt jar on release
 on:
   release:
     types: [published]
@@ -39,4 +39,4 @@ jobs:
         RELEASE_VERSION=${GITHUB_REF#refs/*/}
         jar_filename=$(ls ./bigquery-antipattern-recognition/target/ | grep 'bigquery-antipattern-recognition-[0-9.]*-jar-with-dependencies.jar')
         cp ./bigquery-antipattern-recognition/target/${jar_filename} ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition.jar
-        gh release upload v1.0.0.1 ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition.jar
+        gh release upload RELEASE_VERSION ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition.jar
