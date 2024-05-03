@@ -15,10 +15,14 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and publish docker image and jar
+    - name: Build and publish docker image
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        mvn package jib:dockerBuild -DskipTests
+        docker tag bigquery-antipattern-recognition ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
+        docker push ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
         RELEASE_VERSION=${GITHUB_REF#refs/*/}
-        echo RELEASE_VERSION
-        
+        jar_filename=$(ls ./bigquery-antipattern-recognition/target/ | grep 'bigquery-antipattern-recognition-[0-9.]*-jar-with-dependencies.jar')
+        cp ./bigquery-antipattern-recognition/target/${jar_filename} ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition.jar
+        gh release upload v1.0.0.1 ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition.jar
