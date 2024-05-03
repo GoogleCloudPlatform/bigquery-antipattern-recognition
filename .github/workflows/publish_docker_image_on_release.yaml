@@ -18,7 +18,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        mvn package jib:dockerBuild -DskipTests
         RELEASE_VERSION=${GITHUB_REF#refs/*/}
         ls
-        gh release upload RELEASE_VERSION ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition-1.0.0.jar
+        gh release upload v1.0.0.1 ./bigquery-antipattern-recognition/target/bigquery-antipattern-recognition-1.0.0.jar
         
