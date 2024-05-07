@@ -52,7 +52,7 @@ public class AntiPatternCommandParser {
   public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
   public static final String IS_TOP_N_PERC_JOBS_OPTION_NAME = "info_schema_top_n_percentage_of_jobs";
   public static final String REWRITE_SQL_FLAG_NAME = "rewrite_sql";
-  public static final String LLM_RETRIES_FLAG_NAME = "llm_retries";
+  public static final String LLM_RETRIES_NAME = "llm_retries";
   public static final String LLM_STRICT_VALIDATION_FLAG_NAME = "llm_strict_validation";
   private Options options;
   private CommandLine cmd;
@@ -99,7 +99,7 @@ public class AntiPatternCommandParser {
   }
 
   public Integer getLlmRetriesSQL() {
-    String llmRetriesArg = cmd.getOptionValue(LLM_RETRIES_FLAG_NAME, "1");
+    String llmRetriesArg = cmd.getOptionValue(LLM_RETRIES_NAME, "0");
       return Integer.parseInt(llmRetriesArg);
   }
 
@@ -165,15 +165,15 @@ public class AntiPatternCommandParser {
                     .build();
     options.addOption(llmStrictValidation);
 
-    Option llmRetriesSQLFlag =
-            Option.builder(LLM_RETRIES_FLAG_NAME)
-                    .argName(LLM_RETRIES_FLAG_NAME)
+    Option llmRetriesSQL =
+            Option.builder(LLM_RETRIES_NAME)
+                    .argName(LLM_RETRIES_NAME)
                     .hasArg()
                     .required(false)
-                    .desc("flag specifying the number of retries when the LLM generates an incorrect SQL " +
+                    .desc("number of retries when the LLM generates an incorrect SQL " +
                             "query (Syntactically invalid or antipattern still present)")
                     .build();
-    options.addOption(llmRetriesSQLFlag);
+    options.addOption(llmRetriesSQL);
 
     Option procesingProjectOption =
         Option.builder(PROCESSING_PROJECT_ID_OPTION_NAME)

@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package com.google.zetasql.toolkit.antipattern.rewriter.gemini;
 
 import com.google.zetasql.SqlException;
@@ -97,15 +113,13 @@ public class QueryVisitorRewriter {
     }
 
     private String fixSyntaxError(String query, String errorDescription, String project) throws IOException {
-        String prompt = String.format("""
-        The following SQL query has syntax errors and can not be ran:
-        ```
-        %s
-        ```
-        Here is the error description: %s
-        
-        Please fix this query so the syntax is correct and that error is no more
-        """, query, errorDescription);
+        String prompt = String.format(
+                " The following SQL query has syntax errors and can not be ran:\n" +
+                "```\n" +
+                "%s\n" +
+                "```\n" +
+                "Here is the error description: %s\n" +
+                "Please fix this query so the syntax is correct and that error is no more\n", query, errorDescription);
 
         return GeminiRewriter.processPrompt(prompt, project);
     }
