@@ -98,8 +98,8 @@ LIMIT 10000;
 * [bq -> bq](./EXAMPLES.md#bq-table---bq-table)
 
 
-# Rewrite Using AI (beta)
-This tool has an experimental feature that will output the rewritten query.\
+# Rewrite Using AI
+This tool has an AI based feature that will output the rewritten query.\
 This functionality is activated using the `--rewrite_sql` flag.\
 (This feature is available in all outputs: logs, files, BigQuery table).
 
