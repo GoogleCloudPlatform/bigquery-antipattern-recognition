@@ -59,7 +59,9 @@ public class QueryVisitorRewriter {
 
         prompt = String.format(prompt, inputQuery).replace("%%","%");
         String queryStr = GeminiRewriter.processPrompt(prompt, this.antiPatternHelper.getProject());
-        queryStr = checkAntiPattern(queryStr, visitorThatFoundAntiPattern, llmRetries);
+        if(this.llmStrictValidation && llmRetries>0) {
+            queryStr = checkAntiPattern(queryStr, visitorThatFoundAntiPattern, llmRetries);
+        }
 
         return queryStr;
     }
