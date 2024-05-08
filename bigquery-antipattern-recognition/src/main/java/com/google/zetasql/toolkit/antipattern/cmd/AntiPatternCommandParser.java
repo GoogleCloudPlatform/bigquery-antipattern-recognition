@@ -52,6 +52,8 @@ public class AntiPatternCommandParser {
   public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
   public static final String IS_TOP_N_PERC_JOBS_OPTION_NAME = "info_schema_top_n_percentage_of_jobs";
   public static final String REWRITE_SQL_FLAG_NAME = "rewrite_sql";
+  public static final String LLM_RETRIES_NAME = "llm_retries";
+  public static final String LLM_STRICT_VALIDATION_FLAG_NAME = "llm_strict_validation";
   private Options options;
   private CommandLine cmd;
 
@@ -90,6 +92,15 @@ public class AntiPatternCommandParser {
 
   public boolean rewriteSQL() {
     return cmd.hasOption(REWRITE_SQL_FLAG_NAME);
+  }
+
+  public boolean getLlmStrictValidation() {
+    return cmd.hasOption(LLM_STRICT_VALIDATION_FLAG_NAME);
+  }
+
+  public Integer getLlmRetriesSQL() {
+    String llmRetriesArg = cmd.getOptionValue(LLM_RETRIES_NAME, "0");
+      return Integer.parseInt(llmRetriesArg);
   }
 
   public boolean hasOutputTable() {
@@ -141,9 +152,28 @@ public class AntiPatternCommandParser {
             Option.builder(REWRITE_SQL_FLAG_NAME)
                     .argName(REWRITE_SQL_FLAG_NAME)
                     .required(false)
-                    .desc("flag specifying if the queries should be rwwritten using an LLM")
+                    .desc("flag specifying if the queries should be rewritten using an LLM")
                     .build();
     options.addOption(rewriteSQLFlag);
+
+    Option llmStrictValidation =
+            Option.builder(LLM_STRICT_VALIDATION_FLAG_NAME)
+                    .argName(LLM_STRICT_VALIDATION_FLAG_NAME)
+                    .required(false)
+                    .desc("flag specifying that LLM results will be discarded if the validation fails (Syntactically " +
+                            "invalid or antipattern still present)")
+                    .build();
+    options.addOption(llmStrictValidation);
+
+    Option llmRetriesSQL =
+            Option.builder(LLM_RETRIES_NAME)
+                    .argName(LLM_RETRIES_NAME)
+                    .hasArg()
+                    .required(false)
+                    .desc("number of retries when the LLM generates an incorrect SQL " +
+                            "query (Syntactically invalid or antipattern still present)")
+                    .build();
+    options.addOption(llmRetriesSQL);
 
     Option procesingProjectOption =
         Option.builder(PROCESSING_PROJECT_ID_OPTION_NAME)

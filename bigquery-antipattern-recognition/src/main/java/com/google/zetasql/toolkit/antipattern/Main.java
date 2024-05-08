@@ -16,36 +16,14 @@
 
 package com.google.zetasql.toolkit.antipattern;
 
-import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.LanguageOptions;
-import com.google.zetasql.Parser;
-import com.google.zetasql.parser.ASTNodes.ASTStatement;
-import com.google.zetasql.parser.ParseTreeVisitor;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
-import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
-import com.google.zetasql.toolkit.antipattern.analyzer.visitors.joinorder.JoinOrderVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import com.google.zetasql.toolkit.antipattern.output.OutputWriter;
 import com.google.zetasql.toolkit.antipattern.output.OutputWriterFactory;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyCTEsEvalMultipleTimesVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyDynamicPredicateVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyInSubqueryWithoutAggVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyOrderByWithoutLimitVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyRegexpContainsVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifySimpleSelectStarVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.rownum.IdentifyLatestRecordVisitor;
-import com.google.zetasql.toolkit.antipattern.parser.visitors.whereorder.IdentifyWhereOrderVisitor;
 import com.google.zetasql.toolkit.antipattern.rewriter.gemini.GeminiRewriter;
-import com.google.zetasql.toolkit.antipattern.rewriter.prompt.PromptYamlReader;
-import com.google.zetasql.toolkit.catalog.bigquery.BigQueryAPIResourceProvider;
-import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
-import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService;
-import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
+import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.cli.ParseException;
@@ -56,70 +34,54 @@ public class Main {
 
   private static final Logger logger = LoggerFactory.getLogger(Main.class);
   private static AntiPatternCommandParser cmdParser;
-  private static String analyzerProject = null;
-  private static AnalyzerOptions analyzerOptions;
-  private static BigQueryAPIResourceProvider resourceProvider;
-  private static ZetaSQLToolkitAnalyzer analyzer;
-  private static BigQueryService service;
-  private static BigQueryCatalog catalog;
-  private static LanguageOptions languageOptions = new LanguageOptions();
-  private static HashMap<String, Integer> visitorMetricsMap;
   private static int countQueriesRead = 0;
   private static int countQueriesWithAntipattern = 0;
 
-  static {
-    languageOptions.enableMaximumLanguageFeatures();
-    languageOptions.setSupportsAllStatementKinds();
-    languageOptions.enableReservableKeyword("QUALIFY");
-  }
 
   public static void main(String[] args) throws ParseException, IOException {
     cmdParser = new AntiPatternCommandParser(args);
-    if (cmdParser.useAnalyzer()) {
-      setAnalyzerOptions();
-    }
+
+    AntiPatternHelper antiPatternHelper = new AntiPatternHelper(cmdParser.getProcessingProject(), cmdParser.useAnalyzer());
 
     Iterator<InputQuery> inputQueriesIterator = cmdParser.getInputQueries();
     OutputWriter outputWriter = OutputWriterFactory.getOutputWriter(cmdParser);
     Boolean rewriteSQL = cmdParser.rewriteSQL();
     outputWriter.setRewriteSQL(rewriteSQL);
-    PromptYamlReader promptYamlReader = null;
-    if(rewriteSQL) {
-      promptYamlReader = new PromptYamlReader();
-    }
+
     InputQuery inputQuery;
     while (inputQueriesIterator.hasNext()) {
       inputQuery = inputQueriesIterator.next();
       logger.info("Parsing query: " + inputQuery.getQueryId());
-      checkForAntiPatternsInQuery(inputQuery, outputWriter, cmdParser, promptYamlReader);
+      executeAntiPatternsInQuery(inputQuery, outputWriter, cmdParser, antiPatternHelper);
       countQueriesRead += 1;
     }
     logResultStats();
     outputWriter.close();
   }
 
-  private static void checkForAntiPatternsInQuery(InputQuery inputQuery,
-      OutputWriter outputWriter, AntiPatternCommandParser cmdParser,
-      PromptYamlReader promptYamlReader) {
+  private static void executeAntiPatternsInQuery(InputQuery inputQuery,
+                                                 OutputWriter outputWriter,
+                                                 AntiPatternCommandParser cmdParser,
+                                                 AntiPatternHelper antiPatternHelper) {
 
     try {
       List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
       // parser visitors
-      checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
+      antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
 
       // analyzer visitor
-      if (cmdParser.useAnalyzer()) {
-        checkForAntiPatternsInQueryWithAnalyzerVisitors(inputQuery, visitorsThatFoundAntiPatterns);
+      if (antiPatternHelper.getUseAnalizer()) {
+        antiPatternHelper.checkForAntiPatternsInQueryWithAnalyzerVisitors(inputQuery, visitorsThatFoundAntiPatterns);
       }
 
       // rewrite
       if(cmdParser.rewriteSQL()) {
-        GeminiRewriter.rewriteSQL(inputQuery, visitorsThatFoundAntiPatterns,
-            cmdParser.getProcessingProject(), promptYamlReader);
+        GeminiRewriter.rewriteSQL(inputQuery, visitorsThatFoundAntiPatterns, antiPatternHelper,
+                cmdParser.getLlmRetriesSQL(), cmdParser.getLlmStrictValidation());
       }
 
       // write output
-      if (visitorsThatFoundAntiPatterns.size() > 0) {
+      if (!visitorsThatFoundAntiPatterns.isEmpty()) {
         countQueriesWithAntipattern += 1;
         outputWriter.writeRecForQuery(inputQuery, visitorsThatFoundAntiPatterns, cmdParser);
       }
@@ -128,106 +90,6 @@ public class Main {
       logger.error("Error processing query with id: " + inputQuery.getQueryId());
       logger.error(e.getMessage(), e);
     }
-  }
-
-  private static void checkForAntiPatternsInQueryWithParserVisitors(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundAntiPatterns ) {
-
-    List<AntiPatternVisitor> parserVisitorList = getParserVisitorList(inputQuery.getQuery());
-    if(visitorMetricsMap == null) {
-      setVisitorMetricsMap(parserVisitorList);
-    }
-
-    for (AntiPatternVisitor visitor : parserVisitorList) {
-      try{
-        logger.info("Parsing query with id: " + inputQuery.getQueryId() +
-            " for anti-pattern: " + visitor.getName());
-        ASTStatement parsedQuery = Parser.parseStatement( inputQuery.getQuery(), languageOptions);
-        parsedQuery.accept((ParseTreeVisitor) visitor);
-        String result = visitor.getResult();
-        if(result.length() > 0) {
-          visitorsThatFoundAntiPatterns.add(visitor);
-          visitorMetricsMap.merge(visitor.getName(), 1, Integer::sum);
-        }
-      } catch (Exception e) {
-        logger.error("Error parsing query with id: " + inputQuery.getQueryId() +
-            " for anti-pattern:" + visitor.getName());
-        logger.error(e.getMessage(), e);
-      }
-    }
-  }
-
-  private static void checkForAntiPatternsInQueryWithAnalyzerVisitors(InputQuery inputQuery, List<AntiPatternVisitor> visitorsThatFoundAntiPatterns ) {
-    String query = inputQuery.getQuery();
-    String currentProject;
-
-    if (inputQuery.getProjectId() == null) {
-      currentProject = cmdParser.getAnalyzerDefaultProject();
-    } else {
-      currentProject = inputQuery.getProjectId();
-    }
-
-    if ((analyzerProject == null || !analyzerProject.equals(currentProject))) {
-      analyzerProject = inputQuery.getProjectId();
-      catalog = new BigQueryCatalog(analyzerProject, resourceProvider);
-      catalog.addAllTablesUsedInQuery(query, analyzerOptions);
-    }
-    JoinOrderVisitor visitor = new JoinOrderVisitor(service);
-    if(visitorMetricsMap.get(visitor.getName()) == null) {
-      visitorMetricsMap.put(visitor.getName(), 0);
-      visitorMetricsMap.merge(visitor.getName(), 1, Integer::sum);
-    }
-    try {
-      logger.info("Analyzing query with id: " + inputQuery.getQueryId() +
-          " For anti-pattern:" + visitor.getName());
-      Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
-      statementIterator.forEachRemaining(statement -> statement.accept(visitor));
-
-      String result = visitor.getResult();
-      if (result.length() > 0) {
-        visitorsThatFoundAntiPatterns.add(visitor);
-      }
-    } catch (Exception e) {
-      logger.error("Error analyzing query with id: " + inputQuery.getQueryId() +
-          " For anti-pattern:" + visitor.getName());
-      logger.error(e.getMessage(), e);
-    }
-  }
-
-  // THE ORDER HERE MATTERS
-  // this is also the order in which the rewrites get applied
-  private static List<AntiPatternVisitor> getParserVisitorList(String query) {
-    return new ArrayList<>(Arrays.asList(
-        new IdentifySimpleSelectStarVisitor(),
-        new IdentifyInSubqueryWithoutAggVisitor(query),
-        new IdentifyDynamicPredicateVisitor(query),
-        new IdentifyOrderByWithoutLimitVisitor(query),
-        new IdentifyRegexpContainsVisitor(query),
-        new IdentifyCTEsEvalMultipleTimesVisitor(query),
-        new IdentifyLatestRecordVisitor(query),
-        new IdentifyWhereOrderVisitor(query)
-
-    ));
-  }
-
-  private static void setVisitorMetricsMap(List<AntiPatternVisitor> parserVisitorList ) {
-    visitorMetricsMap = new HashMap<>();
-    parserVisitorList.stream().forEach(visitor -> visitorMetricsMap.put(visitor.getName(), 0));
-  }
-
-  private static void setAnalyzerOptions() {
-    analyzerOptions = new AnalyzerOptions();
-    analyzer = getAnalyzer(analyzerOptions);
-    service = BigQueryService.buildDefault();
-    resourceProvider = BigQueryAPIResourceProvider.build(service);
-    catalog = new BigQueryCatalog("");
-  }
-
-  private static ZetaSQLToolkitAnalyzer getAnalyzer(AnalyzerOptions options) {
-    LanguageOptions languageOptions = BigQueryLanguageOptions.get().enableMaximumLanguageFeatures();
-    languageOptions.setSupportsAllStatementKinds();
-    options.setLanguageOptions(languageOptions);
-    options.setCreateNewColumnForEachProjectedOutput(true);
-    return new ZetaSQLToolkitAnalyzer(options);
   }
 
   private static void logResultStats(){
