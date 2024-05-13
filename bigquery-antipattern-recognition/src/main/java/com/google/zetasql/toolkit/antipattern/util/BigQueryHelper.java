@@ -166,14 +166,12 @@ public static TableResult getQueriesFromBQTable(String inputTable)
   }
 
   public static void checkBQConnectiviy() {
-    // try {
+    try {
       BigQuery bigquery =
           BigQueryOptions.newBuilder().setHeaderProvider(headerProvider).build().getService();
       bigquery.listDatasets("bigquery-public-data", BigQuery.DatasetListOption.pageSize(1));
-    System.out.println("========================== worked ================================");
-    System.out.println("=========================== worked ===============================");
-    // } catch (Throwable e) {
-    //
-    // }
+    } catch (Throwable e) {
+
+    }
   }
 }
