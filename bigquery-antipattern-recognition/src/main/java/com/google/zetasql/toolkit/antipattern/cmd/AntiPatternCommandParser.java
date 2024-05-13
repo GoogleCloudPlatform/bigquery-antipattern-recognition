@@ -16,6 +16,8 @@
 
 package com.google.zetasql.toolkit.antipattern.cmd;
 
+import static com.google.zetasql.toolkit.antipattern.util.BigQueryHelper.checkBQConnectiviy;
+
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +27,6 @@ import java.util.stream.Stream;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class AntiPatternCommandParser {
 
@@ -39,18 +40,22 @@ public class AntiPatternCommandParser {
   public static final String OUTPUT_FILE_OPTION_NAME = "output_file_path";
   public static final String READ_FROM_INFO_SCHEMA_FLAG_NAME = "read_from_info_schema";
   public static final String READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME = "read_from_info_schema_days";
-  public static final String READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME = "read_from_info_schema_start_time";
-  public static final String READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME = "read_from_info_schema_end_time";
-  public static final String READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME = "read_from_info_schema_timeout_in_secs";
+  public static final String READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME =
+      "read_from_info_schema_start_time";
+  public static final String READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME =
+      "read_from_info_schema_end_time";
+  public static final String READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME =
+      "read_from_info_schema_timeout_in_secs";
   public static final String INFO_SCHEMA_REGION = "info_schema_region";
-  public static final String INFO_SCHEMA_MIN_SLOTMS="info_schema_min_slotms";
+  public static final String INFO_SCHEMA_MIN_SLOTMS = "info_schema_min_slotms";
   public static final String READ_FROM_INFO_SCHEMA_TABLE_OPTION_NAME = "info_schema_table_name";
   public static final String INFO_SCHEMA_PROJECT = "info_schema_project";
   public static final String PROCESSING_PROJECT_ID_OPTION_NAME = "processing_project_id";
   public static final String OUTPUT_TABLE_OPTION_NAME = "output_table";
   public static final String USE_ANALYZER_FLAG_NAME = "advanced_analysis";
-  public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project" ;
-  public static final String IS_TOP_N_PERC_JOBS_OPTION_NAME = "info_schema_top_n_percentage_of_jobs";
+  public static final String ANALYZER_DEFAULT_PROJECT_ID_OPTION_NAME = "analyzer_default_project";
+  public static final String IS_TOP_N_PERC_JOBS_OPTION_NAME =
+      "info_schema_top_n_percentage_of_jobs";
   public static final String REWRITE_SQL_FLAG_NAME = "rewrite_sql";
   public static final String LLM_RETRIES_NAME = "llm_retries";
   public static final String LLM_STRICT_VALIDATION_FLAG_NAME = "llm_strict_validation";
@@ -62,8 +67,8 @@ public class AntiPatternCommandParser {
     CommandLineParser parser = new BasicParser();
     logger.info("Running anti pattern tool for args:" + String.join(" ", args));
     cmd = parser.parse(options, args);
+    checkBQConnectiviy();
     logger.info("Running with the following config:" + cmd.toString());
-
   }
 
   public String getOutputTable() {
@@ -100,7 +105,7 @@ public class AntiPatternCommandParser {
 
   public Integer getLlmRetriesSQL() {
     String llmRetriesArg = cmd.getOptionValue(LLM_RETRIES_NAME, "0");
-      return Integer.parseInt(llmRetriesArg);
+    return Integer.parseInt(llmRetriesArg);
   }
 
   public boolean hasOutputTable() {
@@ -149,30 +154,32 @@ public class AntiPatternCommandParser {
     options.addOption(useInfoSchemaFlag);
 
     Option rewriteSQLFlag =
-            Option.builder(REWRITE_SQL_FLAG_NAME)
-                    .argName(REWRITE_SQL_FLAG_NAME)
-                    .required(false)
-                    .desc("flag specifying if the queries should be rewritten using an LLM")
-                    .build();
+        Option.builder(REWRITE_SQL_FLAG_NAME)
+            .argName(REWRITE_SQL_FLAG_NAME)
+            .required(false)
+            .desc("flag specifying if the queries should be rewritten using an LLM")
+            .build();
     options.addOption(rewriteSQLFlag);
 
     Option llmStrictValidation =
-            Option.builder(LLM_STRICT_VALIDATION_FLAG_NAME)
-                    .argName(LLM_STRICT_VALIDATION_FLAG_NAME)
-                    .required(false)
-                    .desc("flag specifying that LLM results will be discarded if the validation fails (Syntactically " +
-                            "invalid or antipattern still present)")
-                    .build();
+        Option.builder(LLM_STRICT_VALIDATION_FLAG_NAME)
+            .argName(LLM_STRICT_VALIDATION_FLAG_NAME)
+            .required(false)
+            .desc(
+                "flag specifying that LLM results will be discarded if the validation fails (Syntactically "
+                    + "invalid or antipattern still present)")
+            .build();
     options.addOption(llmStrictValidation);
 
     Option llmRetriesSQL =
-            Option.builder(LLM_RETRIES_NAME)
-                    .argName(LLM_RETRIES_NAME)
-                    .hasArg()
-                    .required(false)
-                    .desc("number of retries when the LLM generates an incorrect SQL " +
-                            "query (Syntactically invalid or antipattern still present)")
-                    .build();
+        Option.builder(LLM_RETRIES_NAME)
+            .argName(LLM_RETRIES_NAME)
+            .hasArg()
+            .required(false)
+            .desc(
+                "number of retries when the LLM generates an incorrect SQL "
+                    + "query (Syntactically invalid or antipattern still present)")
+            .build();
     options.addOption(llmRetriesSQL);
 
     Option procesingProjectOption =
@@ -213,12 +220,12 @@ public class AntiPatternCommandParser {
 
     Option inputBqOption =
         Option.builder(INPUT_BQ_TABLE_OPTION_NAME)
-          .argName(INPUT_BQ_TABLE_OPTION_NAME)
-          .hasArg()
-          .required(false)
-          .desc("name of bigquery table to pull queries from")
-          .build();
-      options.addOption(inputBqOption);
+            .argName(INPUT_BQ_TABLE_OPTION_NAME)
+            .hasArg()
+            .required(false)
+            .desc("name of bigquery table to pull queries from")
+            .build();
+    options.addOption(inputBqOption);
 
     Option infoSchemaDays =
         Option.builder(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME)
@@ -231,39 +238,40 @@ public class AntiPatternCommandParser {
 
     Option infoSchemaStartTime =
         Option.builder(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME)
-                .argName(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME)
-                .hasArg()
-                .required(false)
-                .desc("Specifies start timestamp INFORMATION SCHEMA be queried for")
-                .build();
+            .argName(READ_FROM_INFO_SCHEMA_START_TIME_OPTION_NAME)
+            .hasArg()
+            .required(false)
+            .desc("Specifies start timestamp INFORMATION SCHEMA be queried for")
+            .build();
     options.addOption(infoSchemaStartTime);
 
     Option infoSchemaEndTime =
         Option.builder(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME)
-                .argName(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME)
-                .hasArg()
-                .required(false)
-                .desc("Specifies end timestamp INFORMATION SCHEMA be queried for")
-                .build();
+            .argName(READ_FROM_INFO_SCHEMA_END_TIME_OPTION_NAME)
+            .hasArg()
+            .required(false)
+            .desc("Specifies end timestamp INFORMATION SCHEMA be queried for")
+            .build();
     options.addOption(infoSchemaEndTime);
 
     Option infoSchemaTimeoutSecs =
         Option.builder(READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME)
-                .argName(READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME)
-                .hasArg()
-                .required(false)
-                .desc("Specifies timeout (in secs) to query INFORMATION SCHEMA")
-                .build();
+            .argName(READ_FROM_INFO_SCHEMA_TIMEOUT_IN_SECS_OPTION_NAME)
+            .hasArg()
+            .required(false)
+            .desc("Specifies timeout (in secs) to query INFORMATION SCHEMA")
+            .build();
     options.addOption(infoSchemaTimeoutSecs);
 
     Option infoSchemaSlotmsMin =
-            Option.builder(INFO_SCHEMA_MIN_SLOTMS)
-                    .argName(INFO_SCHEMA_MIN_SLOTMS)
-                    .hasArg()
-                    .required(false)
-                    .desc("Specifies the minimum number of slotms for a query in INFORMATION_SCHEMA to be" +
-                            "selected for processing. Defaults to 0 (all queries are processed)")
-                    .build();
+        Option.builder(INFO_SCHEMA_MIN_SLOTMS)
+            .argName(INFO_SCHEMA_MIN_SLOTMS)
+            .hasArg()
+            .required(false)
+            .desc(
+                "Specifies the minimum number of slotms for a query in INFORMATION_SCHEMA to be"
+                    + "selected for processing. Defaults to 0 (all queries are processed)")
+            .build();
     options.addOption(infoSchemaSlotmsMin);
 
     Option infoSchemaTable =
@@ -310,14 +318,14 @@ public class AntiPatternCommandParser {
             .build();
     options.addOption(region);
 
-
     Option info_schema_project =
         Option.builder(INFO_SCHEMA_PROJECT)
             .argName(INFO_SCHEMA_PROJECT)
             .hasArg()
             .required(false)
-            .desc("project for which information schema will be read. This is the "
-                + "project with the queries that you want to optimize")
+            .desc(
+                "project for which information schema will be read. This is the "
+                    + "project with the queries that you want to optimize")
             .build();
     options.addOption(info_schema_project);
 
@@ -359,9 +367,17 @@ public class AntiPatternCommandParser {
     String region = cmd.getOptionValue(INFO_SCHEMA_REGION);
     String infoSchemaProject = cmd.getOptionValue(INFO_SCHEMA_PROJECT);
 
-    return new InformationSchemaQueryIterable(processingProjectId, infoSchemaDays,
-        infoSchemaStartTime, infoSchemaEndTime, infoSchemaTableName, infoSchemaSlotmsMin,
-        timeoutInSecs, customTopNPercent, region, infoSchemaProject);
+    return new InformationSchemaQueryIterable(
+        processingProjectId,
+        infoSchemaDays,
+        infoSchemaStartTime,
+        infoSchemaEndTime,
+        infoSchemaTableName,
+        infoSchemaSlotmsMin,
+        timeoutInSecs,
+        customTopNPercent,
+        region,
+        infoSchemaProject);
   }
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {
@@ -381,8 +397,8 @@ public class AntiPatternCommandParser {
     return new InputCsvQueryIterator(inputCSVPath);
   }
 
-
-  private static Iterator<InputQuery> buildIteratorFromBQTable(String inputTable) throws InterruptedException {
+  private static Iterator<InputQuery> buildIteratorFromBQTable(String inputTable)
+      throws InterruptedException {
     logger.info("Using bq table as input source");
     return new InputBigQueryTableIterator(inputTable);
   }
@@ -392,8 +408,7 @@ public class AntiPatternCommandParser {
     if (GCSHelper.isGCSPath(folderPath)) {
       logger.info("Reading input folder from GCS");
       GCSHelper gcsHelper = new GCSHelper();
-      return new InputFolderQueryIterable(
-          gcsHelper.getListOfFilesInGCSPath(folderPath));
+      return new InputFolderQueryIterable(gcsHelper.getListOfFilesInGCSPath(folderPath));
     } else {
       logger.info("Reading input folder from local");
       List<String> fileList =

@@ -37,11 +37,11 @@ public class Main {
   private static int countQueriesRead = 0;
   private static int countQueriesWithAntipattern = 0;
 
-
   public static void main(String[] args) throws ParseException, IOException {
     cmdParser = new AntiPatternCommandParser(args);
 
-    AntiPatternHelper antiPatternHelper = new AntiPatternHelper(cmdParser.getProcessingProject(), cmdParser.useAnalyzer());
+    AntiPatternHelper antiPatternHelper =
+        new AntiPatternHelper(cmdParser.getProcessingProject(), cmdParser.useAnalyzer());
 
     Iterator<InputQuery> inputQueriesIterator = cmdParser.getInputQueries();
     OutputWriter outputWriter = OutputWriterFactory.getOutputWriter(cmdParser);
@@ -59,25 +59,32 @@ public class Main {
     outputWriter.close();
   }
 
-  private static void executeAntiPatternsInQuery(InputQuery inputQuery,
-                                                 OutputWriter outputWriter,
-                                                 AntiPatternCommandParser cmdParser,
-                                                 AntiPatternHelper antiPatternHelper) {
+  private static void executeAntiPatternsInQuery(
+      InputQuery inputQuery,
+      OutputWriter outputWriter,
+      AntiPatternCommandParser cmdParser,
+      AntiPatternHelper antiPatternHelper) {
 
     try {
       List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
       // parser visitors
-      antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
+      antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(
+          inputQuery, visitorsThatFoundAntiPatterns);
 
       // analyzer visitor
       if (antiPatternHelper.getUseAnalizer()) {
-        antiPatternHelper.checkForAntiPatternsInQueryWithAnalyzerVisitors(inputQuery, visitorsThatFoundAntiPatterns);
+        antiPatternHelper.checkForAntiPatternsInQueryWithAnalyzerVisitors(
+            inputQuery, visitorsThatFoundAntiPatterns);
       }
 
       // rewrite
-      if(cmdParser.rewriteSQL()) {
-        GeminiRewriter.rewriteSQL(inputQuery, visitorsThatFoundAntiPatterns, antiPatternHelper,
-                cmdParser.getLlmRetriesSQL(), cmdParser.getLlmStrictValidation());
+      if (cmdParser.rewriteSQL()) {
+        GeminiRewriter.rewriteSQL(
+            inputQuery,
+            visitorsThatFoundAntiPatterns,
+            antiPatternHelper,
+            cmdParser.getLlmRetriesSQL(),
+            cmdParser.getLlmStrictValidation());
       }
 
       // write output
@@ -92,7 +99,7 @@ public class Main {
     }
   }
 
-  private static void logResultStats(){
+  private static void logResultStats() {
     StringBuilder statsString = new StringBuilder();
     statsString.append("\n\n* Queries read: " + countQueriesRead);
     statsString.append("\n* Queries with anti patterns: " + countQueriesWithAntipattern);

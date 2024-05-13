@@ -37,36 +37,39 @@ import org.slf4j.LoggerFactory;
 
 public class BigQueryHelper {
   private static final String USER_AGENT_HEADER = "user-agent";
-  private static final String USER_AGENT_VALUE =
-      "google-pso-tool/antipattern-tool/0.1.0";
+  private static final String USER_AGENT_VALUE = "google-pso-tool/antipattern-tool/0.1.0";
   private static final HeaderProvider headerProvider =
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
-  public static TableResult getQueriesFromIS(String projectId, String daysBack, String startTime,
-      String endTime, String ISTable, Integer slotsMsMin, Long timeoutInSecs, Float topNPercent,
+  public static TableResult getQueriesFromIS(
+      String projectId,
+      String daysBack,
+      String startTime,
+      String endTime,
+      String ISTable,
+      Integer slotsMsMin,
+      Long timeoutInSecs,
+      Float topNPercent,
       String region)
-          throws InterruptedException {
+      throws InterruptedException {
     String timeCriteria;
     if (StringUtils.isBlank(startTime) || StringUtils.isBlank(endTime)) {
       logger.info(
-              "Running job on project {}, reading from: {}, scanning last {} days." +
-                      "and selecting queries with minimum {} slotms. "
-                  + " Considering only top {}% slot consuming jobs",
-              projectId,
-              ISTable,
-              daysBack,
-              slotsMsMin, topNPercent*100);
+          "Running job on project {}, reading from: {}, scanning last {} days."
+              + "and selecting queries with minimum {} slotms. "
+              + " Considering only top {}% slot consuming jobs",
+          projectId, ISTable, daysBack, slotsMsMin, topNPercent * 100);
       timeCriteria = "  creation_time >= CURRENT_TIMESTAMP - INTERVAL " + daysBack + " DAY\n";
     } else {
       logger.info(
-              "Running job on project {}, reading from: {}, scanning between {} and {}." +
-                      "and selecting queries with minimum {} slotms",
-              projectId,
-              ISTable,
-              startTime,
-              endTime,
-              slotsMsMin);
+          "Running job on project {}, reading from: {}, scanning between {} and {}."
+              + "and selecting queries with minimum {} slotms",
+          projectId,
+          ISTable,
+          startTime,
+          endTime,
+          slotsMsMin);
 
       startTime = startTime.trim();
       endTime = endTime.trim();
@@ -78,11 +81,18 @@ public class BigQueryHelper {
       }
       timeCriteria = "  creation_time BETWEEN " + startTime + " AND " + endTime + "\n";
     }
-    return getQueriesFromIS(projectId, timeoutInSecs, timeCriteria, ISTable, slotsMsMin, topNPercent, region);
+    return getQueriesFromIS(
+        projectId, timeoutInSecs, timeCriteria, ISTable, slotsMsMin, topNPercent, region);
   }
 
-  private static TableResult getQueriesFromIS(String projectId, Long timeoutInSecs,
-      String timeCriteria,String ISTable, Integer slotsMsMin, Float topNPercent, String region)
+  private static TableResult getQueriesFromIS(
+      String projectId,
+      Long timeoutInSecs,
+      String timeCriteria,
+      String ISTable,
+      Integer slotsMsMin,
+      Float topNPercent,
+      String region)
       throws InterruptedException {
     BigQuery bigquery =
         BigQueryOptions.newBuilder()
@@ -91,25 +101,32 @@ public class BigQueryHelper {
             .build()
             .getService();
 
-    String query = "SELECT\n"
-        + "  project_id,\n"
-        + "  CONCAT(project_id, \":" + region.toUpperCase() +".\",  job_id) job_id, \n"
-        + "  query, \n"
-        + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours, \n"
-        + "  user_email, \n"
-        + "  PERCENT_RANK() OVER(ORDER BY total_slot_ms desc) perc_rnk \n"
-        + "FROM\n"
-        + ISTable
-        + "\n"
-        + "WHERE \n"
-        + timeCriteria
-        + "  AND total_slot_ms > "+ slotsMsMin+ "\n"
-        + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
-        + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
-        + "  AND query not like '%INFORMATION_SCHEMA%' \n"
-        + "QUALIFY perc_rnk < " + topNPercent + "\n"
-        + "ORDER BY \n"
-        + "  project_id, start_time desc\n";
+    String query =
+        "SELECT\n"
+            + "  project_id,\n"
+            + "  CONCAT(project_id, \":"
+            + region.toUpperCase()
+            + ".\",  job_id) job_id, \n"
+            + "  query, \n"
+            + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours, \n"
+            + "  user_email, \n"
+            + "  PERCENT_RANK() OVER(ORDER BY total_slot_ms desc) perc_rnk \n"
+            + "FROM\n"
+            + ISTable
+            + "\n"
+            + "WHERE \n"
+            + timeCriteria
+            + "  AND total_slot_ms > "
+            + slotsMsMin
+            + "\n"
+            + "  AND (statement_type != \"SCRIPT\" OR statement_type IS NULL)\n"
+            + "  AND (reservation_id != 'default-pipeline' or reservation_id IS NULL)\n"
+            + "  AND query not like '%INFORMATION_SCHEMA%' \n"
+            + "QUALIFY perc_rnk < "
+            + topNPercent
+            + "\n"
+            + "ORDER BY \n"
+            + "  project_id, start_time desc\n";
 
     logger.info("Reading from INFORMATION_SCHEMA: \n" + query);
     QueryJobConfiguration queryConfig =
@@ -123,31 +140,24 @@ public class BigQueryHelper {
     return queryJob.getQueryResults();
   }
 
-public static TableResult getQueriesFromBQTable(String inputTable)
-      throws InterruptedException {
-        BigQuery bigquery =
+  public static TableResult getQueriesFromBQTable(String inputTable) throws InterruptedException {
+    BigQuery bigquery =
         BigQueryOptions.newBuilder()
             .setProjectId(inputTable.split("\\.")[0])
             .setHeaderProvider(headerProvider)
             .build()
             .getService();
 
-    String query = "SELECT\n"
-        + "  id,\n"
-        + "  query"
-        + " FROM \n`"
-        + inputTable + "`;";
+    String query = "SELECT\n" + "  id,\n" + "  query" + " FROM \n`" + inputTable + "`;";
 
     logger.info("Reading from BigQuery table: \n" + query);
     QueryJobConfiguration queryConfig =
-        QueryJobConfiguration.newBuilder(query)
-            .setUseLegacySql(false)
-            .build();
+        QueryJobConfiguration.newBuilder(query).setUseLegacySql(false).build();
 
     logger.debug("Running query:\n" + queryConfig.getQuery());
     Job queryJob = bigquery.create(JobInfo.newBuilder(queryConfig).build());
     return queryJob.getQueryResults();
-}
+  }
 
   public static void writeResults(
       String processingProject, String outputTable, Map<String, Object> rowContent) {
@@ -159,9 +169,24 @@ public static TableResult getQueriesFromBQTable(String inputTable)
             .setHeaderProvider(headerProvider)
             .build()
             .getService();
-    InsertAllResponse response = bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
-    if(response.hasErrors()) {
-      logger.error("Insert into " + tableId.toString() + " failed, with these errors: " + StringUtils.join(response.getInsertErrors()) );
+    InsertAllResponse response =
+        bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
+    if (response.hasErrors()) {
+      logger.error(
+          "Insert into "
+              + tableId.toString()
+              + " failed, with these errors: "
+              + StringUtils.join(response.getInsertErrors()));
+    }
+  }
+
+  public static void checkBQConnectiviy() {
+    try {
+      BigQuery bigquery =
+          BigQueryOptions.newBuilder().setHeaderProvider(headerProvider).build().getService();
+      bigquery.listDatasets("bigquery-public-data", BigQuery.DatasetListOption.pageSize(1));
+    } catch (Throwable e) {
+
     }
   }
 }
