@@ -16,6 +16,8 @@
 
 package com.google.zetasql.toolkit.antipattern;
 
+import static com.google.zetasql.toolkit.antipattern.util.BigQueryHelper.checkBQConnectiviy;
+
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.Parser;
@@ -236,4 +238,5 @@ public class Main {
     statsString.append("\n* Queries with anti patterns: " + countQueriesWithAntipattern);
     logger.info(statsString.toString());
   }
+
 }

@@ -16,6 +16,8 @@
 
 package com.google.zetasql.toolkit.antipattern.cmd;
 
+import static com.google.zetasql.toolkit.antipattern.util.BigQueryHelper.checkBQConnectiviy;
+
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +62,7 @@ public class AntiPatternCommandParser {
     CommandLineParser parser = new BasicParser();
     logger.info("Running anti pattern tool for args:" + String.join(" ", args));
     cmd = parser.parse(options, args);
+    checkBQConnectiviy();
     logger.info("Running with the following config:" + cmd.toString());
 
   }

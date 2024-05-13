@@ -164,4 +164,16 @@ public static TableResult getQueriesFromBQTable(String inputTable)
       logger.error("Insert into " + tableId.toString() + " failed, with these errors: " + StringUtils.join(response.getInsertErrors()) );
     }
   }
+
+  public static void checkBQConnectiviy() {
+    // try {
+      BigQuery bigquery =
+          BigQueryOptions.newBuilder().setHeaderProvider(headerProvider).build().getService();
+      bigquery.listDatasets("bigquery-public-data", BigQuery.DatasetListOption.pageSize(1));
+    System.out.println("========================== worked ================================");
+    System.out.println("=========================== worked ===============================");
+    // } catch (Throwable e) {
+    //
+    // }
+  }
 }
