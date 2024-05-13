@@ -98,4 +98,5 @@ public class Main {
     statsString.append("\n* Queries with anti patterns: " + countQueriesWithAntipattern);
     logger.info(statsString.toString());
   }
+
 }
