@@ -4,9 +4,9 @@
 # ... (rest of the license)
 
 steps:
-# - name: 'maven:3.9.4-eclipse-temurin-17'  # Or the correct version of your maven image
-#   entrypoint: 'mvn'
-#   args: ['clean', 'package', 'jib:build', '-DskipTests', '-Djib.to.image=us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT']
+- name: 'maven:3.9.4-eclipse-temurin-17'  # Or the correct version of your maven image
+  entrypoint: 'mvn'
+  args: ['clean', 'package', 'jib:build', '-DskipTests', '-Djib.to.image=us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT']
 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'

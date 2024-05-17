@@ -47,13 +47,6 @@ limitations under the License.
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>com.google.zetasql.toolkit.antipattern.Main</mainClass>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>${google.cloud.jib.version}</version>
