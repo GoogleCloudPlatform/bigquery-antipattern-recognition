@@ -1,0 +1,23 @@
+# Copyright 2024 Google LLC
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# ... (rest of the license)
+
+steps:
+# - name: 'maven:3.9.4-eclipse-temurin-17'  # Or the correct version of your maven image
+#   entrypoint: 'mvn'
+#   args: ['clean', 'package', 'jib:build', '-DskipTests', '-Djib.to.image=us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT']
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args:
+    - 'run'
+    - 'deploy'
+    - 'recognizer'  # Cloud Run service name
+    - '--image'
+    - 'us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT'  
+    - '--region'
+    - 'us-central1'
+    - '--platform'
+    - 'managed'
+    - '--no-allow-unauthenticated' # Or configure authentication as needed
