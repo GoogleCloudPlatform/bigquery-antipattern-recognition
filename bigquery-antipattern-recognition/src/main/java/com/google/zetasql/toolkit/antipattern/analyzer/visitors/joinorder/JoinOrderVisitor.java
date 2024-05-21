@@ -54,14 +54,14 @@ public class JoinOrderVisitor extends ResolvedNodes.Visitor implements AntiPatte
     if (joinScanVisitor.isJoiningOnyTables()) {
       List<TableReference> tablesInJoinWithOptimalOrder = getOptimalOrder(
           joinScanVisitor.getTablesInJoin());
-      checkForAntiPatter(joinScanVisitor.getTablesInJoin(), tablesInJoinWithOptimalOrder);
+      checkForAntiPattern(joinScanVisitor.getTablesInJoin(), tablesInJoinWithOptimalOrder);
     } else {
       super.visit(joinScan);
     }
   }
 
-  private void checkForAntiPatter(List<TableReference> tablesInJoin,
-      List<TableReference> tablesInJoinWithOptimalOrder) {
+  private void checkForAntiPattern(List<TableReference> tablesInJoin,
+                                   List<TableReference> tablesInJoinWithOptimalOrder) {
     if (!tablesInJoin.equals(tablesInJoinWithOptimalOrder)) {
       String tablesOriginalOrder = String.join(", ",
           tablesInJoin.stream().map(x -> x.getTableId()).collect(Collectors.toList()));
