@@ -18,13 +18,14 @@
 
  import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
  import com.google.zetasql.toolkit.antipattern.Main;
- import com.google.zetasql.toolkit.antipattern.model.BigQueryRequest;
- import com.google.zetasql.toolkit.antipattern.model.BigQueryResponse;
- import com.google.zetasql.toolkit.antipattern.model.BigQueryRow;
+ import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnRequest;
+ import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnResponse;
+ import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnReply;
  import org.springframework.web.bind.annotation.PostMapping;
  import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
  import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
-
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonParser;
  import org.springframework.web.bind.annotation.RequestBody;
  import org.springframework.web.bind.annotation.RestController;
 
@@ -36,22 +37,23 @@ import java.util.stream.Collectors;
  public class AntiPatternController {
  
      @PostMapping("/") // Default endpoint for BigQuery remote functions
-     public BigQueryResponse analyzeQueries(@RequestBody BigQueryRequest request) {
-         BigQueryResponse response = new BigQueryResponse();
+     public void analyzeQueries(@RequestBody BigQueryRemoteFnRequest request) {
+        BigQueryRemoteFnResponse response;
          InputQuery inputQuery;
-         for (BigQueryRow row : request.getCalls()) {
-            inputQuery = row.getData().get(0);
-             AntiPatternHelper antiPatternHelper = new AntiPatternHelper(null, null);
-             try {
-                 List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
-                // parser visitors
-                antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
-             } catch (Exception e) {
-                 response.addReply(new BigQueryRow("error", e.getMessage()));
-             }
+         for (Object row : request.getCalls()) {
+            //  AntiPatternHelper antiPatternHelper = new AntiPatternHelper(null, null);
+            //  try {
+            //      List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
+            //     // parser visitors
+            //     antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
+            //  } catch (Exception e) {
+            //      response.addReply("error", e.getMessage());
+            //  }
+            response = new BigQueryRemoteFnResponse(new BigQueryRemoteFnReply[] {}, "null");
+                System.out.println(row);
          }
          
-         return response;
+        //  return response;
      }
  }
  
