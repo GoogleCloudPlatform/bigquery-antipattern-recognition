@@ -24,9 +24,9 @@ limitations under the License.
     <version>1.0.0</version>
 
     <properties>
-        <java.version>17</java.version> 
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>11</java.version> 
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <container.mainClass/>
     </properties>
@@ -35,7 +35,7 @@ limitations under the License.
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>3.1.2</version> 
+            <version>2.7.13</version> 
          </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -156,11 +156,11 @@ limitations under the License.
                 <configuration>
                     <container>
                         <mainClass>
-                            com.google.zetasql.toolkit.antipattern.Main
+                            com.google.zetasql.toolkit.antipattern.AntiPatternApplication
                         </mainClass>
                     </container>
                     <from>
-                        <image>openjdk:17</image>
+                        <image>openjdk:11</image>
                     </from>
                     <to>
                         <image>bigquery-antipattern-recognition</image>
@@ -181,7 +181,7 @@ limitations under the License.
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.google.zetasql.toolkit.antipattern.Main</mainClass>
+                            <mainClass>com.google.zetasql.toolkit.antipattern.AntiPatternApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -203,7 +203,7 @@ limitations under the License.
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.google.zetasql.toolkit.antipattern.Main</mainClass>
+                            <mainClass>com.google.zetasql.toolkit.antipattern.AntiPatternApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

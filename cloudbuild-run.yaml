@@ -3,16 +3,73 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # ... (rest of the license)
 
+# steps:
+#   - name: maven:3-openjdk-17
+#     entrypoint: mvn
+#     args: ["jib:build", "us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT"]
+
+# steps:
+#   - name: 'maven:3.9.6-amazoncorretto-11-debian'
+#     args: [
+#       'clean',
+#       'package', 
+#       'jib:build',
+#       '-DskipTests',
+#       '-Djib.to.image=us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:latest'
+#     ]
 steps:
-  - name: maven:3-eclipse-temurin-17-alpine
-    entrypoint: mvn
-    args: ["test"]
-  - name: maven:3-eclipse-temurin-17-alpine
-    entrypoint: mvn
-    args: ["package", "-Dmaven.test.skip=true"]
-  - name: gcr.io/cloud-builders/docker
-    args: ["build", "-t", "us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT", "--build-arg=JAR_FILE=target/recognizer:0.1.1.jar", "."]
-images: ["us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT"]
+  - name: 'ubuntu:latest'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        apt-get update && \
+        apt-get install -y openjdk-11-jdk maven && \
+        mvn compile jib:build -Djib.to.image=us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer-test-run:latest
+
+
+
+
+
+
+
+
+# steps:
+#   - name: ubuntu:latest
+#     entrypoint: bash
+#     args:
+#       - -c
+#       - |
+#         apt-get update && apt-get install -y openjdk-17-jdk maven && rm -rf /var/lib/apt/lists/*
+#   - name: 'gcr.io/cloud-builders/mvn'
+#     entrypoint: 'mvn'
+#     args: ['compile', 'jib:build','--no-cache', '-Djib.to.image=us-central1-docker.pkg.dev/bqutil-test/anti-pattern/bq-antipattern-test:latest']
+
+
+# gcloud run deploy bq-antipattern --image us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT
+
+# steps:
+#   - name: maven:3-openjdk-17
+#     entrypoint: mvn
+#     args: ["test"]
+#   - name: maven:3-openjdk-17
+#     entrypoint: mvn
+#     args: ["package", "-Dmaven.test.skip=true"]
+#   - name: gcr.io/cloud-builders/docker
+#     args: ["build", "-t", "us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT", "--build-arg=JAR_FILE=target/recognizer:0.1.1.jar", "."]
+# images: ["us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT"]
+
+# projectId: bqutil-test
+# steps:
+# - name: gcr.io/k8s-skaffold/pack
+#   entrypoint: pack
+#   args:
+#   - build
+#   - us-central1-docker.pkg.dev/bqutil-test/anti-pattern/recognizer:0.1.1-SNAPSHOT
+#   - --builder
+#   - gcr.io/buildpacks/builder:latest
+#   - --network
+#   - cloudbuild
 
 # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
 #   entrypoint: 'gcloud'
