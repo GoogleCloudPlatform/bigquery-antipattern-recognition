@@ -28,7 +28,7 @@ limitations under the License.
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <container.mainClass/>
+        <container.mainClass>com.google.zetasql.toolkit.antipattern.Main</container.mainClass>
     </properties>
 
     <dependencies>
@@ -156,7 +156,7 @@ limitations under the License.
                 <configuration>
                     <container>
                         <mainClass>
-                            com.google.zetasql.toolkit.antipattern.AntiPatternApplication
+                            ${container.mainClass}
                         </mainClass>
                     </container>
                     <from>
@@ -181,7 +181,7 @@ limitations under the License.
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.google.zetasql.toolkit.antipattern.AntiPatternApplication</mainClass>
+                            <mainClass>${container.mainClass}</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -203,7 +203,7 @@ limitations under the License.
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.google.zetasql.toolkit.antipattern.AntiPatternApplication</mainClass>
+                            <mainClass>${container.mainClass}</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
