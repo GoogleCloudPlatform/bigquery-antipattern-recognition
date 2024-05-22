@@ -14,29 +14,47 @@
  * the License.
  */
 
-package com.google.zetasql.toolkit.antipattern.controller;
+ package com.google.zetasql.toolkit.antipattern.controller;
 
-import com.google.zetasql.toolkit.antipattern.Main;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+ import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
+ import com.google.zetasql.toolkit.antipattern.Main;
+ import com.google.zetasql.toolkit.antipattern.model.BigQueryRequest;
+ import com.google.zetasql.toolkit.antipattern.model.BigQueryResponse;
+ import com.google.zetasql.toolkit.antipattern.model.BigQueryRow;
+ import org.springframework.web.bind.annotation.PostMapping;
+ import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
+ import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 
-@RestController
-public class AntiPatternController {
+ import org.springframework.web.bind.annotation.RequestBody;
+ import org.springframework.web.bind.annotation.RestController;
 
-    @PostMapping("/")
-    public String analyzeQuery(@RequestBody String query) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            System.setOut(new PrintStream(baos));
-            String[] args = {"--query", query};
-            Main.main(args);
-            System.setOut(System.out);
-            return baos.toString();
-        } catch (Exception e) {
-            return "Error processing the query: " + e.getMessage();
-        }
-    }
-}
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+ 
+ @RestController
+ public class AntiPatternController {
+ 
+     @PostMapping("/") // Default endpoint for BigQuery remote functions
+     public BigQueryResponse analyzeQueries(@RequestBody BigQueryRequest request) {
+         BigQueryResponse response = new BigQueryResponse();
+         InputQuery inputQuery;
+         for (BigQueryRow row : request.getCalls()) {
+            inputQuery = row.getData().get(0);
+             AntiPatternHelper antiPatternHelper = new AntiPatternHelper(null, null);
+             try {
+                 List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
+                // parser visitors
+                antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
+             } catch (Exception e) {
+                 response.addReply(new BigQueryRow("error", e.getMessage()));
+             }
+         }
+         
+         return response;
+     }
+ }
+ 
+
+
+            
