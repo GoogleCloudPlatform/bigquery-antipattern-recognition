@@ -18,6 +18,9 @@ package com.google.zetasql.toolkit.antipattern.controller;
 
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnRequest;
+import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnReply;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
@@ -35,31 +38,43 @@ import java.util.List;
 @RestController
 public class AntiPatternController {
 
-    @PostMapping("/") 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @PostMapping("/")
     public ObjectNode analyzeQueries(@RequestBody BigQueryRemoteFnRequest request) {
-        ObjectMapper mapper = new ObjectMapper();
-        ArrayNode replies = mapper.createArrayNode();
+        ArrayNode replies = objectMapper.createArrayNode();
+
         for (JsonNode call : request.getCalls()) {
-            AntiPatternHelper antiPatternHelper = new AntiPatternHelper(null, false);
+            ObjectNode queryResponse = objectMapper.createObjectNode(); 
+
             try {
                 InputQuery inputQuery = new InputQuery(call.get(0).asText(), "query provided by cli:");
-                List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
-                antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery,
-                        visitorsThatFoundAntiPatterns);
-                if (visitorsThatFoundAntiPatterns.size() > 0) {
-                    for (AntiPatternVisitor visitor : visitorsThatFoundAntiPatterns) {
-                        replies.add(visitor.getName());
-                    }
-                } else {
-                    replies.add("No antipatterns found");
-                }
+                List<AntiPatternVisitor> visitors = new ArrayList<>();
+                AntiPatternHelper antiPatternHelper = new AntiPatternHelper(null, false);
+                antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitors);
 
+                if (!visitors.isEmpty()) {
+                    ArrayNode antipatterns = objectMapper.createArrayNode(); // ArrayNode to hold antipatterns
+
+                    for (AntiPatternVisitor visitor : visitors) {
+                        ObjectNode antipattern = objectMapper.createObjectNode();
+                        antipattern.put("name", visitor.getName()); 
+                        antipattern.put("result", visitor.getResult());
+                        antipatterns.add(antipattern); // Add to antipatterns array
+                    }
+                    queryResponse.set("antipatterns", antipatterns); // Add the array to queryResponse
+                } else {
+                    queryResponse.put("message", "No antipatterns found");
+                }
             } catch (Exception e) {
-                // response.addReply("error", e.getMessage());
+                queryResponse.put("error", e.getMessage()); 
             }
+
+            replies.add(queryResponse);
         }
 
-        ObjectNode jsonObject = mapper.createObjectNode();
+        ObjectNode jsonObject = objectMapper.createObjectNode();
         jsonObject.set("replies", replies);
 
         return jsonObject;
