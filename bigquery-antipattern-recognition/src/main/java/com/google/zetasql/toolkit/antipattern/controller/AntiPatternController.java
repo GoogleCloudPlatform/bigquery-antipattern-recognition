@@ -18,7 +18,6 @@ package com.google.zetasql.toolkit.antipattern.controller;
 
 import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnRequest;
-import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnReply;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,10 +45,10 @@ public class AntiPatternController {
         ArrayNode replies = objectMapper.createArrayNode();
 
         for (JsonNode call : request.getCalls()) {
-            ObjectNode queryResponse = objectMapper.createObjectNode(); 
+            ObjectNode queryResponse = objectMapper.createObjectNode();
 
             try {
-                InputQuery inputQuery = new InputQuery(call.get(0).asText(), "query provided by cli:");
+                InputQuery inputQuery = new InputQuery(call.get(0).asText(), "query provided by UDF:");
                 List<AntiPatternVisitor> visitors = new ArrayList<>();
                 AntiPatternHelper antiPatternHelper = new AntiPatternHelper(null, false);
                 antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitors);
@@ -59,16 +58,16 @@ public class AntiPatternController {
 
                     for (AntiPatternVisitor visitor : visitors) {
                         ObjectNode antipattern = objectMapper.createObjectNode();
-                        antipattern.put("name", visitor.getName()); 
+                        antipattern.put("name", visitor.getName());
                         antipattern.put("result", visitor.getResult());
                         antipatterns.add(antipattern); // Add to antipatterns array
                     }
                     queryResponse.set("antipatterns", antipatterns); // Add the array to queryResponse
                 } else {
-                    queryResponse.put("message", "No antipatterns found");
+                    queryResponse.put("None", "No antipatterns found");
                 }
             } catch (Exception e) {
-                queryResponse.put("error", e.getMessage()); 
+                queryResponse.put("errorMessage", e.getMessage());
             }
 
             replies.add(queryResponse);
