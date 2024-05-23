@@ -36,7 +36,7 @@ public class BigQueryRemoteFnResponse {
     public static BigQueryRemoteFnResponse withReplies(List<BigQueryRemoteFnReply> replies) {
         return new BigQueryRemoteFnResponse(checkNotNull(replies), null);
       }
-    
+
       public static BigQueryRemoteFnResponse withErrorMessage(String errorMessage) {
         return new BigQueryRemoteFnResponse(null, errorMessage);
       }

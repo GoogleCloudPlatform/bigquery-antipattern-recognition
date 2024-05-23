@@ -14,49 +14,54 @@
  * the License.
  */
 
- package com.google.zetasql.toolkit.antipattern.controller;
+package com.google.zetasql.toolkit.antipattern.controller;
 
- import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
- import com.google.zetasql.toolkit.antipattern.Main;
- import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnRequest;
- import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnResponse;
- import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnReply;
- import org.springframework.web.bind.annotation.PostMapping;
- import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
- import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
- import com.google.gson.JsonObject;
- import com.google.gson.JsonParser;
- import org.springframework.web.bind.annotation.RequestBody;
- import org.springframework.web.bind.annotation.RestController;
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
+import com.google.zetasql.toolkit.antipattern.models.BigQueryRemoteFnRequest;
+import org.springframework.web.bind.annotation.PostMapping;
+import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
+import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
- 
- @RestController
- public class AntiPatternController {
- 
-     @PostMapping("/") // Default endpoint for BigQuery remote functions
-     public void analyzeQueries(@RequestBody BigQueryRemoteFnRequest request) {
-        BigQueryRemoteFnResponse response;
-         InputQuery inputQuery;
-         for (Object row : request.getCalls()) {
-            //  AntiPatternHelper antiPatternHelper = new AntiPatternHelper(null, null);
-            //  try {
-            //      List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
-            //     // parser visitors
-            //     antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery, visitorsThatFoundAntiPatterns);
-            //  } catch (Exception e) {
-            //      response.addReply("error", e.getMessage());
-            //  }
-            response = new BigQueryRemoteFnResponse(new BigQueryRemoteFnReply[] {}, "null");
-                System.out.println(row);
-         }
-         
-        //  return response;
-     }
- }
- 
 
+@RestController
+public class AntiPatternController {
 
-            
+    @PostMapping("/") 
+    public ObjectNode analyzeQueries(@RequestBody BigQueryRemoteFnRequest request) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode replies = mapper.createArrayNode();
+        for (JsonNode call : request.getCalls()) {
+            AntiPatternHelper antiPatternHelper = new AntiPatternHelper(null, false);
+            try {
+                InputQuery inputQuery = new InputQuery(call.get(0).asText(), "query provided by cli:");
+                List<AntiPatternVisitor> visitorsThatFoundAntiPatterns = new ArrayList<>();
+                antiPatternHelper.checkForAntiPatternsInQueryWithParserVisitors(inputQuery,
+                        visitorsThatFoundAntiPatterns);
+                if (visitorsThatFoundAntiPatterns.size() > 0) {
+                    for (AntiPatternVisitor visitor : visitorsThatFoundAntiPatterns) {
+                        replies.add(visitor.getName());
+                    }
+                } else {
+                    replies.add("No antipatterns found");
+                }
+
+            } catch (Exception e) {
+                // response.addReply("error", e.getMessage());
+            }
+        }
+
+        ObjectNode jsonObject = mapper.createObjectNode();
+        jsonObject.set("replies", replies);
+
+        return jsonObject;
+    }
+}

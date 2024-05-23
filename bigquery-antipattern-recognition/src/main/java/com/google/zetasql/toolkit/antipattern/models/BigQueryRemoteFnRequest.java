@@ -1,20 +1,29 @@
 package com.google.zetasql.toolkit.antipattern.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 public class BigQueryRemoteFnRequest {
 
     private String requestId;
     private String caller;
     private String sessionUser;
-    @Nullable private Map<String, String> userDefinedContext;
-    private List<Object> calls;
+    private Map<String, String> userDefinedContext;
+    private List<JsonNode> calls;
 
-    // Constructor
-    public BigQueryRemoteFnRequest(String requestId, String caller, String sessionUser,
-                                  @Nullable Map<String, String> userDefinedContext, List<Object> calls) {
+    // Constructor with @JsonProperty annotations
+    public BigQueryRemoteFnRequest(
+        @JsonProperty("requestId") String requestId,
+        @JsonProperty("caller") String caller,
+        @JsonProperty("sessionUser") String sessionUser,
+        @JsonProperty("userDefinedContext") Map<String, String> userDefinedContext,
+        @JsonProperty("calls") List<JsonNode> calls
+    ) {
         this.requestId = requestId;
         this.caller = caller;
         this.sessionUser = sessionUser;
@@ -56,11 +65,11 @@ public class BigQueryRemoteFnRequest {
         this.userDefinedContext = userDefinedContext;
     }
 
-    public List<Object> getCalls() {
+    public List<JsonNode> getCalls() {
         return calls;
     }
 
-    public void setCalls(List<Object> calls) {
+    public void setCalls(List<JsonNode> calls) {
         this.calls = calls;
     }
 }
