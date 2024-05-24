@@ -16,7 +16,6 @@ public class BigQueryRemoteFnRequest {
     private Map<String, String> userDefinedContext;
     private List<JsonNode> calls;
 
-    // Constructor with @JsonProperty annotations
     public BigQueryRemoteFnRequest(
         @JsonProperty("requestId") String requestId,
         @JsonProperty("caller") String caller,
@@ -31,7 +30,6 @@ public class BigQueryRemoteFnRequest {
         this.calls = calls;
     }
 
-    // Getters and Setters
     public String getRequestId() {
         return requestId;
     }
