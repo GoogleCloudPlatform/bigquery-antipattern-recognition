@@ -33,10 +33,10 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
     the [gcloud](https://cloud.google.com/sdk/gcloud/) command-line tool, and with values already set for your current
     project. It can take a few seconds for the session to initialize.
 
-1.  In Cloud Shell, clone the source repository and go to the directory for this tutorial:
+1.  In Cloud Shell, clone the source repository:
 
         git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
-        cd bigquery-antipattern-recognition/udf/terraform
+        cd bigquery-antipattern-recognition
 
 2.  Enable all the required Google Cloud APIs
 
@@ -59,6 +59,7 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
 2.  Initialize and run the Terraform script to create all resources:
 
     ```shell
+    cd /udf/terraform && \
     terraform init && \
     terraform apply
     ```
@@ -94,18 +95,6 @@ In case you want to customize the deployment, please use following steps:
 
 ### Setting up your environment
 
-1.  Enable APIs for Compute Engine, Cloud Storage, Dataproc, and Cloud SQL services:
-
-    ```shell
-    gcloud services enable --project "${PROJECT_ID}" \
-    artifactregistry.googleapis.com \
-    bigquery.googleapis.com \
-    bigqueryconnection.googleapis.com \
-    cloudbuild.googleapis.com \
-    iam.googleapis.com \
-    run.googleapis.com \
-    ```
-
 1.  In Cloud Shell, set the [Cloud Region](https://cloud.google.com/compute/docs/regions-zones#available) that you want to create your BigQuery and Cloud Run resources in:
 
     ```shell
@@ -130,7 +119,7 @@ gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
 
 ### Deploy Cloud Run service
 
-1. Build the application container image using [Cloud Build](https://cloud.google.com/build):
+1. Build the application container image using [Cloud Build](https://cloud.google.com/build). You should run this at the root of the directory:
     ```shell
     gcloud builds submit . \
     --project="${PROJECT_ID}" \
@@ -142,10 +131,8 @@ gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
 2. Deploy Cloud Run by compiling and deploying Container :
 
     ```shell
-    gcloud beta run deploy ${CLOUD_RUN_SERVICE_NAME} \
+    gcloud run deploy ${CLOUD_RUN_SERVICE_NAME} \
     --image="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REGISTRY_NAME}/${CLOUD_RUN_SERVICE_NAME}:latest" \
-    --execution-environment=gen2 \
-    --platform=managed \
     --region="${REGION}" \
     --no-allow-unauthenticated \
     --project ${PROJECT_ID}
