@@ -1,3 +1,18 @@
+#
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Provider configuration
 terraform {
   required_providers {
@@ -15,18 +30,18 @@ provider "google" {
 # Artifact Registry repository for the Docker image
 resource "google_artifact_registry_repository" "image_registry" {
   location      = var.region
-  repository_id = var.artifact_registry_name # Choose a unique ID
+  repository_id = var.artifact_registry_name
   description   = "Docker repository for BigQuery anti-pattern function"
   format        = "DOCKER"
 }
 
-
+# Build image with `../../cloudbuild-run.yaml`, uses AntiPatternApplication.java as main class
 resource "null_resource" "build_function_image" {
   depends_on = [google_artifact_registry_repository.image_registry]
 
   triggers = {
-    project_id = var.project_id
-    region = var.region
+    project_id      = var.project_id
+    region          = var.region
     full_image_path = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.image_registry.name}/${var.service_name}:latest"
   }
 
@@ -47,10 +62,10 @@ EOF
 
 # Cloud Run service to host the BigQuery remote function
 resource "google_cloud_run_service" "antipattern_service" {
-  name     = var.service_name
-  project    = var.project_id
+  name    = var.service_name
+  project = var.project_id
 
-  location = var.region
+  location   = var.region
   depends_on = [null_resource.build_function_image]
 
 
@@ -62,7 +77,6 @@ resource "google_cloud_run_service" "antipattern_service" {
     }
   }
 }
-
 
 # BigQuery connection to the Cloud Run service
 resource "google_bigquery_connection" "external_bq_fn_connection" {
@@ -86,24 +100,21 @@ resource "google_bigquery_dataset" "routines_dataset" {
   location   = var.region
   dataset_id = var.bq_dataset
 }
-# Output the URL of the deployed Cloud Run service
-output "cloud_run_service_url" {
-  value = google_cloud_run_service.antipattern_service.status[0].url
-}
 
+# Creates remote function
 resource "null_resource" "antipattern_function" {
   depends_on = [google_cloud_run_service.antipattern_service, google_bigquery_connection.external_bq_fn_connection, google_bigquery_dataset.routines_dataset]
 
   triggers = {
-    project_id = var.project_id
-    region = var.region
-    dataset_id = var.bq_dataset
+    project_id         = var.project_id
+    region             = var.region
+    dataset_id         = var.bq_dataset
     cloud_service_name = google_cloud_run_service.antipattern_service.id
-    cloud_run_uri = google_cloud_run_service.antipattern_service.status[0].url
+    cloud_run_uri      = google_cloud_run_service.antipattern_service.status[0].url
   }
 
   provisioner "local-exec" {
-    when = create
+    when    = create
     command = <<EOF
 bq query --project_id "${self.triggers.project_id}" \
 --use_legacy_sql=false \

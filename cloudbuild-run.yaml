@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ... (Copyright information remains the same)
 
 steps:
   - name: 'ubuntu:latest'
@@ -25,27 +24,6 @@ steps:
         apt-get install -y openjdk-11-jdk maven && \
         mvn compile jib:build -Dcontainer.mainClass=com.google.zetasql.toolkit.antipattern.AntiPatternApplication -Djib.to.image=$_CONTAINER_IMAGE_NAME 
    
-  # ... (gcloud run deploy steps remain the same)
-
-# steps:
-#   - name: 'ubuntu:latest'
-#     entrypoint: 'bash'
-#     args:
-#       - '-c'
-#       - |
-#         apt-get update && \
-#         apt-get install -y openjdk-11-jdk maven && \
-#         mvn compile jib:build -Dcontainer.mainClass=com.google.zetasql.toolkit.antipattern.AntiPatternApplication -Djib.to.image=us-central1-docker.pkg.dev/bqutil-test/anti-pattern/new-default-new:latest
-  # - name: 'gcr.io/cloud-builders/gcloud'  # Use the gcloud Cloud Builder image
-  #   args:
-  #     - 'run'
-  #     - 'deploy'
-  #     - 'bq-antipattern'                   # Your Cloud Run service name
-  #     - '--image'
-  #     - 'us-central1-docker.pkg.dev/bqutil-test/anti-pattern/new-default-new:latest'
-  #     - '--region'                         # Specify the region where your Cloud Run service is located
-  #     - 'us-central1'                       # Example region (change if needed)
-      # Add other optional flags if required (e.g., '--platform', '--allow-unauthenticated', etc.)
 
 # curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" -H "Content-Type: application/json" --request POST -d '{"query":"SELECT * FROM `dataset.table`"}' https://bq-antipattern-zjz3btki4q-uc.a.run.app
 # curl -H "Content-Type: application/json" --request POST -d '{"query":"SELECT * FROM `dataset.table`"}' http://localhost:8080/
