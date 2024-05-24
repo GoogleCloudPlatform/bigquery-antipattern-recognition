@@ -5,7 +5,7 @@
 
 1. **Cloud Run Service:** Deploys a Cloud Run service that houses the anti-pattern detection logic.
 2. **BigQuery Remote Function:** Creates a BigQuery User-Defined Function (UDF) that acts as a bridge between your SQL queries and the Cloud Run service.
-3. **Anti-Pattern Detection:** When you call the BigQuery UDF, it sends your SQL query to the Cloud Run service, which analyzes it for anti-patterns. The results are returned in JSON format.
+3. **Anti-Pattern Detection:** When you call the BigQuery UDF, it sends your SQL query to the Cloud Run service, which analyzes it for anti-patterns. The result is returned in JSON format.
 
 
 ## Costs
@@ -90,5 +90,134 @@ The function returns a JSON string for each query representing the antipatterns 
 
 ## Detailed Deployment steps
 
-Details deployment steps if you want to do it manually...
+In case you want to customize the deployment, please use following steps:
+
+### Setting up your environment
+
+1.  Enable APIs for Compute Engine, Cloud Storage, Dataproc, and Cloud SQL services:
+
+    ```shell
+    gcloud services enable --project "${PROJECT_ID}" \
+    artifactregistry.googleapis.com \
+    bigquery.googleapis.com \
+    bigqueryconnection.googleapis.com \
+    cloudbuild.googleapis.com \
+    iam.googleapis.com \
+    run.googleapis.com \
+    ```
+
+1.  In Cloud Shell, set the [Cloud Region](https://cloud.google.com/compute/docs/regions-zones#available) that you want to create your BigQuery and Cloud Run resources in:
+
+    ```shell
+    PROJECT_ID="<PROJECT_ID>"
+    REGION="<REGION_ID>"
+    ARTIFACT_REGISTRY_NAME="<ARTIFACT_DOCKER_REGISTRY_NAME>"
+    CLOUD_RUN_SERVICE_NAME="antipattern-service"
+    ```
+
+
+### Create Artifact Registry
+This is a containerized SpringBoot application.
+Create an [Artifact Registry](https://cloud.google.com/artifact-registry) to store the application's container image
+
+```shell
+gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
+--repository-format=docker \
+--location="${REGION}" \
+--description="Docker repository for Bigquery Functions" \
+--project="${PROJECT_ID}"
+```
+
+### Deploy Cloud Run service
+
+1. Build the application container image using [Cloud Build](https://cloud.google.com/build):
+    ```shell
+    gcloud builds submit . \
+    --project="${PROJECT_ID}" \
+    --config=cloudbuild-run.yaml \
+    --substitutions=_CONTAINER_IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REGISTRY_NAME}/${CLOUD_RUN_SERVICE_NAME}:latest" \
+    --machine-type=e2-highcpu-8
+    ```
+
+2. Deploy Cloud Run by compiling and deploying Container :
+
+    ```shell
+    gcloud beta run deploy ${CLOUD_RUN_SERVICE_NAME} \
+    --image="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REGISTRY_NAME}/${CLOUD_RUN_SERVICE_NAME}:latest" \
+    --execution-environment=gen2 \
+    --platform=managed \
+    --region="${REGION}" \
+    --no-allow-unauthenticated \
+    --project ${PROJECT_ID}
+    ```
+
+1.  Retrieve and save the Cloud Run URL:
+
+    ```shell
+    RUN_URL="$(gcloud run services describe ${CLOUD_RUN_SERVICE_NAME} --region ${REGION} --project ${PROJECT_ID} --format="get(status.address.url)")"
+    ```
+
+### Create BigQuery Remote Functions
+
+1.  Create BigQuery connection for accessing Cloud Run:
+
+    ```shell
+    bq mk --connection \
+    --display_name='External antipattern function connection' \
+    --connection_type=CLOUD_RESOURCE \
+    --project_id="${PROJECT_ID}" \
+    --location="${REGION}" \
+    ext-${CLOUD_RUN_SERVICE_NAME}
+    ```
+
+1.  Find the BigQuery Service Account used for the connection:
+
+    ```shell
+    CONNECTION_SA="$(bq --project_id ${PROJECT_ID} --format json show --connection ${PROJECT_ID}.${REGION}.ext-${CLOUD_RUN_SERVICE_NAME} | jq '.cloudResource.serviceAccountId')"
+    ```
+
+1.  Grant the BigQuery connection Service Account Cloud Run Invoker role for accessing the Cloud Run:
+
+    ```shell
+    gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+    --member="serviceAccount:${CONNECTION_SA}" \
+    --role='roles/run.invoker'
+    ```
+
+### Create BQ Dataset for remote functions
+
+1.  Define the BigQuery dataset to create remote functions:
+
+    ```shell
+    BQ_FUNCTION_DATASET="fns"
+    ```
+
+1.  Create the dataset if it doesn't exist:
+
+    ```shell
+    bq mk --dataset \
+    --project_id ${PROJECT_ID} \
+    --location ${REGION} \
+    ${BQ_FUNCTION_DATASET}
+    ```
+
+### Create BigQuery Remote functions for Antipattern
+
+1.  Create Antipattern remote function
+
+    ```shell
+    bq query --project_id ${PROJECT_ID} \
+    --use_legacy_sql=false \
+    "CREATE OR REPLACE FUNCTION ${BQ_FUNCTION_DATASET}.get_antipatterns(query STRING)
+    RETURNS JSON
+    REMOTE WITH CONNECTION \`${PROJECT_ID}.${REGION}.ext-${CLOUD_RUN_SERVICE_NAME}\`
+    OPTIONS (endpoint = '${RUN_URL}');"
+    ```
+
+
+## Limitations
+
+ *  Ensure BigQuery and Cloud Run service are in the same cloud region
+ * The Antipattern remote function currently does not support the `--advanced-analysis` flag or AI rewrite.
+
 
