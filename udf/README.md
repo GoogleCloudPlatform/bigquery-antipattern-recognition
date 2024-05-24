@@ -15,7 +15,7 @@ OPTIONS (
 
 After which, the function can be invoked with:
 ```sql
-SELECT dataset.get_antipatterns("SELECT * from dataset.table ORDER BY 1")
+SELECT fns.get_antipatterns("SELECT * from dataset.table ORDER BY 1")
 ```
 
 The function returns a JSON string for each query representing the antipatterns found in each query, if any. For example the function would return the following response for the query above:
