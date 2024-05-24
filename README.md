@@ -29,19 +29,16 @@ All columns on table: project.dataset.table1 are being selected. Please be sure 
 To run the tool use the [cloud shell](https://cloud.google.com/shell/docs/launching-cloud-shell#launch_from_the) terminal. It has all the 
 pre-requisites.
 
-Build utility
+Pull docker image
 ```
-# in cloud shell terminal
-git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
-cd bigquery-antipattern-recognition
-mvn clean package jib:dockerBuild -DskipTests
+docker pull ghcr.io/googlecloudplatform/bigquery-antipattern-recognition:latest
 ```
 
 Run tool for simple inline query
 ```
 # in cloud shell terminal
 docker run \
-  -i bigquery-antipattern-recognition \
+  -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
   --query "SELECT * FROM \`project.dataset.table1\`" 
 ```
 
@@ -67,7 +64,7 @@ gcloud auth login
 
 docker run \
     -v ~/.config:/root/.config \
-    -i bigquery-antipattern-recognition \
+    -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
     --read_from_info_schema \
     --info_schema_project <project-name-with-info-schema-to-be-read> \
     --info_schema_region us \
@@ -91,7 +88,15 @@ ORDER BY
 LIMIT 10000;
 ```
 
-### Other input / output options
+Build manually
+```
+# in cloud shell terminal
+git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
+cd bigquery-antipattern-recognition
+mvn clean package jib:dockerBuild -DskipTests
+```
+
+### Input / output examples
 * [local file -> terminal](./EXAMPLES.md#local-file---terminal)
 * [local file -> csv](./EXAMPLES.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
@@ -109,7 +114,7 @@ Input
 ```
 docker run \
     -v ~/.config:/root/.config \
-    -i bigquery-antipattern-recognition \
+    -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
     --query "select col1 from table1 where col2 like '%abc%' and col3=1" \
     --rewrite_sql \
     --processing_project_id <my-project>

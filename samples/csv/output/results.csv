@@ -1,0 +1,10 @@
+id,recommendation
+1,"SimpleSelectStar: SELECT * on table: table1. Check that all columns are needed."
+2,"CTEsEvalMultipleTimes: CTE with multiple references: alias a defined at line 1 is referenced 2 times."
+3,"SemiJoinWithoutAgg: Subquery in filter without aggregation at line 6.
+DynamicPredicate: Using subquery in filter at line 6. Converting this dynamic predicate to static might provide better performance."
+4,"OrderByWithoutLimit: ORDER BY clause without LIMIT at line 5."
+5,"StringComparison: REGEXP_CONTAINS at line 6. Prefer LIKE when the full power of regex is not needed (e.g. wildcard matching)."
+6,"LatestRecordWithAnalyticFun: Seems like you might be using analytical function row_number in line 7 to filter the latest record in line 12."
+7,"DynamicPredicate: Using subquery in filter at line 9. Converting this dynamic predicate to static might provide better performance."
+8,"WhereOrder: SubOptimal order of predicates in WHERE, line 7. Consider applying more restrictive filters first. For example a '=' or a '>' filter usually is usually more restrictive than a like '%' filter. The following order might provide performance benefits is '=', '>', '<', '<>', 'like'"

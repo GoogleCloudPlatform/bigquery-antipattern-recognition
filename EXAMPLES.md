@@ -1,7 +1,7 @@
 ### inline -> terminal
 ```
 docker run \
-  -i bigquery-antipattern-recognition \
+  -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
   --query "SELECT * FROM \`project.dataset.table1\`" 
 ```
 
@@ -26,7 +26,7 @@ gcloud auth login
 
 docker run \
     -v ~/.config:/root/.config \
-    -i bigquery-antipattern-recognition \
+    -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
     --read_from_info_schema \
     --read_from_info_schema_days 1 \
     --processing_project_id <my-project> \
@@ -73,7 +73,7 @@ in the command line:
 ```
 gcloud auth login
 
-docker run -i bigquery-antipattern-recognition \
+docker run -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
   --input_bq_table <my-project>.<my-dataset>.antipattern_input_table \
   --output_table <my-project>.<my-dataset>.antipattern_output_table"
 ```
@@ -85,9 +85,10 @@ export INPUT_FOLDER=$(pwd)/samples/queries/input
 export INPUT_FILE_NAME=multipleCTEs.sql
 docker run \
   -v $INPUT_FOLDER:$INPUT_FOLDER \
-  -i bigquery-antipattern-recognition \
+  -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
   --input_file_path $INPUT_FOLDER/$INPUT_FILE_NAME
 ```
+
 ### local folder -> local CSV
 Read from folder and write output to csv
 ```
@@ -98,7 +99,7 @@ export OUTPUT_FILENAME=results.csv
 docker run \
   -v $INPUT_FOLDER:$INPUT_FOLDER \
   -v $OUTPUT_FOLDER:$OUTPUT_FOLDER \
-  -i bigquery-antipattern-recognition \
+  -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
   --input_folder_path $INPUT_FOLDER \
   --output_file_path $OUTPUT_FOLDER/$OUTPUT_FILENAME
 ```
@@ -114,7 +115,7 @@ export OUTPUT_FILENAME=results.csv
 docker run \
   -v $INPUT_FOLDER:$INPUT_FOLDER \
   -v $OUTPUT_FOLDER:$OUTPUT_FOLDER \
-  -i bigquery-antipattern-recognition \
+  -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
   --input_csv_file_path $INPUT_FOLDER/$INPUT_CSV_FILENAME \
   --output_file_path $OUTPUT_FOLDER/$OUTPUT_FILENAME
 ```
@@ -128,7 +129,7 @@ JoinOrder anti-pattern.
 docker run \
   -v $(pwd)/samples/queries:/samples/queries \
   -v ~/.config:/root/.config \
-  -i bigquery-antipattern-recognition \
+  -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
   --advanced_analysis \
   --analyzer_default_project bigquery-public-data \
   --input_file_path /samples/queries/input/joinOrder.sql 
@@ -150,7 +151,7 @@ Then, use that bucket as an input parameter for the antipattern tool
 
 ```
 docker run \
-  -i bigquery-antipattern-recognition \
+  -i ghcr.io/googlecloudplatform/bigquery-antipattern-recognition \
   --input_folder_path gs://my-bucket \
   --output_table <my-project>.<my-dataset>.antipattern_output_table
 ```
