@@ -70,26 +70,25 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
     ```sql
     SELECT fns.get_antipatterns("SELECT * from dataset.table ORDER BY 1")
       ```
+The function returns a JSON string for each query representing the antipatterns found in each query, if any. For example the function would return the following response for the query above:
+
+``` json
+{
+  "antipatterns": [
+    {
+      "name": "SimpleSelectStar",
+      "result": "SELECT * on table: dataset.table. Check that all columns are needed."
+    },
+    {
+      "name": "OrderByWithoutLimit",
+      "result": "ORDER BY clause without LIMIT at line 1."
+    }
+  ]
+}
+```
 
 
 ## Detailed Deployment steps
 
-``` sql
-CREATE OR REPLACE FUNCTION `project.dataset`.get_antipatterns(query STRING)
-RETURNS JSON
-REMOTE WITH CONNECTION `connection-id`
-OPTIONS (
-  endpoint = 'cloud-run-endpoint'
-);
-```
+Details deployment steps if you want to do it manually...
 
-After which, the function can be invoked with:
-```sql
-SELECT fns.get_antipatterns("SELECT * from dataset.table ORDER BY 1")
-```
-
-The function returns a JSON string for each query representing the antipatterns found in each query, if any. For example the function would return the following response for the query above:
-
-``` json
-{"antipatterns":[{"name":"SimpleSelectStar","result":"SELECT * on table: dataset. Check that all columns are needed."},{"name":"OrderByWithoutLimit","result":"ORDER BY clause without LIMIT at line 1."}]}
-```
