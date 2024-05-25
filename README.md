@@ -95,7 +95,7 @@ LIMIT 10000;
 
 ### Other input / output options
 * [local file -> terminal](./EXAMPLES.md#local-file---terminal)
-* [local file -> csv](./EXAMPLES.md#local-folder---local-csv)
+* [local folder -> csv](./EXAMPLES.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
 * [bq -> bq](./EXAMPLES.md#bq-table---bq-table)
 
@@ -124,10 +124,10 @@ java -jar  bigquery-antipattern-recognition.jar \
     --query "SELECT * FROM \`project.dataset.table1\`"
 ```
 
-### Other input / output options
-* [information_schema -> bq table](./EXAMPLES_JAR.md#local-file---terminal)
+### Other input / output options (JAR)
+* [information_schema -> bq table](./EXAMPLES_JAR.md#information_schema---bq-table)
 * [local file -> terminal](./EXAMPLES_JAR.md#local-file---terminal)
-* [local file -> csv](./EXAMPLES_JAR.md#local-folder---local-csv)
+* [local folder -> csv](./EXAMPLES_JAR.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES_JAR.md#local-csv---local-csv)
 * [bq -> bq](./EXAMPLES_JAR.md#bq-table---bq-table)
 

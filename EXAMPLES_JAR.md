@@ -15,7 +15,6 @@ cd bigquery-antipattern-recognition
 wget https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition/releases/download/v1.0.0/bigquery-antipattern-recognition.jar
 ```
 
-
 ### inline -> terminal
 ```
 # in cloud shell terminal
