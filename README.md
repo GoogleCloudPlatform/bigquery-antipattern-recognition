@@ -24,7 +24,7 @@ All columns on table: project.dataset.table1 are being selected. Please be sure 
 ```
 
 
-# Quick Start
+# Quick Start Docker
 
 To run the tool use the [cloud shell](https://cloud.google.com/shell/docs/launching-cloud-shell#launch_from_the) terminal. It has all the 
 pre-requisites.
@@ -32,6 +32,8 @@ pre-requisites.
 Build utility
 ```
 # in cloud shell terminal
+
+gcloud auth application-default login
 git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
 cd bigquery-antipattern-recognition
 mvn clean package jib:dockerBuild -DskipTests
@@ -63,8 +65,8 @@ To read from INFORMATION_SCHEMA and write to the output table, run the following
 in the command line:
 ```
 # in cloud shell terminal
-gcloud auth login
 
+gcloud auth login
 docker run \
     -v ~/.config:/root/.config \
     -i bigquery-antipattern-recognition \
@@ -96,6 +98,39 @@ LIMIT 10000;
 * [local file -> csv](./EXAMPLES.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
 * [bq -> bq](./EXAMPLES.md#bq-table---bq-table)
+
+
+# Quick Start JAR
+For easier deployment and management, Docker is the recommended approach for 
+running the tool. However, if Docker is unavailable, running with a JAR file 
+is also an option.
+
+To run the tool use the [cloud shell](https://cloud.google.com/shell/docs/launching-cloud-shell#launch_from_the) terminal. It has all the
+pre-requisites.
+
+### Download repo and prebuilt jar.
+```
+# in cloud shell terminal
+gcloud auth application-default login
+git clone https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition.git
+cd bigquery-antipattern-recognition
+wget https://github.com/GoogleCloudPlatform/bigquery-antipattern-recognition/releases/download/v1.0.0/bigquery-antipattern-recognition.jar
+```
+
+Run tool for simple inline query
+```
+# in cloud shell terminal
+java -jar  bigquery-antipattern-recognition.jar \
+    --query "SELECT * FROM \`project.dataset.table1\`"
+```
+
+### Other input / output options
+* [information_schema -> bq table](./EXAMPLES_JAR.md#local-file---terminal)
+* [local file -> terminal](./EXAMPLES_JAR.md#local-file---terminal)
+* [local file -> csv](./EXAMPLES_JAR.md#local-folder---local-csv)
+* [csv -> csv](./EXAMPLES_JAR.md#local-csv---local-csv)
+* [bq -> bq](./EXAMPLES_JAR.md#bq-table---bq-table)
+
 
 
 # Rewrite Using AI
