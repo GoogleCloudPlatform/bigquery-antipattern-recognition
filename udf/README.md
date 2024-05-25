@@ -1,5 +1,4 @@
-# BigQuery Anti-Pattern Recognition Tool (Remote Function UDF)
-
+# BigQuery Anti-Pattern Recognition Remote Function UDF
 
 **What this tool does:**
 
@@ -7,6 +6,8 @@
 2. **BigQuery Remote Function:** Creates a BigQuery User-Defined Function (UDF) that acts as a bridge between your SQL queries and the Cloud Run service.
 3. **Anti-Pattern Detection:** When you call the BigQuery UDF, it sends your SQL query to the Cloud Run service, which analyzes it for anti-patterns. The result is returned in JSON format.
 
+
+![bigquery external antipattern function](udf_diagram.png)
 
 ## Costs
 
@@ -49,7 +50,7 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
     run.googleapis.com \
     ```
 
-## Deployment script
+## Deployment script with Terraform
 
 1.  Authenticate using User [Application Default Credentials ("ADCs")](https://cloud.google.com/sdk/gcloud/reference/auth/application-default) as a primary authentication method.
     ```shell
@@ -64,13 +65,38 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
     terraform apply
     ```
 
-3.  Once the script successfully completes resources creation,
-    visit [BigQuery Console](https://console.cloud.google.com/bigquery)
-    to run the test SQL script
+## Deployment with Bash script
 
-    ```sql
-    SELECT fns.get_antipatterns("SELECT * from dataset.table ORDER BY 1")
-      ```
+1.  Authenticate using User [Application Default Credentials ("ADCs")](https://cloud.google.com/sdk/gcloud/reference/auth/application-default) as a primary authentication method.
+    ```shell
+    gcloud auth application-default login
+    ```
+2.  Navigate to `udf/deploy_udf.sh` and modify your variable names for resources:
+
+    ```shell
+    PROJECT_ID="<PROJECT_ID>"
+    REGION="<REGION_ID>"
+    ARTIFACT_REGISTRY_NAME="<ARTIFACT_DOCKER_REGISTRY_NAME>"
+    CLOUD_RUN_SERVICE_NAME="antipattern-service"
+    BQ_FUNCTION_DATASET="fns"
+    ```
+
+3.  Run the Bash script to create all resources:
+
+    ```shell
+    bash /udf/deploy_udf.sh
+    ```
+
+## Using the UDF
+
+Once the deployment script successfully completes resources creation,
+visit [BigQuery Console](https://console.cloud.google.com/bigquery)
+to run the test SQL script
+
+```sql
+SELECT fns.get_antipatterns("SELECT * from dataset.table ORDER BY 1")
+```
+
 The function returns a JSON string for each query representing the antipatterns found in each query, if any. For example the function would return the following response for the query above:
 
 ``` json
@@ -123,7 +149,7 @@ gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
     ```shell
     gcloud builds submit . \
     --project="${PROJECT_ID}" \
-    --config=cloudbuild-run.yaml \
+    --config=cloudbuild-udf.yaml \
     --substitutions=_CONTAINER_IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REGISTRY_NAME}/${CLOUD_RUN_SERVICE_NAME}:latest" \
     --machine-type=e2-highcpu-8
     ```
@@ -144,7 +170,7 @@ gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
     RUN_URL="$(gcloud run services describe ${CLOUD_RUN_SERVICE_NAME} --region ${REGION} --project ${PROJECT_ID} --format="get(status.address.url)")"
     ```
 
-### Create BigQuery Remote Functions
+### Create BigQuery Remote Function
 
 1.  Create BigQuery connection for accessing Cloud Run:
 

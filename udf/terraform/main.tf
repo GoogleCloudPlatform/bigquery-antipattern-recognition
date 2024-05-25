@@ -35,7 +35,7 @@ resource "google_artifact_registry_repository" "image_registry" {
   format        = "DOCKER"
 }
 
-# Build image with `../../cloudbuild-run.yaml`, uses AntiPatternApplication.java as main class
+# Build image with `../../cloudbuild-udf.yaml`, uses AntiPatternApplication.java as main class
 resource "null_resource" "build_function_image" {
   depends_on = [google_artifact_registry_repository.image_registry]
 
@@ -53,7 +53,7 @@ gcloud builds submit \
 --project ${var.project_id} \
 --region ${var.region} \
 --machine-type=e2-highcpu-8 \
---config=cloudbuild-run.yaml \
+--config=cloudbuild-udf.yaml \
 --substitutions=_CONTAINER_IMAGE_NAME=${self.triggers.full_image_path}
 EOF
   }
