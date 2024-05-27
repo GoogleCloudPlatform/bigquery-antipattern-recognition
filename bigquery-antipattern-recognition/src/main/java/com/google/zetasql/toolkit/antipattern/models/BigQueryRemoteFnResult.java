@@ -10,6 +10,9 @@ public class BigQueryRemoteFnResult {
         this.result = result;
     }
 
+    public BigQueryRemoteFnResult() {
+    }
+
     // Getters
     public String getName() {
         return name;

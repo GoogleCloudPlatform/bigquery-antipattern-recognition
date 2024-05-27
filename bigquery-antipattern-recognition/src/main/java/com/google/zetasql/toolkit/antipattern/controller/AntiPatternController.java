@@ -25,16 +25,16 @@ public class AntiPatternController {
 
     @PostMapping("/")
     public ObjectNode analyzeQueries(@RequestBody BigQueryRemoteFnRequest request) {
-        ArrayNode replies = objectMapper.createArrayNode(); // ArrayNode to hold individual query results
+        ArrayNode replies = objectMapper.createArrayNode(); 
 
         for (JsonNode call : request.getCalls()) {
-            BigQueryRemoteFnResponse queryResponse = analyzeSingleQuery(call); // Analyze each query separately
-            ObjectNode resultNode = objectMapper.valueToTree(queryResponse); // Convert each response to ObjectNode
-            replies.add(resultNode); // Add to the replies array
+            BigQueryRemoteFnResponse queryResponse = analyzeSingleQuery(call); 
+            ObjectNode resultNode = objectMapper.valueToTree(queryResponse); 
+            replies.add(resultNode); 
         }
 
         ObjectNode finalResponse = objectMapper.createObjectNode();
-        finalResponse.set("replies", replies); // Set the replies array in the main response
+        finalResponse.set("replies", replies); 
         return finalResponse;
     }
 
@@ -48,9 +48,9 @@ public class AntiPatternController {
             } else {
                 formattedAntiPatterns = BigQueryRemoteFnResponse.formatAntiPatterns(visitors);
             }
-            return new BigQueryRemoteFnResponse(formattedAntiPatterns, null); // Create response for this query
+            return new BigQueryRemoteFnResponse(formattedAntiPatterns, null); 
         } catch (Exception e) {
-            return new BigQueryRemoteFnResponse(null, e.getMessage()); // Return error response for this query
+            return new BigQueryRemoteFnResponse(null, e.getMessage());
         }
     }
 
