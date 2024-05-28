@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @JsonRootName("replies") 
 public class BigQueryRemoteFnResponse {
-    @JsonInclude
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     List<BigQueryRemoteFnResult> antipatterns;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String errorMessage;
