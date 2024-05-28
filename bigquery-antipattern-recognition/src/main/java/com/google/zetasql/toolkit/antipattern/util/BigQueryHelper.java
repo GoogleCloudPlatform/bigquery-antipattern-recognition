@@ -111,7 +111,6 @@ public class BigQueryHelper {
             + "  total_slot_ms / (1000 * 60 * 60 ) AS slot_hours, \n"
             + "  user_email, \n"
             + "  PERCENT_RANK() OVER(ORDER BY total_slot_ms desc) perc_rnk \n"
-            + "  query_performance.insights \n"
             + "FROM\n"
             + ISTable
             + "\n"

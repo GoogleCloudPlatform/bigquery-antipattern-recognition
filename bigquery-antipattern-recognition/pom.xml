@@ -44,11 +44,6 @@ limitations under the License.
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10.1</version> 
-         </dependency>
-        <dependency>
             <artifactId>zetasql-toolkit-core</artifactId>
             <groupId>com.google.zetasql.toolkit</groupId>
             <version>0.3.3</version>
