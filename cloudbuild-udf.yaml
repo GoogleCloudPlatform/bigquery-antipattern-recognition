@@ -23,9 +23,3 @@ steps:
         apt-get update && \
         apt-get install -y openjdk-11-jdk maven && \
         mvn compile jib:build -Dcontainer.mainClass=com.google.zetasql.toolkit.antipattern.AntiPatternApplication -Djib.to.image=$_CONTAINER_IMAGE_NAME 
-   
-
-# curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" -H "Content-Type: application/json" --request POST -d '{"query":"SELECT * FROM `dataset.table`"}' https://bq-antipattern-zjz3btki4q-uc.a.run.app
-# curl -H "Content-Type: application/json" --request POST -d '{"requestId":"request123","caller":"your-service@example.com","sessionUser":"user123","userDefinedContext":{"project_id":"my-project","location":"us-east1"},"calls":[["SELECT * FROM mytable WHERE id = 1"],["SELECT COUNT(*) FROM mytable"]]}' http://localhost:8080/
-# curl -H "Content-Type: application/json" --request POST -d '{"requestId":"request123","caller":"your-service@example.com","sessionUser":"user123","userDefinedContext":{"project_id":"my-project","location":"us-east1"},"calls":[["SELECT * FROM mytable WHERE id = 1"],[123]]}' http://localhost:8080/
-# curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" -H "Content-Type: application/json" --request POST -d '{"requestId":"request123","caller":"your-service@example.com","sessionUser":"user123","userDefinedContext":{"project_id":"my-project","location":"us-east1"},"calls":[["SELECT * FROM mytable WHERE id = 1"],["SELECT COUNT(*) FROM mytable"]]}' https://bq-antipattern-zjz3btki4q-uc.a.run.app
