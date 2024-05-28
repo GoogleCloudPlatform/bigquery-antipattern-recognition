@@ -108,7 +108,7 @@ public class AntiPatternControllerTest {
                 BigQueryRemoteFnResponse.class);
         BigQueryRemoteFnResponse responseObj2 = objectMapper.convertValue(response.get("replies").get(1),
                 BigQueryRemoteFnResponse.class);
-        
+
         List<BigQueryRemoteFnResult> results1 = responseObj1.getAntipatterns();
 
         String results2 = responseObj2.getErrorMessage();
@@ -120,22 +120,22 @@ public class AntiPatternControllerTest {
 
     private BigQueryRemoteFnRequest createRequest(List<String> queries) {
         List<JsonNode> calls = new ArrayList<>();
-    
+
         for (String query : queries) {
-            ArrayNode queryArray = objectMapper.createArrayNode(); 
-            queryArray.add(query); 
-            calls.add(queryArray); 
+            ArrayNode queryArray = objectMapper.createArrayNode();
+            queryArray.add(query);
+            calls.add(queryArray);
         }
-    
+
         return new BigQueryRemoteFnRequest(
             "requestId",
             "caller",
             "sessionUser",
             new HashMap<>(),
-            calls 
+            calls
         );
     }
-    
+
 
 
 }

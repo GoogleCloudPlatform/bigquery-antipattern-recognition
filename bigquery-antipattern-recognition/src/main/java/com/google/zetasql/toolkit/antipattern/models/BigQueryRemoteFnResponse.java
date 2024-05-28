@@ -23,7 +23,7 @@ import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@JsonRootName("replies") 
+@JsonRootName("replies")
 public class BigQueryRemoteFnResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     List<BigQueryRemoteFnResult> antipatterns;
