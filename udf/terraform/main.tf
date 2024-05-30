@@ -45,7 +45,7 @@ resource "google_project_iam_member" "log_writer_role" {
   member  = "serviceAccount:${google_service_account.cloud_build_sa.email}"
 }
 
-resource "google_project_iam_member" "log_writer_role" {
+resource "google_project_iam_member" "object_reader_role" {
   project = var.project_id
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_service_account.cloud_build_sa.email}"
