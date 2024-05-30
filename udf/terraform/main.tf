@@ -73,7 +73,7 @@ gcloud builds submit \
 --project ${var.project_id} \
 --region ${var.region} \
 --machine-type=e2-highcpu-8 \
---service-account=${self.full_sa_path} \
+--service-account=${self.triggers.full_sa_path} \
 --config=cloudbuild-udf.yaml \
 --substitutions=_CONTAINER_IMAGE_NAME=${self.triggers.full_image_path}
 EOF
