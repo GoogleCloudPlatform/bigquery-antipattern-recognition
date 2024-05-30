@@ -61,6 +61,7 @@ resource "null_resource" "build_function_image" {
   triggers = {
     project_id      = var.project_id
     region          = var.region
+    full_sa_path = "projects/${var.project_id}/serviceAccounts/${google_service_account.cloud_build_sa.email}"
     full_image_path = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.image_registry.name}/${var.service_name}:latest"
   }
 
@@ -72,7 +73,7 @@ gcloud builds submit \
 --project ${var.project_id} \
 --region ${var.region} \
 --machine-type=e2-highcpu-8 \
---service-account=${google_service_account.cloud_build_sa.email} \
+--service-account=${self.full_sa_path} \
 --config=cloudbuild-udf.yaml \
 --substitutions=_CONTAINER_IMAGE_NAME=${self.triggers.full_image_path}
 EOF
