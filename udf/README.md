@@ -60,7 +60,7 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
 2.  Initialize and run the Terraform script to create all resources:
 
     ```shell
-    cd /udf/terraform && \
+    cd ./udf/terraform && \
     terraform init && \
     terraform apply
     ```
