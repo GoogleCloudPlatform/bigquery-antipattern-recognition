@@ -34,6 +34,25 @@ resource "google_artifact_registry_repository" "image_registry" {
   description   = "Docker repository for BigQuery anti-pattern function"
   format        = "DOCKER"
 }
+resource "google_service_account" "cloud_build_sa" {
+  account_id   = "cloud-build-sa"
+  display_name = "Cloud Build Service Account"
+}
+
+resource "google_project_iam_member" "log_writer_role" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.cloud_build_sa.email}"
+}
+
+resource "google_artifact_registry_repository_iam_member" "artifact_registry_writer" {
+  depends_on = [google_artifact_registry_repository.image_registry]
+  project    = var.project_id
+  location   = var.region
+  repository = var.artifact_registry_name
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:${google_service_account.cloud_build_sa.email}"
+}
 
 # Build image with `../../cloudbuild-udf.yaml`, uses AntiPatternApplication.java as main class
 resource "null_resource" "build_function_image" {
@@ -54,6 +73,7 @@ gcloud builds submit \
 --region ${var.region} \
 --machine-type=e2-highcpu-8 \
 --config=cloudbuild-udf.yaml \
+-- service-account=${google_service_account.cloud_build_sa.email}
 --substitutions=_CONTAINER_IMAGE_NAME=${self.triggers.full_image_path}
 EOF
   }
