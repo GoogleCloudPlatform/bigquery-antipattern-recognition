@@ -15,11 +15,13 @@
 
 
 steps:
-  - name: 'ubuntu:latest'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        apt-get update && \
-        apt-get install -y openjdk-11-jdk maven && \
-        mvn compile jib:build -Dcontainer.mainClass=com.google.zetasql.toolkit.antipattern.AntiPatternApplication -Djib.to.image=$_CONTAINER_IMAGE_NAME 
+- name: 'ubuntu:latest'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      apt-get update && \
+      apt-get install -y openjdk-11-jdk maven && \
+      mvn compile jib:build -Dcontainer.mainClass=com.google.zetasql.toolkit.antipattern.AntiPatternApplication -Djib.to.image=$_CONTAINER_IMAGE_NAME
+options:
+  logging: CLOUD_LOGGING_ONLY 

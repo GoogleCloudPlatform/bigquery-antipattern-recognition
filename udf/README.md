@@ -44,6 +44,7 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
     ```shell
     gcloud services enable \
     artifactregistry.googleapis.com \
+    cloudresourcemanager.googleapis.com \
     bigquery.googleapis.com \
     bigqueryconnection.googleapis.com \
     cloudbuild.googleapis.com \
