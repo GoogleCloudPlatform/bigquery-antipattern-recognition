@@ -49,7 +49,7 @@ resource "null_resource" "build_function_image" {
     when    = create
     command = <<EOF
 cd ../../
-gcloud builds submit \
+gcloud beta builds submit \
 --project ${var.project_id} \
 --region ${var.region} \
 --machine-type=e2-highcpu-8 \
