@@ -47,7 +47,7 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
     bigquery.googleapis.com \
     bigqueryconnection.googleapis.com \
     cloudbuild.googleapis.com \
-    run.googleapis.com \
+    run.googleapis.com
     ```
 
 ## Deployment script with Terraform
