@@ -84,7 +84,7 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
 3.  Run the Bash script to create all resources:
 
     ```shell
-    bash /udf/deploy_udf.sh
+    bash ./udf/deploy_udf.sh
     ```
 
 ## Using the UDF
