@@ -45,6 +45,11 @@ resource "google_project_iam_member" "log_writer_role" {
   member  = "serviceAccount:${google_service_account.cloud_build_sa.email}"
 }
 
+resource "google_project_iam_member" "log_writer_role" {
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.cloud_build_sa.email}"
+}
 resource "google_artifact_registry_repository_iam_member" "artifact_registry_writer" {
   depends_on = [google_artifact_registry_repository.image_registry]
   project    = var.project_id
