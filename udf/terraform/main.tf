@@ -40,12 +40,14 @@ resource "google_service_account" "cloud_build_sa" {
 }
 
 resource "google_project_iam_member" "log_writer_role" {
+  depends_on = [google_service_account.cloud_build_sa]
   project = var.project_id
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.cloud_build_sa.email}"
 }
 
 resource "google_project_iam_member" "object_reader_role" {
+  depends_on = [google_service_account.cloud_build_sa]
   project = var.project_id
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_service_account.cloud_build_sa.email}"
@@ -61,7 +63,7 @@ resource "google_artifact_registry_repository_iam_member" "artifact_registry_wri
 
 # Build image with `../../cloudbuild-udf.yaml`, uses AntiPatternApplication.java as main class
 resource "null_resource" "build_function_image" {
-  depends_on = [google_artifact_registry_repository.image_registry]
+  depends_on = [google_artifact_registry_repository.image_registry, google_project_iam_member.object_reader_role, google_project_iam_member.log_writer_role, google_artifact_registry_repository_iam_member.artifact_registry_writer ]
 
   triggers = {
     project_id      = var.project_id
@@ -73,14 +75,32 @@ resource "null_resource" "build_function_image" {
   provisioner "local-exec" {
     when    = create
     command = <<EOF
+#!/bin/bash
+set -e # Exit immediately on any error
 cd ../../
-gcloud builds submit \
---project ${var.project_id} \
---region ${var.region} \
---machine-type=e2-highcpu-8 \
---service-account=${self.triggers.full_sa_path} \
---config=cloudbuild-udf.yaml \
---substitutions=_CONTAINER_IMAGE_NAME=${self.triggers.full_image_path}
+max_retries=3
+retry_delay=60 # Seconds
+
+for i in $(seq 1 $max_retries); do
+  if gcloud builds submit \
+    --project ${var.project_id} \
+    --region ${var.region} \
+    --machine-type=e2-highcpu-8 \
+    --service-account=${self.triggers.full_sa_path} \
+    --config=cloudbuild-udf.yaml \
+    --substitutions=_CONTAINER_IMAGE_NAME=${self.triggers.full_image_path}; then
+    echo "Build submitted successfully."
+    break  # Exit the loop if successful
+  else
+    if [ $i -eq $max_retries ]; then
+      echo "Max retries reached. Build failed."
+      exit 1  # Fail the Terraform resource
+    else
+      echo "Build failed. Retrying in $retry_delay seconds..."
+      sleep $retry_delay
+    fi
+  fi
+done
 EOF
   }
 
