@@ -1,11 +1,5 @@
 #!/bin/bash
 
-PROJECT_ID="<PROJECT_ID>"
-REGION="<REGION_ID>"
-ARTIFACT_REGISTRY_NAME="<ARTIFACT_DOCKER_REGISTRY_NAME>"
-CLOUD_RUN_SERVICE_NAME="antipattern-service"
-BQ_FUNCTION_DATASET="fns"
-
 # Create Docker artifact registry
 gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
     --repository-format=docker \
@@ -13,11 +7,33 @@ gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
     --description="Docker repository for Bigquery Functions" \
     --project="${PROJECT_ID}"
 
+# 1. Create Service Account
+gcloud iam service-accounts create cloud-build-sa \
+  --display-name "Cloud Build Service Account"
+
+# 2. Grant Logging.logWriter Role
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member "serviceAccount:cloud-build-sa@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role "roles/logging.logWriter"
+
+# 3. Grant Storage.objectViewer Role
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member "serviceAccount:cloud-build-sa@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role "roles/storage.objectViewer"
+
+# 4. Grant ArtifactRegistry.writer Role
+gcloud artifacts repositories add-iam-policy-binding \
+  $ARTIFACT_REGISTRY_NAME \
+  --location=$REGION \
+  --member "serviceAccount:cloud-build-sa@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role "roles/artifactregistry.writer"
+
 # Build and push Docker image
 gcloud builds submit . \
-    --project="${PROJECT_ID}" \
+    --project=$PROJECT_ID \
     --config=cloudbuild-udf.yaml \
-    --substitutions=_CONTAINER_IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REGISTRY_NAME}/${CLOUD_RUN_SERVICE_NAME}:latest" \
+    --service-account=projects/$PROJECT_ID/serviceAccounts/cloud-build-sa@$PROJECT_ID.iam.gserviceaccount.com \
+    --substitutions=_CONTAINER_IMAGE_NAME=${REGION}-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REGISTRY_NAME/$CLOUD_RUN_SERVICE_NAME:latest \
     --machine-type=e2-highcpu-8
 
 # Deploy Cloud Run service

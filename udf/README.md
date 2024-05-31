@@ -75,11 +75,11 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
 2.  Navigate to `udf/deploy_udf.sh` and modify your variable names for resources:
 
     ```shell
-    PROJECT_ID="<PROJECT_ID>"
-    REGION="<REGION_ID>"
-    ARTIFACT_REGISTRY_NAME="<ARTIFACT_DOCKER_REGISTRY_NAME>"
-    CLOUD_RUN_SERVICE_NAME="antipattern-service"
-    BQ_FUNCTION_DATASET="fns"
+    export PROJECT_ID="bq-antipattern-udf"
+    export REGION="us-central1"
+    export ARTIFACT_REGISTRY_NAME="art"
+    export CLOUD_RUN_SERVICE_NAME="antipattern-service"
+    export BQ_FUNCTION_DATASET="fns"
     ```
 
 3.  Run the Bash script to create all resources:
