@@ -75,9 +75,9 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
 2.  Set your variable names for resources:
 
     ```shell
-    export PROJECT_ID="bq-antipattern-udf"
-    export REGION="us-central1"
-    export ARTIFACT_REGISTRY_NAME="art"
+    export PROJECT_ID="<PROJECT_ID>"
+    export REGION="<REGION>"
+    export ARTIFACT_REGISTRY_NAME="<ARTIFACT_REGISTRY_NAME>"
     export CLOUD_RUN_SERVICE_NAME="antipattern-service"
     export BQ_FUNCTION_DATASET="fns"
     ```
@@ -143,15 +143,47 @@ gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
 --description="Docker repository for Bigquery Functions" \
 --project="${PROJECT_ID}"
 ```
+### Create Cloud Build Service Account and Assign Roles
+
+# 1. Create Service Account
+``` shell
+gcloud iam service-accounts create cloud-build-sa \
+  --display-name "Cloud Build Service Account"
+```
+
+# 2. Grant Logging.logWriter Role
+```shell
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member "serviceAccount:cloud-build-sa@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role "roles/logging.logWriter"
+```
+
+# 3. Grant Storage.objectViewer Role
+```shell
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member "serviceAccount:cloud-build-sa@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role "roles/storage.objectViewer"
+  ```
+
+# 4. Grant ArtifactRegistry.writer Role
+```shell
+gcloud artifacts repositories add-iam-policy-binding \
+  $ARTIFACT_REGISTRY_NAME \
+  --location=$REGION \
+  --member "serviceAccount:cloud-build-sa@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role "roles/artifactregistry.writer"
+```
 
 ### Deploy Cloud Run service
 
-1. Build the application container image using [Cloud Build](https://cloud.google.com/build). You should run this at the root of the directory:
+1. Build the application container image using [Cloud Build](https://cloud.google.com/build). You should run this at the root of the directory. NOTE: It may take up to 60 seconds for the roles assigned in the previous step to propagate before running this command.
+
     ```shell
     gcloud builds submit . \
-    --project="${PROJECT_ID}" \
+    --project=$PROJECT_ID \
     --config=cloudbuild-udf.yaml \
-    --substitutions=_CONTAINER_IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REGISTRY_NAME}/${CLOUD_RUN_SERVICE_NAME}:latest" \
+    --service-account=projects/$PROJECT_ID/serviceAccounts/cloud-build-sa@$PROJECT_ID.iam.gserviceaccount.com \
+    --substitutions=_CONTAINER_IMAGE_NAME=${REGION}-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REGISTRY_NAME/$CLOUD_RUN_SERVICE_NAME:latest \
     --machine-type=e2-highcpu-8
     ```
 
@@ -184,10 +216,15 @@ gcloud artifacts repositories create "${ARTIFACT_REGISTRY_NAME}" \
     ext-${CLOUD_RUN_SERVICE_NAME}
     ```
 
-1.  Find the BigQuery Service Account used for the connection:
+1.  Find the BigQuery Service Account used for the connection and remove surrounding quotes:
 
     ```shell
     CONNECTION_SA="$(bq --project_id ${PROJECT_ID} --format json show --connection ${PROJECT_ID}.${REGION}.ext-${CLOUD_RUN_SERVICE_NAME} | jq '.cloudResource.serviceAccountId')"
+    ```
+
+    ```shell
+    CONNECTION_SA="${CONNECTION_SA%\"}" # Remove trailing quote
+    CONNECTION_SA="${CONNECTION_SA#\"}" # Remove leading quote
     ```
 
 1.  Grant the BigQuery connection Service Account Cloud Run Invoker role for accessing the Cloud Run:
