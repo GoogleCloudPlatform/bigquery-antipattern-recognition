@@ -57,10 +57,13 @@ bq mk --connection \
     --location="${REGION}" \
     ext-${CLOUD_RUN_SERVICE_NAME}
 
-# Get the service account for the connection
-CONNECTION_SA="$(bq --project_id ${PROJECT_ID} --format json show --connection ${PROJECT_ID}.${REGION}.ext-${CLOUD_RUN_SERVICE_NAME} | jq '.cloudResource.serviceAccountId')"
+# Get the service account for the connection (modified jq query)
+CONNECTION_SA=$(bq --project_id ${PROJECT_ID} --format json show --connection ${PROJECT_ID}.${REGION}.ext-${CLOUD_RUN_SERVICE_NAME} | jq -r '.cloudResource.serviceAccountId')
 
-# Grant the service account Run Invoker permissions
+# Remove surrounding double quotes from the service account string
+CONNECTION_SA="${CONNECTION_SA%\"}" # Remove trailing quote
+CONNECTION_SA="${CONNECTION_SA#\"}" # Remove leading quote
+
 gcloud projects add-iam-policy-binding ${PROJECT_ID} \
     --member="serviceAccount:${CONNECTION_SA}" \
     --role='roles/run.invoker'

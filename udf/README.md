@@ -72,7 +72,7 @@ For this tutorial, you need a Google Cloud [project](https://cloud.google.com/re
     ```shell
     gcloud auth application-default login
     ```
-2.  Navigate to `udf/deploy_udf.sh` and modify your variable names for resources:
+2.  Set your variable names for resources:
 
     ```shell
     export PROJECT_ID="bq-antipattern-udf"
