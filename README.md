@@ -160,6 +160,33 @@ select col1 from table1 where col3=1 and col2 like '%abc%'
 --------------------------------------------------
 ```
 
+# Deploy as a Remote Function UDF
+Deploying the anti-pattern recognition tool as a remote function UDF allows you to easily call the Antipattern tool within SQL. 
+
+For example: 
+
+```sql
+SELECT fns.get_antipatterns("SELECT * from dataset.table ORDER BY 1")
+```
+
+The function returns a JSON string for each query representing the antipatterns found in each query, if any. For example the function would return the following response for the query above:
+
+``` json
+{
+  "antipatterns": [
+    {
+      "name": "SimpleSelectStar",
+      "result": "SELECT * on table: dataset.table. Check that all columns are needed."
+    },
+    {
+      "name": "OrderByWithoutLimit",
+      "result": "ORDER BY clause without LIMIT at line 1."
+    }
+  ]
+}
+```
+
+The remote function is built using Cloud Build, Artifact Registry, and Cloud Run. It can be deployed using terraform or a bash scipt. See more details in the [README](./udf/README.md).
 
 # Deploy to Cloud Run Jobs
 Deploying the anti-pattern recognition tool to a [Cloud Run](https://cloud.google.com/run?hl=en) job provides an easy mechanism to periodically scan INFORMATION_SCHEMA for occurrences of anti-patterns in top slot consuming queries.
