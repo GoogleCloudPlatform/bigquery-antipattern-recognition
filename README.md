@@ -99,7 +99,7 @@ LIMIT 10000;
 * [local folder -> csv](./EXAMPLES.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
 * [bq -> bq](./EXAMPLES.md#bq-table---bq-table)
-* [information_schema views -> BQ table](./EXAMPLES_JAR.md#information_schema-views---bq-table)
+* [information_schema views -> BQ table](./EXAMPLES.md#information_schema-views---bq-table)
 
 
 # Quick Start JAR
