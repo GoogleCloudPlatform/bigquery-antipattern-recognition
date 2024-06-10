@@ -176,7 +176,7 @@ CREATE OR REPLACE VIEW <my-project>.<my-dataset>.antipattern_input_views_def AS
 SELECT 
   concat(table_catalog, '.', table_schema, '.', table_name) id,
   view_definition query
-FROM dataset.INFORMATION_SCHEMA.VIEWS;
+FROM <my-dataset>.INFORMATION_SCHEMA.VIEWS;
 
 ```
 To read from the above view and write to the BQ output table, run the following
