@@ -24,7 +24,8 @@ All columns on table: project.dataset.table1 are being selected. Please be sure 
 ```
 
 
-# Quick Start Docker
+# Quick Start Docker (Recommended)
+(Alternatively you can also run [using a jar](#quick-start-jar))
 
 To run the tool use the [cloud shell](https://cloud.google.com/shell/docs/launching-cloud-shell#launch_from_the) terminal. It has all the 
 pre-requisites.
@@ -98,6 +99,7 @@ LIMIT 10000;
 * [local folder -> csv](./EXAMPLES.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES.md#local-csv---local-csv)
 * [bq -> bq](./EXAMPLES.md#bq-table---bq-table)
+* [information_schema views -> BQ table](./EXAMPLES_JAR.md#information_schema-views---bq-table)
 
 
 # Quick Start JAR
@@ -125,12 +127,12 @@ java -jar  bigquery-antipattern-recognition.jar \
 ```
 
 ### Other input / output options (JAR)
-* [information_schema -> bq table](./EXAMPLES_JAR.md#information_schema---bq-table)
+* [information_schema -> BQ table](./EXAMPLES_JAR.md#information_schema---bq-table)
 * [local file -> terminal](./EXAMPLES_JAR.md#local-file---terminal)
 * [local folder -> csv](./EXAMPLES_JAR.md#local-folder---local-csv)
 * [csv -> csv](./EXAMPLES_JAR.md#local-csv---local-csv)
-* [bq -> bq](./EXAMPLES_JAR.md#bq-table---bq-table)
-
+* [BQ -> BQ](./EXAMPLES_JAR.md#bq-table---bq-table)
+* [information_schema views -> BQ table](./EXAMPLES_JAR.md#information_schema-views---bq-table)
 
 
 # Rewrite Using AI

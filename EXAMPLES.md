@@ -157,6 +157,42 @@ docker run \
 
 Note that the tool will recursively search for SQL files recurseivly in the folder that you upload.
 
+### information_schema views -> BQ Table
+This example will check for anit pattern in the view definitions.
+
+In the BigQuery console, run the DDL below to create the output table.
+```SQL 
+CREATE OR REPLACE TABLE <my-project>.<my-dataset>.antipattern_output_table (
+  job_id STRING,
+  user_email STRING,
+  query STRING,
+  recommendation ARRAY<STRUCT<name STRING, description STRING>>,
+  slot_hours FLOAT64,
+  optimized_sql STRING,
+  process_timestamp TIMESTAMP
+);
+```
+
+In the BigQuery console, run the DDL below to create the input table
+```SQL 
+CREATE OR REPLACE VIEW <my-project>.<my-dataset>.antipattern_input_views_def AS
+SELECT 
+  concat(table_catalog, '.', table_schema, '.', table_name) id,
+  view_definition query
+FROM dataset.INFORMATION_SCHEMA.VIEWS;
+
+```
+To read from the above view and write to the BQ output table, run the following
+in the command line:
+```
+gcloud auth login
+
+docker run \
+  -i bigquery-antipattern-recognition \
+  --input_bq_table <my-project>.<my-dataset>.antipattern_input_views_def \
+  --output_table <my-project>.<my-dataset>.antipattern_output_table"
+```
+
 ## License
 
 ```text
