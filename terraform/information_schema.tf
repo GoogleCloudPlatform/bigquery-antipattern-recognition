@@ -17,7 +17,7 @@
 // Declares the variable "services" which lists the Google Cloud services to be enabled.
 variable "services" {
   type    = list(string)
-  default = ["artifactregistry.googleapis.com", "cloudbuild.googleapis.com", "run.googleapis.com", "cloudscheduler.googleapis.com", "iam.googleapis.com"]
+  default = ["artifactregistry.googleapis.com", "cloudbuild.googleapis.com", "run.googleapis.com", "cloudscheduler.googleapis.com", "iam.googleapis.com", "workflows.googleapis.com"]
 }
 
 // Enables the Google Cloud services listed in the "services" variable for the project specified.
@@ -26,23 +26,6 @@ resource "google_project_service" "project_service" {
   project            = var.project_id
   service            = each.value
   disable_on_destroy = false
-}
-
-// Creates a service account for Google Cloud Scheduler.
-resource "google_service_account" "cloud_scheduler_sa" {
-  depends_on = [
-    resource.google_project_service.project_service
-  ]
-  account_id   = "cloud-scheduler-sa"
-  display_name = "Cloud Scheduler service account"
-  project      = var.project_id
-}
-
-// Gives the Cloud Scheduler service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
-resource "google_project_iam_member" "cloudrun_invoker" {
-  project = var.project_id
-  role    = "roles/run.invoker"
-  member  = "serviceAccount:${google_service_account.cloud_scheduler_sa.email}"
 }
 
 // Creates a service account for Google Cloud Run Jobs.
@@ -56,21 +39,21 @@ resource "google_service_account" "cloud_run_job_sa" {
 }
 
 // Gives the Cloud Run Job service account the "Cloud Run Admin" role, allowing it to manage Cloud Run services.
-resource "google_project_iam_member" "cloud_run_service_account" {
+resource "google_project_iam_member" "cloud_run_service_account_is" {
   project = var.project_id
   role    = "roles/run.admin"
   member  = "serviceAccount:${google_service_account.cloud_run_job_sa.email}"
 }
 
 // Gives the Cloud Run Job service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
-resource "google_project_iam_member" "cloud_run_invoker" {
+resource "google_project_iam_member" "cloud_run_invoker_is" {
   project = var.project_id
   role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.cloud_run_job_sa.email}"
 }
 
 // Gives the Cloud Run Job service account "Bigquery Admin" role, allowing it to read data from BigQuery and insert output into BigQuery.
-resource "google_project_iam_member" "bigquery_admin" {
+resource "google_project_iam_member" "bigquery_admin_is" {
   project = var.project_id
   role    = "roles/bigquery.admin"
   member  = "serviceAccount:${google_service_account.cloud_run_job_sa.email}"
@@ -80,7 +63,7 @@ resource "google_project_iam_member" "bigquery_admin" {
 resource "google_bigquery_table" "bq_table" {
   count = var.create_output_table == true ? 1 : 0
   depends_on = [
-    google_project_iam_member.bigquery_admin
+    google_project_iam_member.bigquery_admin_is
   ]
   dataset_id          = var.bigquery_dataset_name
   table_id            = var.output_table
@@ -135,16 +118,11 @@ EOF
 
 }
 
-// Sets up an Artifact Registry repository to store Docker images.
-module "docker_artifact_registry" {
-  source = "github.com/GoogleCloudPlatform/cloud-foundation-fabric/modules/artifact-registry"
-  depends_on = [
-    resource.google_project_service.project_service
-  ]
-  project_id = var.project_id
-  location   = var.region
-  format     = "DOCKER"
-  id         = var.repository
+resource "google_artifact_registry_repository" "bigquery_antipattern" {
+  location      = var.region
+  repository_id = var.repository
+  description   = "example docker repository"
+  format        = "DOCKER"
 }
 
 // Builds and pushes a Docker image to the Artifact Registry repository.
@@ -154,7 +132,7 @@ resource "null_resource" "build_and_push_docker" {
   #     always_run = "${timestamp()}"
   #     }
   depends_on = [
-    module.docker_artifact_registry,
+    resource.google_artifact_registry_repository.bigquery_antipattern,
     resource.google_project_service.project_service
   ]
   provisioner "local-exec" {
@@ -165,7 +143,7 @@ resource "null_resource" "build_and_push_docker" {
   }
 }
 
-// Sets up a Cloud Run Job.
+// Sets up a Cloud Run Job for Information Schema Analysis.
 resource "google_cloud_run_v2_job" "default" {
   name     = var.cloud_run_job_name
   location = var.region
@@ -192,7 +170,24 @@ resource "google_cloud_run_v2_job" "default" {
   }
 }
 
-// Sets up a Cloud Scheduler Job to regularly trigger the Cloud Run Job.
+// Creates a service account for Google Cloud Scheduler.
+resource "google_service_account" "cloud_scheduler_sa" {
+  depends_on = [
+    resource.google_project_service.project_service, resource.google_cloud_run_v2_job.default
+  ]
+  account_id   = "cloud-scheduler-sa"
+  display_name = "Cloud Scheduler service account"
+  project      = var.project_id
+}
+
+// Gives the Cloud Scheduler service account the "Cloud Run Invoker" role, allowing it to trigger Cloud Run services.
+resource "google_project_iam_member" "cloudrun_invoker_is" {
+  project = var.project_id
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.cloud_scheduler_sa.email}"
+}
+
+// Sets up a Cloud Scheduler Job to regularly trigger the Information Schema Cloud Run Job.
 resource "google_cloud_scheduler_job" "job" {
   count = var.apply_scheduler == true ? 1 : 0
   depends_on = [
