@@ -16,8 +16,7 @@
 
 package com.google.zetasql.toolkit.antipattern.cmd;
 
-import static com.google.zetasql.toolkit.antipattern.util.BigQueryHelper.checkBQConnectiviy;
-
+import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
 import com.google.zetasql.toolkit.antipattern.util.GCSHelper;
 import java.io.File;
 import java.io.IOException;
@@ -59,10 +58,11 @@ public class AntiPatternCommandParser {
   public static final String REWRITE_SQL_FLAG_NAME = "rewrite_sql";
   public static final String LLM_RETRIES_NAME = "llm_retries";
   public static final String LLM_STRICT_VALIDATION_FLAG_NAME = "llm_strict_validation";
+  public static final String SERVICE_ACCOUNT_KEYFILE_PATH = "service_account_keyfile_path";
   private Options options;
   private CommandLine cmd;
 
-  public AntiPatternCommandParser(String[] args) throws ParseException {
+  public AntiPatternCommandParser(String[] args) throws ParseException, IOException {
     options = getOptions();
     CommandLineParser parser = new BasicParser();
     logger.info("Running anti pattern tool for args:" + String.join(" ", args));
@@ -77,6 +77,10 @@ public class AntiPatternCommandParser {
 
   public String getProcessingProject() {
     return cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME);
+  }
+
+  public String getServiceAccountKeyfilePath() {
+    return cmd.getOptionValue(SERVICE_ACCOUNT_KEYFILE_PATH);
   }
 
   public String getOutputFileOptionName() {
@@ -329,6 +333,14 @@ public class AntiPatternCommandParser {
             .build();
     options.addOption(info_schema_project);
 
+    Option service_account_keyfile_path =
+        Option.builder(SERVICE_ACCOUNT_KEYFILE_PATH)
+            .argName(SERVICE_ACCOUNT_KEYFILE_PATH)
+            .hasArg()
+            .required(false)
+            .desc("path to service account keyfile")
+            .build();
+    options.addOption(service_account_keyfile_path);
     return options;
   }
 
@@ -354,7 +366,7 @@ public class AntiPatternCommandParser {
     return null;
   }
 
-  private Iterator<InputQuery> readFromIS() throws InterruptedException {
+  private Iterator<InputQuery> readFromIS() throws InterruptedException, IOException {
     logger.info("Using INFORMATION_SCHEMA as input source");
     String processingProjectId = cmd.getOptionValue(PROCESSING_PROJECT_ID_OPTION_NAME);
     String infoSchemaDays = cmd.getOptionValue(READ_FROM_INFO_SCHEMA_DAYS_OPTION_NAME);
@@ -377,7 +389,8 @@ public class AntiPatternCommandParser {
         timeoutInSecs,
         customTopNPercent,
         region,
-        infoSchemaProject);
+        infoSchemaProject,
+        getServiceAccountKeyfilePath());
   }
 
   public static Iterator<InputQuery> buildIteratorFromQueryStr(String queryStr) {
@@ -397,10 +410,11 @@ public class AntiPatternCommandParser {
     return new InputCsvQueryIterator(inputCSVPath);
   }
 
-  private static Iterator<InputQuery> buildIteratorFromBQTable(String inputTable)
-      throws InterruptedException {
+  private Iterator<InputQuery> buildIteratorFromBQTable(String inputTable)
+      throws InterruptedException, IOException {
     logger.info("Using bq table as input source");
-    return new InputBigQueryTableIterator(inputTable);
+    return new InputBigQueryTableIterator(inputTable, getProcessingProject(),
+        getServiceAccountKeyfilePath());
   }
 
   private static Iterator<InputQuery> buildIteratorFromFolderPath(String folderPath) {
@@ -417,6 +431,16 @@ public class AntiPatternCommandParser {
               .map(File::getAbsolutePath)
               .collect(Collectors.toList());
       return new InputFolderQueryIterable(fileList);
+    }
+  }
+
+  private void checkBQConnectiviy() throws IOException {
+    try {
+      BigQueryHelper bigQueryHelper = new BigQueryHelper(getProcessingProject(),
+          getServiceAccountKeyfilePath());
+      bigQueryHelper.checkBQConnectiviy();
+    } catch (Throwable e) {
+
     }
   }
 }

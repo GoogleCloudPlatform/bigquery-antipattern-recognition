@@ -18,6 +18,7 @@ package com.google.zetasql.toolkit.antipattern.util;
 
 import com.google.api.gax.rpc.FixedHeaderProvider;
 import com.google.api.gax.rpc.HeaderProvider;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.InsertAllRequest;
@@ -28,6 +29,9 @@ import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableResult;
 import com.google.common.collect.ImmutableMap;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -36,14 +40,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BigQueryHelper {
+
   private static final String USER_AGENT_HEADER = "user-agent";
   private static final String USER_AGENT_VALUE = "google-pso-tool/antipattern-tool/0.1.0";
   private static final HeaderProvider headerProvider =
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
   private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
-  public static TableResult getQueriesFromIS(
-      String projectId,
+  private BigQuery bigquery;
+
+  public BigQueryHelper(String processingProject, String serviceAccountKeyfilePath)
+      throws IOException {
+    BigQueryOptions.Builder bigQueryOptions =
+        BigQueryOptions.newBuilder()
+            .setHeaderProvider(headerProvider);
+
+    if (processingProject != null) {
+      bigQueryOptions.setProjectId(processingProject);
+    }
+
+    if (serviceAccountKeyfilePath != null) {
+      bigQueryOptions.setCredentials(
+          ServiceAccountCredentials.fromStream(
+              new FileInputStream(serviceAccountKeyfilePath))
+      );
+    }
+
+    bigquery = bigQueryOptions.build().getService();
+  }
+
+  public TableResult getQueriesFromIS(
       String daysBack,
       String startTime,
       String endTime,
@@ -59,13 +85,13 @@ public class BigQueryHelper {
           "Running job on project {}, reading from: {}, scanning last {} days."
               + "and selecting queries with minimum {} slotms. "
               + " Considering only top {}% slot consuming jobs",
-          projectId, ISTable, daysBack, slotsMsMin, topNPercent * 100);
+          bigquery.getOptions().getProjectId(), ISTable, daysBack, slotsMsMin, topNPercent * 100);
       timeCriteria = "  creation_time >= CURRENT_TIMESTAMP - INTERVAL " + daysBack + " DAY\n";
     } else {
       logger.info(
           "Running job on project {}, reading from: {}, scanning between {} and {}."
               + "and selecting queries with minimum {} slotms",
-          projectId,
+          bigquery.getOptions().getProjectId(),
           ISTable,
           startTime,
           endTime,
@@ -81,12 +107,10 @@ public class BigQueryHelper {
       }
       timeCriteria = "  creation_time BETWEEN " + startTime + " AND " + endTime + "\n";
     }
-    return getQueriesFromIS(
-        projectId, timeoutInSecs, timeCriteria, ISTable, slotsMsMin, topNPercent, region);
+    return getQueriesFromIS(timeoutInSecs, timeCriteria, ISTable, slotsMsMin, topNPercent, region);
   }
 
-  private static TableResult getQueriesFromIS(
-      String projectId,
+  private TableResult getQueriesFromIS(
       Long timeoutInSecs,
       String timeCriteria,
       String ISTable,
@@ -94,12 +118,6 @@ public class BigQueryHelper {
       Float topNPercent,
       String region)
       throws InterruptedException {
-    BigQuery bigquery =
-        BigQueryOptions.newBuilder()
-            .setProjectId(projectId)
-            .setHeaderProvider(headerProvider)
-            .build()
-            .getService();
 
     String query =
         "SELECT\n"
@@ -140,14 +158,7 @@ public class BigQueryHelper {
     return queryJob.getQueryResults();
   }
 
-  public static TableResult getQueriesFromBQTable(String inputTable) throws InterruptedException {
-    BigQuery bigquery =
-        BigQueryOptions.newBuilder()
-            .setProjectId(inputTable.split("\\.")[0])
-            .setHeaderProvider(headerProvider)
-            .build()
-            .getService();
-
+  public TableResult getQueriesFromBQTable(String inputTable) throws InterruptedException {
     String query = "SELECT\n" + "  id,\n" + "  query" + " FROM \n`" + inputTable + "`;";
 
     logger.info("Reading from BigQuery table: \n" + query);
@@ -159,16 +170,11 @@ public class BigQueryHelper {
     return queryJob.getQueryResults();
   }
 
-  public static void writeResults(
-      String processingProject, String outputTable, Map<String, Object> rowContent) {
+  public void writeResults(
+      String processingProject, String outputTable, Map<String, Object> rowContent)
+      throws IOException {
     String[] tableName = outputTable.split("\\.");
     TableId tableId = TableId.of(tableName[0], tableName[1], tableName[2]);
-    BigQuery bigquery =
-        BigQueryOptions.newBuilder()
-            .setProjectId(processingProject)
-            .setHeaderProvider(headerProvider)
-            .build()
-            .getService();
     InsertAllResponse response =
         bigquery.insertAll(InsertAllRequest.newBuilder(tableId).addRow(rowContent).build());
     if (response.hasErrors()) {
@@ -180,10 +186,8 @@ public class BigQueryHelper {
     }
   }
 
-  public static void checkBQConnectiviy() {
+  public void checkBQConnectiviy() {
     try {
-      BigQuery bigquery =
-          BigQueryOptions.newBuilder().setHeaderProvider(headerProvider).build().getService();
       bigquery.listDatasets("bigquery-public-data", BigQuery.DatasetListOption.pageSize(1));
     } catch (Throwable e) {
 

@@ -16,6 +16,7 @@
 
 package com.google.zetasql.toolkit.antipattern.cmd;
 
+import java.io.IOException;
 import org.apache.commons.cli.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -75,7 +76,7 @@ public class BQAntiPattenCMDParserTest {
             if (shouldFail) {
                 Assert.fail("parsing should fail, but did not fail, for args: " + Arrays.toString(args));
             }
-        } catch (ParseException e) {
+        } catch (ParseException | IOException e) {
             if (shouldFail) {
                 Assert.assertEquals(this.errorMessage, e.getMessage());
             } else {

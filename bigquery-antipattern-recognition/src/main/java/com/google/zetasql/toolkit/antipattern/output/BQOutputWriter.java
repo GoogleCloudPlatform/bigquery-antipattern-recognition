@@ -21,6 +21,7 @@ import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.cmd.AntiPatternCommandParser;
 import com.google.zetasql.toolkit.antipattern.cmd.InputQuery;
 import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,13 +42,18 @@ public class BQOutputWriter extends OutputWriter {
   public static final String REC_NAME_COL_NAME = "name";
   public static final String DESCRIPTION_COL_NAME = "description";
   public static final String OPTIMIZED_SQL_COL_NAME = "optimized_sql";
+  private BigQueryHelper bigQueryHelper;
   private String tableName;
   private String processingProjectName;
   private DateTime date;
 
-  public BQOutputWriter(String outputDir) {
+  public BQOutputWriter(String outputDir, String processingProject,
+      String serviceAccountKeyfilePath)
+      throws IOException {
     tableName = outputDir;
     date = new DateTime(new Date());
+    bigQueryHelper = new BigQueryHelper(processingProject,
+        serviceAccountKeyfilePath);
   }
 
   public void setProcessingProjectName(String processingProjectName) {
@@ -57,7 +63,7 @@ public class BQOutputWriter extends OutputWriter {
   public void writeRecForQuery(
       InputQuery inputQuery,
       List<AntiPatternVisitor> visitorsThatFoundPatterns,
-      AntiPatternCommandParser cmdParser) {
+      AntiPatternCommandParser cmdParser) throws IOException {
 
     List<Map<String, String>> rec_list = new ArrayList<>();
     for (AntiPatternVisitor visitor : visitorsThatFoundPatterns) {
@@ -76,6 +82,6 @@ public class BQOutputWriter extends OutputWriter {
     rowContent.put(RECOMMENDATION_COL_NAME, rec_list);
     rowContent.put(OPTIMIZED_SQL_COL_NAME, inputQuery.getOptimizedQuery());
     rowContent.put(PROCESS_TIMESTAMP_COL_NAME, date);
-    BigQueryHelper.writeResults(processingProjectName, tableName, rowContent);
+    bigQueryHelper.writeResults(processingProjectName, tableName, rowContent);
   }
 }

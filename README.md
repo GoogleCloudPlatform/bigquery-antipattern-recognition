@@ -312,6 +312,13 @@ If used a rewritted SQL will be provided. The rewrite will be performed using an
 This is an experimental feature. Requires processing_project_id to be specified.
 </ul>
 
+## Using a service account
+`--service_account_keyfile_path`
+<ul>
+Path to service account json keyfile.
+</ul>
+
+
 # Anti patterns
 ## Anti Pattern 1: Selecting all columns
 Example:

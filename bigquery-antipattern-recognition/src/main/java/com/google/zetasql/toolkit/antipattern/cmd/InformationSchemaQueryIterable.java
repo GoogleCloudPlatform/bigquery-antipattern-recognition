@@ -19,11 +19,10 @@ package com.google.zetasql.toolkit.antipattern.cmd;
 import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.TableResult;
 import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
-import org.apache.commons.lang3.StringUtils;
+import java.io.IOException;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.Iterator;
-import java.util.Optional;
 
 public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
 
@@ -36,21 +35,32 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
   String DEFAULT_REGION = "us";
 
 
-  public InformationSchemaQueryIterable(String processingProjectId, String customDaysBack, String startTime,
+  public InformationSchemaQueryIterable(String processingProjectId, String customDaysBack,
+      String startTime,
       String endTime, String customISTable, String infoSchemaSlotmsMin, String customTimeoutInSecs,
-      String customTopNPercent, String customRegion, String customInfoSchemaProject)
-          throws InterruptedException {
+      String customTopNPercent, String customRegion, String customInfoSchemaProject,
+      String serviceAccountKeyfilePath)
+      throws InterruptedException, IOException {
 
     String daysBack = customDaysBack == null ? DAYS_BACK_DEFAULT : customDaysBack;
     String region = customRegion == null ? DEFAULT_REGION : customRegion;
-    String infoSchemaProject = customInfoSchemaProject == null ? processingProjectId : customInfoSchemaProject;
-    String ISTable = customISTable == null ? String.format(IS_TABLE_DEFAULT, infoSchemaProject, region) : customISTable;
-    Integer slotsMsMin = infoSchemaSlotmsMin == null ? SLOTMS_MIN_DEFAULT : Integer.parseInt(infoSchemaSlotmsMin);
-    Long timeoutInSecs = !NumberUtils.isParsable(customTimeoutInSecs) ? TIMEOUT_SECS_DEFAULT : Long.parseLong(customTimeoutInSecs);
-    float topNPercent = customTopNPercent == null ? TOP_N_PERC_DEFAULT : Float.parseFloat(customTopNPercent);
+    String infoSchemaProject =
+        customInfoSchemaProject == null ? processingProjectId : customInfoSchemaProject;
+    String ISTable =
+        customISTable == null ? String.format(IS_TABLE_DEFAULT, infoSchemaProject, region)
+            : customISTable;
+    Integer slotsMsMin =
+        infoSchemaSlotmsMin == null ? SLOTMS_MIN_DEFAULT : Integer.parseInt(infoSchemaSlotmsMin);
+    Long timeoutInSecs = !NumberUtils.isParsable(customTimeoutInSecs) ? TIMEOUT_SECS_DEFAULT
+        : Long.parseLong(customTimeoutInSecs);
+    float topNPercent =
+        customTopNPercent == null ? TOP_N_PERC_DEFAULT : Float.parseFloat(customTopNPercent);
+
+    BigQueryHelper bigQueryHelper = new BigQueryHelper(processingProjectId,
+        serviceAccountKeyfilePath);
 
     TableResult tableResult =
-        BigQueryHelper.getQueriesFromIS(processingProjectId, daysBack, startTime, endTime, ISTable, slotsMsMin,
+        bigQueryHelper.getQueriesFromIS(daysBack, startTime, endTime, ISTable, slotsMsMin,
             timeoutInSecs, topNPercent, region);
 
     fieldValueListIterator = tableResult.iterateAll().iterator();
@@ -69,7 +79,8 @@ public class InformationSchemaQueryIterable implements Iterator<InputQuery> {
     String projectId = row.get("project_id").getStringValue();
     String userEmail = row.get("user_email").getStringValue();
     // Slot hours can be null if the query errors out
-    String slot_hours = row.get("slot_hours").isNull() ? "0" : row.get("slot_hours").getStringValue();
+    String slot_hours =
+        row.get("slot_hours").isNull() ? "0" : row.get("slot_hours").getStringValue();
     return new InputQuery(query, job_id, projectId, userEmail, Float.parseFloat(slot_hours));
   }
 }
