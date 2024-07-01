@@ -20,15 +20,19 @@ import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.TableResult;
 import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 public class InputBigQueryTableIterator implements Iterator<InputQuery> {
 
   Iterator<FieldValueList> fieldValueListIterator;
 
-  public InputBigQueryTableIterator(String inputTable) throws InterruptedException {
+  public InputBigQueryTableIterator(String inputTable, String processingProject, String serviceAccountKeyfilePath)
+      throws InterruptedException, IOException {
 
-    TableResult tableResult = BigQueryHelper.getQueriesFromBQTable(inputTable);
+    BigQueryHelper bigQueryHelper = new BigQueryHelper(processingProject,
+        serviceAccountKeyfilePath);
+    TableResult tableResult = bigQueryHelper.getQueriesFromBQTable(inputTable);
 
     fieldValueListIterator = tableResult.iterateAll().iterator();
   }

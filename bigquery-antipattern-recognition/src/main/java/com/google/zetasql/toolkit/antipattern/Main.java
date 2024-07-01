@@ -22,6 +22,7 @@ import com.google.zetasql.toolkit.antipattern.output.OutputWriter;
 import com.google.zetasql.toolkit.antipattern.output.OutputWriterFactory;
 import com.google.zetasql.toolkit.antipattern.rewriter.gemini.GeminiRewriter;
 import com.google.zetasql.toolkit.antipattern.util.AntiPatternHelper;
+import com.google.zetasql.toolkit.antipattern.util.BigQueryHelper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;

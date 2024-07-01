@@ -32,7 +32,6 @@ docker run \
     --processing_project_id <my-project> \
     --output_table "<my-project>.<my-dataset>.antipattern_output_table" \
     --info_schema_top_n_percentage_of_jobs 0.1  
-
 ```
 
 Read output in BigQuery Console
@@ -156,6 +155,24 @@ docker run \
 ```
 
 Note that the tool will recursively search for SQL files recurseivly in the folder that you upload.
+
+### Using a service account
+```
+export SA_KEYFILE_PATH="/path/to/folder/with/keyfile"
+export SA_KEYFILE_NAME="keyfile.json"
+
+gcloud auth login
+
+docker run \
+    -v ~/.config:/root/.config \
+    -i bigquery-antipattern-recognition \
+    --read_from_info_schema \
+    --read_from_info_schema_days 1 \
+    --processing_project_id <my-project> \
+    --output_table "<my-project>.<my-dataset>.antipattern_output_table" \
+    --info_schema_top_n_percentage_of_jobs 0.1 \
+    --service_account_keyfile_path $SA_KEYFILE_PATH/$SA_KEYFILE_NAME
+```
 
 ## License
 
