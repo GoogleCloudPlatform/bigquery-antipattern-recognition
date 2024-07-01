@@ -154,6 +154,18 @@ java -jar  bigquery-antipattern-recognition.jar \
 
 Note that the tool will recursively search for SQL files recurseivly in the folder that you upload.
 
+### Using a service account
+```
+gcloud auth login
+java -jar  bigquery-antipattern-recognition.jar \
+    --read_from_info_schema \
+    --read_from_info_schema_days 1 \
+    --processing_project_id <my-project> \
+    --output_table "<my-project>.<my-dataset>.antipattern_output_table" \
+    --info_schema_top_n_percentage_of_jobs 0.1 \
+    --service_account_keyfile_path /path/to/service/account/keyfile.json
+```
+
 ## License
 
 ```text

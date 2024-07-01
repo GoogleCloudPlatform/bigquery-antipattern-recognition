@@ -165,6 +165,7 @@ gcloud auth login
 
 docker run \
     -v ~/.config:/root/.config \
+    -v $SA_KEYFILE_PATH:$SA_KEYFILE_PATH \
     -i bigquery-antipattern-recognition \
     --read_from_info_schema \
     --read_from_info_schema_days 1 \
