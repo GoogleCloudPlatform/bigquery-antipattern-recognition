@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,9 +48,9 @@ public class PromptYamlReader {
 
   private void populatePromptHandler() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    File file = new File(classLoader.getResource(YAML_FILE_NAME).getFile());
+    InputStream stream = classLoader.getResourceAsStream(YAML_FILE_NAME);
     final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    promptDetailsList = mapper.readValue(file, PromptDetailsList.class);
+    promptDetailsList = mapper.readValue(stream, PromptDetailsList.class);
   }
 
   private String getExampleString(List<String> examples) {
