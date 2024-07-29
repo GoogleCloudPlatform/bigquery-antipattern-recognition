@@ -16,6 +16,7 @@
 
 package com.google.zetasql.toolkit.antipattern.util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,12 +35,30 @@ public class ZetaSQLStringParsingHelper {
   }
 
   public static int countLine(String query, int start) {
+    byte[] utf8Bytes = query.getBytes(StandardCharsets.UTF_8);
+
+    int utf16Index = 0;
+    int byteIndex = 0;
+    while (byteIndex < start && byteIndex < utf8Bytes.length) {
+      int currentByte = utf8Bytes[byteIndex] & 0xFF;
+      if (currentByte < 0x80) {
+        byteIndex++;
+      } else if (currentByte < 0xE0) {
+        byteIndex += 2;
+      } else if (currentByte < 0xF0) {
+        byteIndex += 3;
+      } else {
+        byteIndex += 4;
+      }
+      utf16Index++;
+    }
+
     int count = 0;
-    for (int i = 0; i < start; i++) {
+    for (int i = 0; i < utf16Index; i++) {
       if (query.charAt(i) == '\n') {
         count++;
       }
     }
-    return count+1;
+    return count + 1;
   }
 }
