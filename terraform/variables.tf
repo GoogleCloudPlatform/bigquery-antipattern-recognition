@@ -38,6 +38,11 @@ variable "cloud_run_job_name" {
   description = "Name for the Cloud Run job"
 }
 
+// Variable that holds the name of the Query Hash Cloud Run job to be created.
+variable "cloud_run_job_name_hash" {
+  type        = string
+  description = "Name for the Query Hash Cloud Run job"
+}
 // Variable that holds the service account to be associated with the Cloud Run job.
 variable "cloud_run_job_sa" {
   type        = string
@@ -51,7 +56,19 @@ variable "output_table" {
   description = "BigQuery output table for the Anti Pattern Detector"
 }
 
+// Variable that holds the BigQuery input table name for the Anti Pattern Detector.
+variable "input_table" {
+  type        = string
+  description = "BigQuery input table for the Anti Pattern Detector"
+}
+
 // Boolean variable to determine if a Cloud Scheduler job is to be applied.
+variable "apply_workflow" {
+  type    = bool
+  default = false
+}
+
+// Boolean variable to determine if a Cloud Worfklows job is to be applied.
 variable "apply_scheduler" {
   type    = bool
   default = false
