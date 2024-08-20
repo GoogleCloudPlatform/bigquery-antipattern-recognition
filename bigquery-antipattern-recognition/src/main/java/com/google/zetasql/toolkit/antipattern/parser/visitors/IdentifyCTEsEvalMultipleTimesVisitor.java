@@ -84,7 +84,7 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor
     } else if (tableExpression instanceof ASTNodes.ASTTableSubquery) {
       ASTNodes.ASTQueryExpression queryExpression =
           ((ASTNodes.ASTTableSubquery) tableExpression).getSubquery().getQueryExpr();
-      if (queryExpression instanceof ASTNodes.ASTSelect) {
+      if (queryExpression instanceof ASTNodes.ASTSelect && ((ASTSelect) queryExpression).getFromClause() != null) {
         ASTNodes.ASTTableExpression tableExpression1 =
             ((ASTSelect) queryExpression).getFromClause().getTableExpression();
         visit(tableExpression1);
