@@ -64,7 +64,7 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor
                   alias.getAlias().getIdString().toLowerCase(),
                   alias.getParseLocationRange().start());
               // Visit from and fetch tablename
-              if (alias.getQuery().getQueryExpr() instanceof ASTSelect) {
+              if (alias.getQuery().getQueryExpr() instanceof ASTSelect && ((ASTSelect) queryExpression).getFromClause() != null) {
                 ASTNodes.ASTTableExpression tableExpression =
                     ((ASTSelect) alias.getQuery().getQueryExpr())
                         .getFromClause()
@@ -95,6 +95,7 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor
   // Fetch table names and count occurrence of it
   public void visit(ASTTablePathExpression tablePathExpression) {
     // Loop through all the identifiers in the table path expression.
+    if(tablePathExpression.getPathExpr() != null) {
     tablePathExpression
         .getPathExpr()
         .getNames()
@@ -107,6 +108,7 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor
                 cteCountMap.put(table, cteCountMap.get(table) + 1);
               }
             });
+    }
   }
 
   // Getter method to retrieve the list of suggestion messages.
