@@ -64,7 +64,8 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor
                   alias.getAlias().getIdString().toLowerCase(),
                   alias.getParseLocationRange().start());
               // Visit from and fetch tablename
-              if (alias.getQuery().getQueryExpr() instanceof ASTSelect && ((ASTSelect) queryExpression).getFromClause() != null) {
+              if (alias.getQuery().getQueryExpr() instanceof ASTSelect && ((ASTSelect) alias.getQuery().getQueryExpr())
+              .getFromClause() != null) {
                 ASTNodes.ASTTableExpression tableExpression =
                     ((ASTSelect) alias.getQuery().getQueryExpr())
                         .getFromClause()
@@ -96,18 +97,18 @@ public class IdentifyCTEsEvalMultipleTimesVisitor extends ParseTreeVisitor
   public void visit(ASTTablePathExpression tablePathExpression) {
     // Loop through all the identifiers in the table path expression.
     if(tablePathExpression.getPathExpr() != null) {
-    tablePathExpression
-        .getPathExpr()
-        .getNames()
-        .forEach(
-            identifier -> {
-              // Get the identifier as a string in lower case.
-              String table = identifier.getIdString().toLowerCase();
-              // If the count map contains the identifier, increment its count.
-              if (cteCountMap.containsKey(table)) {
-                cteCountMap.put(table, cteCountMap.get(table) + 1);
-              }
-            });
+      tablePathExpression
+          .getPathExpr()
+          .getNames()
+          .forEach(
+              identifier -> {
+                // Get the identifier as a string in lower case.
+                String table = identifier.getIdString().toLowerCase();
+                // If the count map contains the identifier, increment its count.
+                if (cteCountMap.containsKey(table)) {
+                  cteCountMap.put(table, cteCountMap.get(table) + 1);
+                }
+              });
     }
   }
 
