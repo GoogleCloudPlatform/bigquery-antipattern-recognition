@@ -147,7 +147,9 @@ public class AntiPatternHelper {
                 new IdentifyRegexpContainsVisitor(query),
                 new IdentifyCTEsEvalMultipleTimesVisitor(query),
                 new IdentifyLatestRecordVisitor(query),
-                new IdentifyWhereOrderVisitor(query)
+                new IdentifyWhereOrderVisitor(query),
+                new IdentifyMissingDropStatementVisitor(query),
+                new IdentifyConvertTablesToTempVisitor(query)
 
         ));
     }
