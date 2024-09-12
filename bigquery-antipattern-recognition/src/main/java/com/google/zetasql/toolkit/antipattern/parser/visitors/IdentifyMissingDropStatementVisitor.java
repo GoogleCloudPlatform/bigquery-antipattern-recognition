@@ -33,6 +33,7 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
    public static final String NAME = "MissingDropStatement";
    private final String MULTIPLE_CTE_SUGGESTION_MESSAGE =
        "TEMP table created without DROP statement: TEMP table %s defined at line %d is created and not dropped.";
+   private final String TEMPORARY_SCOPE = "TEMPORARY";
 
    // An array list to store the suggestions.
    private final ArrayList<String> result = new ArrayList<>();
@@ -52,7 +53,7 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
    @Override
    public void visit(ASTCreateTableStatement createTableStatement) {
         // check if the table is temporary
-        if(createTableStatement.getScope().toString() == "TEMPORARY"){
+        if(createTableStatement.getScope().toString() == TEMPORARY_SCOPE){
             createTableStatement.getName()
             .getNames()
             .forEach(

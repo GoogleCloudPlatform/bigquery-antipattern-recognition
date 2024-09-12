@@ -32,6 +32,8 @@ import com.google.zetasql.parser.ParseTreeVisitor;
    public static final String NAME = "ConvertTableToTemp";
    private final String CONVERT_TO_TEMP_SUGGESTION_MESSAGE =
        "Table dropped without TEMP: Table %s defined at line %d is not temporary and is dropped.";
+   // Scope of a non-temporary table
+   private final String DEFAULT_SCOPE = "DEFAULT_SCOPE";
 
    // An array list to store the suggestions.
    private final ArrayList<String> result = new ArrayList<>();
@@ -51,7 +53,7 @@ import com.google.zetasql.parser.ParseTreeVisitor;
    @Override
    public void visit(ASTCreateTableStatement createTableStatement) {
         // check if the table is not temporary
-        if(createTableStatement.getScope().toString() == "DEFAULT_SCOPE"){
+        if(createTableStatement.getScope().toString() == DEFAULT_SCOPE){
             createTableStatement.getName()
             .getNames()
             .forEach(
