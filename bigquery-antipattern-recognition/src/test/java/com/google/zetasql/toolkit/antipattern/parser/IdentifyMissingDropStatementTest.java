@@ -36,7 +36,7 @@ import org.junit.Before;
      languageOptions.setSupportsAllStatementKinds();
    }
 
-   // Test with a query that uses two CTEs aliased (b,c) referencing CTE aliased (a) multiple times
+   // Test with a query that creates a temp table and does not drop it
    @Test
    public void oneTempTableTest() {
      String expected = "TEMP table created without DROP statement: TEMP table example defined at line 1 is created and not dropped.";
