@@ -16,7 +16,6 @@
 
  package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
- import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTCreateTableStatement;
 import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
 
@@ -38,12 +37,11 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
    // An array list to store the suggestions.
    private final ArrayList<String> result = new ArrayList<>();
 
-   // An array list to store the suggestions.
-   private final ArrayList<String> droppedTables = new ArrayList<>();
-
-   // A map to keep track of the number of times each CTE is evaluated.
+   // A map to keep track of the number of temp table names.
    private final Map<String, Integer> createTempTableMap = new HashMap<>();
 
+   // An array list to store dropped tables.
+   private final ArrayList<String> droppedTables = new ArrayList<>();
 
    private String query;
 
@@ -53,6 +51,7 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
 
    @Override
    public void visit(ASTCreateTableStatement createTableStatement) {
+        // check if the table is temporary
         if(createTableStatement.getScope().toString() == "TEMPORARY"){
             createTableStatement.getName()
             .getNames()
@@ -79,10 +78,8 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
         );
    }
 
-
    // Getter method to retrieve the list of suggestion messages.
    public String getResult() {
-     System.out.println(createTempTableMap);
      for (Map.Entry<String, Integer> entry : createTempTableMap.entrySet()) {
        String tempTableName = entry.getKey();
        if (!droppedTables.contains(tempTableName)){

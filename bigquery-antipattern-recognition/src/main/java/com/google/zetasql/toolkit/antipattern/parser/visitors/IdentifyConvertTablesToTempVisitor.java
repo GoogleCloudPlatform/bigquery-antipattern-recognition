@@ -16,10 +16,8 @@
 
  package com.google.zetasql.toolkit.antipattern.parser.visitors;
 
- import com.google.zetasql.parser.ASTNodes;
 import com.google.zetasql.parser.ASTNodes.ASTCreateTableStatement;
 import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
-import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
 import com.google.zetasql.parser.ParseTreeVisitor;
  import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
  import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
@@ -38,12 +36,11 @@ import com.google.zetasql.parser.ParseTreeVisitor;
    // An array list to store the suggestions.
    private final ArrayList<String> result = new ArrayList<>();
 
-   // An array list to store the suggestions.
-   private final ArrayList<String> droppedTables = new ArrayList<>();
-
-   // A map to keep track of the number of times each CTE is evaluated.
+   // A map to keep track of the created tables.
    private final Map<String, Integer> createTableMap = new HashMap<>();
 
+   // An array list to store the dropped tables.
+   private final ArrayList<String> droppedTables = new ArrayList<>();
 
    private String query;
 
@@ -53,7 +50,7 @@ import com.google.zetasql.parser.ParseTreeVisitor;
 
    @Override
    public void visit(ASTCreateTableStatement createTableStatement) {
-
+        // check if the table is not temporary
         if(createTableStatement.getScope().toString() == "DEFAULT_SCOPE"){
             createTableStatement.getName()
             .getNames()
