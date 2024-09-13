@@ -52,31 +52,35 @@ import com.google.zetasql.parser.ParseTreeVisitor;
 
    @Override
    public void visit(ASTCreateTableStatement createTableStatement) {
-        // check if the table is not temporary
+        // check if the table is temporary
         if(createTableStatement.getScope().toString() == DEFAULT_SCOPE){
+            ArrayList<String> fqdm = new ArrayList<>();
             createTableStatement.getName()
             .getNames()
             .forEach(
                 identifier -> {
                     // Get the identifier as a string in lower case.
-                    String table = identifier.getIdString().toLowerCase();
-                    createTableMap.put(table, createTableStatement.getParseLocationRange().start());
+                    String id = identifier.getIdString().toLowerCase();
+                    fqdm.add(id);
                 }
             );
+            createTableMap.put(String.join(".", fqdm), createTableStatement.getParseLocationRange().start());
     }
    }
 
    @Override
    public void visit(ASTDropStatement dropStatement) {
+        ArrayList<String> fqdm = new ArrayList<>();
         dropStatement.getName()
         .getNames()
         .forEach(
             identifier -> {
                 // Get the identifier as a string in lower case.
-                String table = identifier.getIdString().toLowerCase();
-                droppedTables.add(table);
+                String id = identifier.getIdString().toLowerCase();
+                fqdm.add(id);
             }
         );
+        droppedTables.add(String.join(".", fqdm));
    }
 
    // Getter method to retrieve the list of suggestion messages.

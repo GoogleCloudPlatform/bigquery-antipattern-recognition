@@ -20,7 +20,7 @@
 
  import com.google.zetasql.LanguageOptions;
  import com.google.zetasql.Parser;
- import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.parser.ASTNodes.ASTScript;
  import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyDroppedPersistentTableVisitor;
  import org.junit.Before;
  import org.junit.Test;
@@ -37,8 +37,8 @@
 
    // Test with a query that creates a table and drops it without TEMP
    @Test
-   public void oneTempTableTest() {
-     String expected = "Table dropped without TEMP: Table example defined at line 1 is not temporary and is dropped.";
+   public void oneTableTest() {
+     String expected = "Table dropped without TEMP: Table mydataset.example defined at line 1 is not temporary and is dropped.";
      String query = "CREATE TABLE mydataset.example \n"
      + "(\n"
      +  "x INT64, \n"
@@ -46,7 +46,20 @@
      + "); \n"
      + "DROP TABLE mydataset.example;";
 
-     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+     ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
+     IdentifyDroppedPersistentTableVisitor visitor = new IdentifyDroppedPersistentTableVisitor(query);
+     parsedQuery.accept(visitor);
+     String recommendations = visitor.getResult();
+     assertEquals(expected, recommendations);
+   }
+
+   // Test with a query that creates a table and drops it without TEMP
+   @Test
+   public void oneTempCTASTableTest() {
+     String expected = "Table dropped without TEMP: Table mydataset.example defined at line 1 is not temporary and is dropped.";
+     String query = "CREATE TABLE mydataset.example AS ( SELECT 1 ); \n"
+     + "DROP TABLE mydataset.example;";
+     ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
      IdentifyDroppedPersistentTableVisitor visitor = new IdentifyDroppedPersistentTableVisitor(query);
      parsedQuery.accept(visitor);
      String recommendations = visitor.getResult();
