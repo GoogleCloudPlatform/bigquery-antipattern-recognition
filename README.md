@@ -511,6 +511,34 @@ better if tables where joined in the following order:
 [bikeshare_trips, bikeshare_stations]
 ```
 
+## Anti Pattern 10: Missing DROP Statement
+Drop temporary tables at the end of your script to avoid unnecesary storage billing.
+
+Example:
+```
+CREATE TEMP TABLE `my_dataset.temp_table` (id INT64, name STRING);
+```
+
+Output:
+```
+TEMP table created without DROP statement: TEMP table my_dataset.temp_table defined at line 1 is created and not dropped.
+```
+
+## Anti Pattern 11: Dropped Persistent Table
+Convert persistent tables that are dropped at the end of a script to TEMP tables to save on time travel + fail safe storage.
+
+Example:
+```
+CREATE TABLE `my_dataset.table` (id INT64, name STRING);
+
+DROP TABLE `my_dataset.table`;
+```
+
+Output:
+```
+Persistent table dropped without TEMP: Table my_dataset.table defined at line 1 is is dropped. Consider converting to temporary.
+```
+
 ## License
 
 ```text
