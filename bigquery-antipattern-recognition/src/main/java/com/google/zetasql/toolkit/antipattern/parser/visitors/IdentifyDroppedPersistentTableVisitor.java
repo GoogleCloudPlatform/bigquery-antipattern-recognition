@@ -31,7 +31,7 @@ import com.google.zetasql.parser.ParseTreeVisitor;
 
    public static final String NAME = "ConvertTableToTemp";
    private final String CONVERT_TO_TEMP_SUGGESTION_MESSAGE =
-       "Table dropped without TEMP: Table %s defined at line %d is not temporary and is dropped.";
+       "Persistent table dropped without TEMP: Table %s defined at line %d is is dropped. Consider converting to temporary.";
    // Scope of a non-temporary table
    private final String DEFAULT_SCOPE = "DEFAULT_SCOPE";
 

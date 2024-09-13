@@ -31,7 +31,7 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
      implements AntiPatternVisitor {
 
    public static final String NAME = "MissingDropStatement";
-   private final String MULTIPLE_CTE_SUGGESTION_MESSAGE =
+   private final String MISSING_DROP_SUGGESTION_MESSAGE =
        "TEMP table created without DROP statement: TEMP table %s defined at line %d is created and not dropped.";
    private final String TEMPORARY_SCOPE = "TEMPORARY";
 
@@ -89,7 +89,7 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
        String tempTableName = entry.getKey();
        if (!droppedTables.contains(tempTableName)){
         int lineNum = ZetaSQLStringParsingHelper.countLine(query, createTempTableMap.get(tempTableName));
-        result.add(String.format(MULTIPLE_CTE_SUGGESTION_MESSAGE, tempTableName, lineNum));
+        result.add(String.format(MISSING_DROP_SUGGESTION_MESSAGE, tempTableName, lineNum));
        }
      }
      return result.stream().distinct().collect(Collectors.joining("\n"));
