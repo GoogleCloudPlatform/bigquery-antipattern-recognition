@@ -21,11 +21,11 @@
  import com.google.zetasql.LanguageOptions;
  import com.google.zetasql.Parser;
  import com.google.zetasql.parser.ASTNodes.ASTStatement;
- import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyConvertTablesToTempVisitor;
+ import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyDroppedPersistentTableVisitor;
  import org.junit.Before;
  import org.junit.Test;
 
- public class IdentifyConvertTablesToTempTest {
+ public class IdentifyDroppedPersistentTableTest {
    LanguageOptions languageOptions;
 
    @Before
@@ -47,7 +47,7 @@
      + "DROP TABLE mydataset.example;";
 
      ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-     IdentifyConvertTablesToTempVisitor visitor = new IdentifyConvertTablesToTempVisitor(query);
+     IdentifyDroppedPersistentTableVisitor visitor = new IdentifyDroppedPersistentTableVisitor(query);
      parsedQuery.accept(visitor);
      String recommendations = visitor.getResult();
      assertEquals(expected, recommendations);

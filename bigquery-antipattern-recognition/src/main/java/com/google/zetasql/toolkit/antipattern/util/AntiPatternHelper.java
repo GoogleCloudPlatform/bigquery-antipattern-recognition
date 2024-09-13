@@ -149,7 +149,7 @@ public class AntiPatternHelper {
                 new IdentifyLatestRecordVisitor(query),
                 new IdentifyWhereOrderVisitor(query),
                 new IdentifyMissingDropStatementVisitor(query),
-                new IdentifyConvertTablesToTempVisitor(query)
+                new IdentifyDroppedPersistentTableVisitor(query)
 
         ));
     }

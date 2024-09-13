@@ -26,7 +26,7 @@ import com.google.zetasql.parser.ParseTreeVisitor;
  import java.util.Map;
  import java.util.stream.Collectors;
 
- public class IdentifyConvertTablesToTempVisitor extends ParseTreeVisitor
+ public class IdentifyDroppedPersistentTableVisitor extends ParseTreeVisitor
      implements AntiPatternVisitor {
 
    public static final String NAME = "ConvertTableToTemp";
@@ -46,7 +46,7 @@ import com.google.zetasql.parser.ParseTreeVisitor;
 
    private String query;
 
-   public IdentifyConvertTablesToTempVisitor(String query) {
+   public IdentifyDroppedPersistentTableVisitor(String query) {
      this.query = query;
    }
 
