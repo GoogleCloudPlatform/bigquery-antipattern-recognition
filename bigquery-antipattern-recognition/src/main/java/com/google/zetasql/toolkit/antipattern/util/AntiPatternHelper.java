@@ -82,7 +82,7 @@ public class AntiPatternHelper {
         for (AntiPatternVisitor visitorThatFoundAntiPattern : parserVisitorList) {
             logger.info("Parsing query with id: " + inputQuery.getQueryId() +
                     " for anti-pattern: " + visitorThatFoundAntiPattern.getName());
-            ASTNodes.ASTStatement parsedQuery = Parser.parseStatement( inputQuery.getQuery(), this.languageOptions);
+            ASTNodes.ASTScript parsedQuery = Parser.parseScript( inputQuery.getQuery(), this.languageOptions);
             try{
                 parsedQuery.accept((ParseTreeVisitor) visitorThatFoundAntiPattern);
                 String result = visitorThatFoundAntiPattern.getResult();

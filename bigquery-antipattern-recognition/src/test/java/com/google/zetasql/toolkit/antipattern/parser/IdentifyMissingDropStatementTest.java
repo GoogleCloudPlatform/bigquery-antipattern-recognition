@@ -20,7 +20,7 @@
 
  import com.google.zetasql.LanguageOptions;
  import com.google.zetasql.Parser;
- import com.google.zetasql.parser.ASTNodes.ASTStatement;
+import com.google.zetasql.parser.ASTNodes.ASTScript;
 import com.google.zetasql.toolkit.antipattern.parser.visitors.IdentifyMissingDropStatementVisitor;
 
 import org.junit.Before;
@@ -39,15 +39,45 @@ import org.junit.Before;
    // Test with a query that creates a temp table and does not drop it
    @Test
    public void oneTempTableTest() {
-     String expected = "TEMP table created without DROP statement: TEMP table example defined at line 1 is created and not dropped.";
+     String expected = "TEMP table created without DROP statement: TEMP table mydataset.example defined at line 1 is created and not dropped.";
+     String query = "CREATE TEMP TABLE mydataset.example \n"
+     + "(\n"
+     +  "x INT64, \n"
+     +  "y STRING \n"
+     + "); \n";
+
+     ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
+     IdentifyMissingDropStatementVisitor visitor = new IdentifyMissingDropStatementVisitor(query);
+     parsedQuery.accept(visitor);
+     String recommendations = visitor.getResult();
+     assertEquals(expected, recommendations);
+   }
+
+   // Test with a query that creates a temp table and does drops it
+   @Test
+   public void oneTempTableDropTest() {
+     String expected = "";
      String query = "CREATE TEMP TABLE mydataset.example \n"
      + "(\n"
      +  "x INT64, \n"
      +  "y STRING \n"
      + "); \n"
-     + ";";
+     + "DROP TABLE mydataset.example";
 
-     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
+     ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
+     IdentifyMissingDropStatementVisitor visitor = new IdentifyMissingDropStatementVisitor(query);
+     parsedQuery.accept(visitor);
+     String recommendations = visitor.getResult();
+     assertEquals(expected, recommendations);
+   }
+
+    // Test with a query that creates a temp table with CTAS and does not drop it
+   @Test
+   public void oneTempTableCTASTest() {
+    String expected = "TEMP table created without DROP statement: TEMP table mydataset.example defined at line 1 is created and not dropped.";
+    String query = "CREATE TEMP TABLE mydataset.example AS (SELECT 1);";
+
+     ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
      IdentifyMissingDropStatementVisitor visitor = new IdentifyMissingDropStatementVisitor(query);
      parsedQuery.accept(visitor);
      String recommendations = visitor.getResult();
