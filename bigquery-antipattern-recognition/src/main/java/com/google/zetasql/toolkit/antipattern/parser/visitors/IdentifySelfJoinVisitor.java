@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import com.google.zetasql.parser.ASTNodes.ASTJoin;
 import com.google.zetasql.parser.ASTNodes.ASTTablePathExpression;
 import com.google.zetasql.parser.ParseTreeVisitor;
-import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor; 
+import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
 import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
 
 public class IdentifySelfJoinVisitor extends ParseTreeVisitor implements AntiPatternVisitor {
