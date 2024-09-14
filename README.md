@@ -539,6 +539,32 @@ Output:
 Persistent table dropped without TEMP: Table my_dataset.table defined at line 1 is is dropped. Consider converting to temporary.
 ```
 
+## Anti Pattern 12: Self Join
+Example:
+```
+SELECT 
+  DATE(t1.trip_start_timestamp) dt,
+  COUNT(DISTINCT t1.unique_key) ct,
+  COUNT(DISTINCT t2.unique_key) ct_prev_day
+FROM 
+  `bigquery-public-data.chicago_taxi_trips.taxi_trips` t1
+LEFT JOIN
+  `bigquery-public-data.chicago_taxi_trips.taxi_trips` t2 
+    ON DATE(t2.trip_start_timestamp) = DATE(t1.trip_start_timestamp) - INTERVAL 1 DAY
+WHERE
+  FORMAT_DATE('%Y-%m', t1.trip_start_timestamp) = '2023-02'
+  AND FORMAT_DATE('%Y-%m', t2.trip_start_timestamp) = '2023-02'
+GROUP BY
+  dt
+ORDER BY
+  dt desc;
+```
+
+Output:
+```
+Self Join detected: Table bigquery-public-data.chicago_taxi_trips.taxi_trips is joined on itself at line 4. Consider window (analytic) function
+```
+
 ## License
 
 ```text

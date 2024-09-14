@@ -27,17 +27,19 @@ public class PrintParserDebugString {
     languageOptions.enableMaximumLanguageFeatures();
     languageOptions.setSupportsAllStatementKinds();
 
-    String query = "select\n"
-        + "  message\n"
-        + "from \n"
-        + "  `bigquery-public-data.github_repos.commits`\n"
-        + "where\n"
-        + "  message like '%Update%'\n"
-        + "  and author.name = 'shenzhouzd'\n"
-        + ";\n";
+    String query = "SELECT DATE(t1.trip_start_timestamp) dt,\n"
+    + "COUNT(DISTINCT t1.unique_key) ct,\n"
+    + "COUNT(DISTINCT t2.unique_key) ct_prev_day\n"
+    + "FROM `bigquery-public-data.chicago_taxi_trips.taxi_trips` t1\n"
+    + "LEFT JOIN `bigquery-public-data.chicago_taxi_trips.taxi_trips` t2\n"
+    + "ON DATE(t2.trip_start_timestamp) = DATE(t1.trip_start_timestamp) - INTERVAL 1 DAY\n"
+    + "WHERE FORMAT_DATE('%Y-%m', t1.trip_start_timestamp) = '2023-02'\n"
+    + "AND FORMAT_DATE('%Y-%m', t2.trip_start_timestamp) = '2023-02'\n"
+    + "GROUP BY dt\n"
+    + "ORDER BY dt desc;";
 
     ASTStatement parsedQuery = Parser.parseStatement(query, languageOptions);
-    //System.out.println(parsedQuery);
+    System.out.println(parsedQuery);
 
   }
 }
