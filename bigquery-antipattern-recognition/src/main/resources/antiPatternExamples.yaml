@@ -148,7 +148,7 @@ prompts:
            table1 t1 ON t1.col2=t2.col2\n;"
   - name: ConvertTableToTemp
     description: |
-      You know that if a table is dropped in a script that it is more cost effect to convert that table to TEMP to avoid additional storage costs.
+      You know that if a table is dropped in a script that it should be converted to TEMP to avoid additional storage costs.
     examples:
     - "CREATE TABLE mydataset.table (id STRING); \n
        DROP TABLE mydataset.table; \n
