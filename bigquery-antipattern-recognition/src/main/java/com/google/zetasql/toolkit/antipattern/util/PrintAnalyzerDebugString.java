@@ -30,7 +30,34 @@ public class PrintAnalyzerDebugString {
     BigQueryCatalog catalog = new BigQueryCatalog(processingProject, resourceProvider);
 
     //what about a view
-    String query = "SELECT  \n"
+    String query = "CREATE TABLE mydataset.example \n"
+        + "(\n"
+        +  "x INT64, \n"
+        +  "y STRING \n"
+        + "); \n"
+        + "CREATE TEMP TABLE my_temp_table AS \n"
+        + "SELECT  \n"
+        + "  product_id, \n"
+        + "  SUM(quantity) AS total_quantity_sold\n"
+        + "FROM\n"
+        + "  UNNEST([ \n"
+        + "      STRUCT(1 AS product_id, 78 AS quantity),\n"
+        + "      STRUCT(2 AS product_id, 18 AS quantity),\n"
+        + "      STRUCT(3 AS product_id, 95 AS quantity),\n"
+        + "      STRUCT(4 AS product_id, 67 AS quantity),\n"
+        + "      STRUCT(5 AS product_id, 50 AS quantity)\n"
+        + "  ]) \n"
+        + "GROUP BY \n"
+        + "  product_id; \n"
+        + "DROP TABLE Example; \n"
+
+        + "SELECT * \n"
+        + "FROM \n"
+        + "  my_temp_table \n"
+        + "WHERE \n"
+        + "  total_quantity_sold > 100;\n\n"
+
+        + "SELECT  \n"
         + "  t1.station_id,\n"
         + "  COUNT(1) num_trips_started\n"
         + "FROM\n"
@@ -43,7 +70,7 @@ public class PrintAnalyzerDebugString {
 
     catalog.addAllTablesUsedInQuery(query, options);
     Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
-    //statementIterator.forEachRemaining(System.out::println);
+    statementIterator.forEachRemaining(System.out::println);
 
   }
 }
