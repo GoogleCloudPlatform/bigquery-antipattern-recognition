@@ -22,6 +22,7 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
  import com.google.zetasql.parser.ParseTreeVisitor;
  import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
  import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
+ import com.google.zetasql.parser.ASTCreateStatementEnums;
  import java.util.ArrayList;
  import java.util.HashMap;
  import java.util.Map;
@@ -33,7 +34,6 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
    public static final String NAME = "MissingDropStatement";
    private final String MISSING_DROP_SUGGESTION_MESSAGE =
        "TEMP table created without DROP statement: TEMP table %s defined at line %d is created and not dropped.";
-   private final String TEMPORARY_SCOPE = "TEMPORARY";
 
    // An array list to store the suggestions.
    private final ArrayList<String> result = new ArrayList<>();
@@ -53,7 +53,7 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
    @Override
    public void visit(ASTCreateTableStatement createTableStatement) {
         // check if the table is temporary
-        if(createTableStatement.getScope().toString() == TEMPORARY_SCOPE){
+        if(createTableStatement.getScope() == ASTCreateStatementEnums.Scope.TEMPORARY){
             ArrayList<String> fqdm = new ArrayList<>();
             createTableStatement.getName()
             .getNames()

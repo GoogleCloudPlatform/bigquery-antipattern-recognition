@@ -38,7 +38,7 @@ import com.google.zetasql.parser.ASTNodes.ASTScript;
    // Test with a query that creates a table and drops it without TEMP
    @Test
    public void oneTableTest() {
-     String expected = "Persistent table dropped without TEMP: Table mydataset.example defined at line 1 is dropped. Consider converting to temporary.";
+     String expected = "Persistent table dropped: Table mydataset.example defined at line 1 is dropped. Consider converting to temporary.";
      String query = "CREATE TABLE mydataset.example \n"
      + "(\n"
      +  "x INT64, \n"
@@ -56,7 +56,7 @@ import com.google.zetasql.parser.ASTNodes.ASTScript;
    // Test with a query that creates a table and drops it without TEMP
    @Test
    public void oneTempCTASTableTest() {
-    String expected = "Persistent table dropped without TEMP: Table mydataset.example defined at line 1 is dropped. Consider converting to temporary.";
+    String expected = "Persistent table dropped: Table mydataset.example defined at line 1 is dropped. Consider converting to temporary.";
     String query = "CREATE TABLE mydataset.example AS ( SELECT 1 ); \n"
      + "DROP TABLE mydataset.example;";
      ASTScript parsedQuery = Parser.parseScript(query, languageOptions);

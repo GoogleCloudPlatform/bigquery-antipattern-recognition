@@ -536,7 +536,7 @@ DROP TABLE `my_dataset.table`;
 
 Output:
 ```
-Persistent table dropped without TEMP: Table my_dataset.table defined at line 1 is dropped. Consider converting to temporary.
+Persistent table dropped: Table my_dataset.table defined at line 1 is dropped. Consider converting to temporary.
 ```
 
 ## License

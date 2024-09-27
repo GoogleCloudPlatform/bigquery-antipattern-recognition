@@ -152,18 +152,24 @@ prompts:
     examples:
     - "CREATE TABLE mydataset.table (id STRING); \n
        DROP TABLE mydataset.table; \n
-
        Storage costs will be reduced by converting mydataset.table to temporary: \n
-
        CREATE TEMP TABLE mydataset.table(id STRING); \n
-       DROP TABLE mydataset.table; \n"
+       DROP TABLE mydataset.table; \n
+    -  CREATE TABLE mydataset.example AS ( SELECT 1 ); \n
+       DROP TABLE mydataset.example; \n
+       Storage costs will be reduced by converting mydataset.table to temporary: \n
+       CREATE TEMP TABLE mydataset.example AS ( SELECT 1 ); \n
+       DROP TABLE mydataset.example;"
+       
   - name: MissingDropStatement
     description: |
       You know that TEMP tables should be dropped at the end of a script to avoid additional storage costs.
     examples:
     - "CREATE TEMP TABLE mydataset.table (id STRING); \n
-
        Storage costs will be reduced by dropping the TEMP table: \n
-
        CREATE TEMP TABLE mydataset.table(id STRING); \n
+       DROP TABLE mydataset.table; \n"
+    - "CREATE TEMP TABLE mydataset.table AS ( SELECT 1 ); \n
+       Storage costs will be reduced by dropping the TEMP table: \n
+       CREATE TEMP TABLE mydataset.tableAS ( SELECT 1 ); \n
        DROP TABLE mydataset.table; \n"

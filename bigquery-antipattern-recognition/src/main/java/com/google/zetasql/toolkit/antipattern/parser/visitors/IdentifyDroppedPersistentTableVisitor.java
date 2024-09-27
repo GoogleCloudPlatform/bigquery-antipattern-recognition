@@ -21,6 +21,7 @@ import com.google.zetasql.parser.ASTNodes.ASTDropStatement;
 import com.google.zetasql.parser.ParseTreeVisitor;
  import com.google.zetasql.toolkit.antipattern.AntiPatternVisitor;
  import com.google.zetasql.toolkit.antipattern.util.ZetaSQLStringParsingHelper;
+ import com.google.zetasql.parser.ASTCreateStatementEnums;
  import java.util.ArrayList;
  import java.util.HashMap;
  import java.util.Map;
@@ -31,9 +32,7 @@ import com.google.zetasql.parser.ParseTreeVisitor;
 
    public static final String NAME = "ConvertTableToTemp";
    private final String CONVERT_TO_TEMP_SUGGESTION_MESSAGE =
-       "Persistent table dropped without TEMP: Table %s defined at line %d is dropped. Consider converting to temporary.";
-   // Scope of a non-temporary table
-   private final String DEFAULT_SCOPE = "DEFAULT_SCOPE";
+       "Persistent table dropped: Table %s defined at line %d is dropped. Consider converting to temporary.";
 
    // An array list to store the suggestions.
    private final ArrayList<String> result = new ArrayList<>();
@@ -53,7 +52,7 @@ import com.google.zetasql.parser.ParseTreeVisitor;
    @Override
    public void visit(ASTCreateTableStatement createTableStatement) {
         // check if the table is temporary
-        if(createTableStatement.getScope().toString() == DEFAULT_SCOPE){
+        if(createTableStatement.getScope() ==  ASTCreateStatementEnums.Scope.DEFAULT_SCOPE){
             ArrayList<String> fqdm = new ArrayList<>();
             createTableStatement.getName()
             .getNames()
