@@ -55,9 +55,33 @@ import com.google.zetasql.parser.ASTNodes.ASTScript;
 
    // Test with a query that creates a table and drops it without TEMP
    @Test
-   public void oneTempCTASTableTest() {
+   public void oneCTASTableTest() {
     String expected = "Persistent table dropped: Table mydataset.example defined at line 1 is dropped. Consider converting to temporary.";
     String query = "CREATE TABLE mydataset.example AS ( SELECT 1 ); \n"
+     + "DROP TABLE mydataset.example;";
+     ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
+     IdentifyDroppedPersistentTableVisitor visitor = new IdentifyDroppedPersistentTableVisitor(query);
+     parsedQuery.accept(visitor);
+     String recommendations = visitor.getResult();
+     assertEquals(expected, recommendations);
+   }
+      // Test with a query that creates a table and drops it without TEMP
+   @Test
+   public void oneCTASQualifiedTableTest() {
+    String expected = "Persistent table dropped: Table myproject.mydataset.example defined at line 1 is dropped. Consider converting to temporary.";
+    String query = "CREATE TABLE myproject.mydataset.example AS ( SELECT 1 ); \n"
+     + "DROP TABLE myproject.mydataset.example;";
+     ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
+     IdentifyDroppedPersistentTableVisitor visitor = new IdentifyDroppedPersistentTableVisitor(query);
+     parsedQuery.accept(visitor);
+     String recommendations = visitor.getResult();
+     assertEquals(expected, recommendations);
+   }
+      // Test with a query that creates a table and drops it without TEMP
+   @Test
+   public void oneCTASQualifiedMixedTableTest() {
+    String expected = "";
+    String query = "CREATE TABLE myproject.mydataset.example AS ( SELECT 1 ); \n"
      + "DROP TABLE mydataset.example;";
      ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
      IdentifyDroppedPersistentTableVisitor visitor = new IdentifyDroppedPersistentTableVisitor(query);

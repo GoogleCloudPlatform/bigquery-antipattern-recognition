@@ -83,5 +83,16 @@ import org.junit.Before;
      String recommendations = visitor.getResult();
      assertEquals(expected, recommendations);
    }
+    // Test with a query that creates a temp table with CTAS and does not drop it
+    @Test
+    public void oneTempTableQualifiedMixedTest() {
+      String expected = "TEMP table created without DROP statement: TEMP table myproject.mydataset.example defined at line 1 is created and not dropped.";
+      String query = "CREATE TEMP TABLE myproject.mydataset.example AS (SELECT 1);";
 
+       ASTScript parsedQuery = Parser.parseScript(query, languageOptions);
+       IdentifyMissingDropStatementVisitor visitor = new IdentifyMissingDropStatementVisitor(query);
+       parsedQuery.accept(visitor);
+       String recommendations = visitor.getResult();
+       assertEquals(expected, recommendations);
+    }
  }
