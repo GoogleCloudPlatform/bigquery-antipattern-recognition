@@ -91,3 +91,15 @@ where
      ref like '%master%'
      and repo_name = 'cdnjs/cdnjs';
 "
+9,"CREATE TEMP TABLE 
+    mydataset.example 
+  AS 
+    (SELECT 1);
+"
+10,"CREATE TABLE 
+      mydataset.example 
+    AS 
+      ( SELECT 1 );
+    DROP TABLE 
+      mydataset.example;
+"

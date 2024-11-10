@@ -8,3 +8,5 @@ DynamicPredicate: Using subquery in filter at line 6. Converting this dynamic pr
 6,"LatestRecordWithAnalyticFun: Seems like you might be using analytical function row_number in line 7 to filter the latest record in line 12."
 7,"DynamicPredicate: Using subquery in filter at line 9. Converting this dynamic predicate to static might provide better performance."
 8,"WhereOrder: SubOptimal order of predicates in WHERE, line 7. Consider applying more restrictive filters first. For example a '=' or a '>' filter usually is usually more restrictive than a like '%' filter. The following order might provide performance benefits is '=', '>', '<', '<>', 'like'"
+9,"MissingDropStatement: TEMP table created without DROP statement: TEMP table mydataset.example defined at line 1 is created and not dropped."
+10,"ConvertTableToTemp: Persistent table dropped: Table mydataset.example defined at line 1 is dropped. Consider converting to temporary"
