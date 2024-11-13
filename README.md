@@ -8,20 +8,31 @@ We recommend using this tool to scan the top 10% slot consuming jobs of your
 workload. Addressing these anti-patterns in most cases will provide performance 
 significant benefits. 
 
-Example of tool input and output :
+# Before you start
 
-Input:
-```
-SELECT 
-    * 
-FROM 
-    `project.dataset.table1`
-```
+If you are **migrating from another platform** into BigQuery (e.g. Teradata, Snowflake, Redshift), you can use [optimizations available in the BigQuery SQL Translator](https://cloud.google.com/bigquery/docs/config-yaml-translation#optimize_and_improve_the_performance_of_translated_sql) following isntructions [here](https://cloud.google.com/bigquery/docs/config-yaml-translation#optimize_and_improve_the_performance_of_translated_sql).
 
-Output:
-```
-All columns on table: project.dataset.table1 are being selected. Please be sure that all columns are needed
-```
+The following dialects are supported by the SQL translator:
+
+* Amazon Redshift SQL
+* Apache HiveQL and Beeline CLI
+* IBM Netezza SQL and NZPLSQL
+* Teradata and Teradata Vantage
+* Apache Spark SQL
+* Azure Synapse T-SQL
+* Greenplum SQL
+* IBM DB2 SQL
+* MySQL SQL
+* Oracle SQL, PL/SQL, Exadata
+* PostgreSQL SQL
+* Trino or PrestoSQL
+* Snowflake SQL
+* SQL Server T-SQL
+* SQLite
+* Vertica SQL
+* Any other listed [here](https://cloud.google.com/bigquery/docs/interactive-sql-translator#supported_sql_dialects)
+
+
 
 
 # Quick Start Docker
