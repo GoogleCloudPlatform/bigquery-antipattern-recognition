@@ -10,7 +10,7 @@ significant benefits.
 
 # Before you start
 
-If you are **migrating from another platform** into BigQuery (e.g. Teradata, Snowflake, Redshift), you can use [optimizations available in the BigQuery SQL Translator](https://cloud.google.com/bigquery/docs/config-yaml-translation#optimize_and_improve_the_performance_of_translated_sql) following instructions [here](https://cloud.google.com/bigquery/docs/config-yaml-translation#optimize_and_improve_the_performance_of_translated_sql).
+If you are **migrating from another platform (e.g. Teradata, Snowflake, Redshift) into BigQuery**, you can use [optimizations available in the BigQuery SQL Translator](https://cloud.google.com/bigquery/docs/config-yaml-translation#optimize_and_improve_the_performance_of_translated_sql) following [these instructions](https://cloud.google.com/bigquery/docs/config-yaml-translation#optimize_and_improve_the_performance_of_translated_sql).
 
 The following dialects are supported by the SQL translator:
 
