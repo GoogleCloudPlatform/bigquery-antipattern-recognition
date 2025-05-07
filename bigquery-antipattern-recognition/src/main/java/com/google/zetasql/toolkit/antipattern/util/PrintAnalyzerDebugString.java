@@ -2,7 +2,7 @@ package com.google.zetasql.toolkit.antipattern.util;
 
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
+import com.google.zetasql.toolkit.AnalyzedStatement;
 import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService;
@@ -69,7 +69,7 @@ public class PrintAnalyzerDebugString {
         + ";";
 
     catalog.addAllTablesUsedInQuery(query, options);
-    Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
+    Iterator<AnalyzedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
     statementIterator.forEachRemaining(System.out::println);
 
   }
