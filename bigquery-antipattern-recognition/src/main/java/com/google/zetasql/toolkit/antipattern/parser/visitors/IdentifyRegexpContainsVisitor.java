@@ -55,7 +55,7 @@ public class IdentifyRegexpContainsVisitor extends ParseTreeVisitor implements A
         // search for argument with string
         for (ASTNodes.ASTExpression argument : arguments) {
           if (argument instanceof ASTNodes.ASTStringLiteral) {
-            String stringLiteralArg = ((ASTNodes.ASTStringLiteral) argument).getImage();
+            String stringLiteralArg = ((ASTNodes.ASTStringLiteral) argument).getStringValue();
             Pattern pattern = Pattern.compile(REGEX_STRING);
             Matcher matcher = pattern.matcher(stringLiteralArg);
             if (matcher.find()) {
