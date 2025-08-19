@@ -1,0 +1,32 @@
+# Core Google Cloud dependencies
+google-cloud-bigquery>=3.4.0
+google-cloud-run>=0.9.0
+google-cloud-build>=3.15.0
+google-auth>=2.16.0
+google-auth-oauthlib>=0.8.0
+google-auth-httplib2>=0.1.0
+
+# Notebook and visualization
+jupyter>=1.0.0
+ipywidgets>=7.6.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.10.0
+pandas>=1.5.0
+numpy>=1.21.0
+
+# Web framework
+streamlit>=1.20.0
+
+# HTTP and utilities
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+python-dotenv>=0.19.0
+
+# Code formatting and syntax highlighting
+pygments>=2.10.0
+sqlparse>=0.4.0
+
+# Additional utilities for data processing
+pyyaml>=6.0
+openpyxl>=3.0.0
