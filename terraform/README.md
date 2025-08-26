@@ -1,14 +1,23 @@
 # Google Cloud BigQuery Antipattern Recognition
 
-This repository contains the Terraform scripts that build and deploy the BigQuery Antipattern Recognition tool to Cloud Run Jobs. On each execution, the tool is configured to perform antipattern recognition for all jobs run during the previous 24 hours and to write the results to a BigQuery table. Optionally, a Cloud Scheduler cron job can be deployed to run the tool on a schedule.
+This repository contains the Terraform scripts that build and deploy the BigQuery Antipattern Recognition tool to Cloud Run Jobs. On each execution, the tool is configured to perform antipattern recognition for all jobs run during the previous 24 hours and to write the results to a BigQuery table. 
+
+
+There are two optional flags when running the terraform scripts.
+
+1. Optionally, a Cloud Scheduler cron job can be deployed to run the tool on a schedule by setting apply_scheduler = true.
+2. Optionally, a Cloud Workflow can be deployed obtain query hashes, run the antipattern tool, and join the recommendation back on to the hashes. This is useful to run the antipattern tool across queries that may be repeated many times. Read more about query hashes [here](https://github.com/GoogleCloudPlatform/bigquery-utils/tree/master/scripts/optimization#query-analysis). When you want to run the Cloud Workflow, set apply_workflow = true, specify an input table name that will be used for intermediary extraction of query hashes, and the cloud_run_job_name_hash of the Cloud Run job.
 
 Following resources are created when running the code:
-1. Cloud Run Job
+1. Cloud Run Job for Information_Schema
 2. Service Account for Cloud Run Job
 3. Cloud Scheduler (optional)
-4. Service Account for Cloud Scheduler
-5. Artifact Registry
-6. Table in BigQuery Dataset (optional)
+4. Cloud Workflow (optional)
+5. Service Account for Cloud Scheduler
+6. Service Account for Cloud Workflow (optional)
+7. Cloud Run Job for Query Hashes (optional)
+8. Artifact Registry
+9. Table in BigQuery Dataset (optional)
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fbigquery-antipattern-recognition&cloudshell_open_in_editor=terraform%2F&cloudshell_tutorial=terraform%2FREADME.md)
 
@@ -65,6 +74,9 @@ Before you begin, ensure you have met the following requirements:
     output_table = "" # The BigQuery table that will be used for storing the results from the Anti Pattern Detector
     apply_scheduler = "" # Whether to apply scheduler or not (true or false)
     scheduler_frequency = "" # Schedule frequency for the Cloud Scheduler job, in cron format. Default value is "0 5 * * *"
+    apply_workflow = "" # Determines if a Cloud Workflow should be run for query hashes, default is false
+    input_table = ""    # Intermediary name for raw query table used for antipattern tool if using hash workflow
+    cloud_run_job_name_hash = "" # The name of the Cloud Run job that will be created for query hashes
     bigquery_dataset_name = "" # Name of the existing BigQuery dataset where output table will be created
     create_output_table   = "" # Determines whether the output table is created in the BigQuery Dataset. The default value is true.
     ```
@@ -78,10 +90,28 @@ Before you begin, ensure you have met the following requirements:
     output_table = "antipattern_output_table"
     apply_scheduler = true
     scheduler_frequency   = "0 5 * * *"
+    apply_workflow = false 
+    input_table = ""    
+    cloud_run_job_name_hash = "" 
     bigquery_dataset_name = "antipattern"
     create_output_table   = true
     ```
 
+    Or if using Cloud Worflow for query hashes:
+    ```shell
+    project_id = "demo-prj-873454"
+    region = "us-central1"
+    repository = "bigquery-antipattern-recognition"
+    cloud_run_job_name = "bigquery-antipattern-recognition"
+    output_table = "antipattern_output_table"
+    apply_scheduler = true
+    scheduler_frequency   = "0 5 * * *"
+    apply_workflow = true 
+    input_table = "hash_raw"    
+    cloud_run_job_name_hash = "bq-hash-antipattern" 
+    bigquery_dataset_name = "optimization_workshop"
+    create_output_table   = true
+    ```
 
 4. **Initialize Terraform**:
 
