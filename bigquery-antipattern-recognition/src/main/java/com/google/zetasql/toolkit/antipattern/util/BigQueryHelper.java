@@ -137,7 +137,7 @@ public class BigQueryHelper {
             + "  AND total_slot_ms > "
             + slotsMsMin
             + "\n"
-            + "  AND reservation_id != 'default-pipeline' \n"
+            + "  AND (reservation_id != 'default-pipeline' or reservation_id is null) \n"
             + "  AND query not like '%INFORMATION_SCHEMA%' \n"
             + "QUALIFY perc_rnk < "
             + topNPercent
