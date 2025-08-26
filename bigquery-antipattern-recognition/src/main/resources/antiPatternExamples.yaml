@@ -160,7 +160,6 @@ prompts:
        Storage costs will be reduced by converting mydataset.table to temporary: \n
        CREATE TEMP TABLE mydataset.example AS ( SELECT 1 ); \n
        DROP TABLE mydataset.example;"
-       
   - name: MissingDropStatement
     description: |
       You know that TEMP tables should be dropped at the end of a script to avoid additional storage costs.
@@ -173,3 +172,110 @@ prompts:
        Storage costs will be reduced by dropping the TEMP table: \n
        CREATE TEMP TABLE mydataset.tableAS ( SELECT 1 ); \n
        DROP TABLE mydataset.table; \n"
+  - name: ClusteringKeysUsedCheck
+    description: |
+      You know that table clustering improves query performance by pruning data blocks when clustering keys are used in predicates.
+      This anti-pattern occurs when a query reads from a clustered table, but none of the table's clustering keys are referenced
+      in `WHERE` clause predicates, `JOIN ON` conditions, or `GROUP BY` clauses. In such cases, the clustering provides little
+      to no performance benefit for this specific query, as BigQuery cannot effectively prune blocks based on the clustering keys.
+    examples:
+    - "Input (Table `proj.dataset.events` clustered by `event_date`, `user_id`):\n\
+      SELECT \n\
+      session_id, event_name \n\
+      FROM \n\
+      `proj.dataset.events` \n\
+      WHERE \n\
+      source_system = 'SystemA';\n\
+      Output:\n\
+      Table: proj.dataset.events is clustered by [event_date, user_id], but these keys were not referenced in WHERE, JOIN ON, or GROUP BY clauses. Clustering might not provide significant benefits for this query.\n\
+      Consider adding filters on `event_date` or `user_id` if applicable to leverage clustering, or evaluate if clustering is beneficial for the common query patterns on this table."
+  - name: FunctionOnClusteringKeyCheck
+    description: |
+      You know that applying functions directly to a clustering key column within a query predicate prevents BigQuery from effectively
+      using the clustering to prune data blocks. For example, using `CAST(cluster_col AS STRING) = 'value'` or `DATE(cluster_timestamp) = '2024-01-01'`
+      requires BigQuery to compute the function result for each row before comparing, negating the benefit of the pre-sorted clustered data.
+      Performance is improved by applying functions to constants or parameters instead, allowing direct comparison against the raw clustering key column.
+    examples:
+    - "Input (Table `proj.dataset.logs` clustered by `log_timestamp`):\n\
+        SELECT \n\
+          message \n\
+        FROM \n\
+          `proj.dataset.logs` \n\
+        WHERE \n\
+            DATE(log_timestamp) = '2024-04-21';\n\
+      Output:\n\
+          Potential anti-pattern: Function 'DATE' used on clustering key 'log_timestamp' of table 'proj.dataset.logs' within a predicate ($equal). This often prevents cluster pruning. Consider applying functions to constants/parameters instead (e.g., `key = FUNC(value)` instead of `FUNC(key) = value`).\n\
+          Rewrite Suggestion:\n\
+          SELECT \n\
+            message \n\
+          FROM \n\
+            `proj.dataset.logs` \n\
+          WHERE \n\
+            log_timestamp >= '2024-04-21 00:00:00' AND log_timestamp < '2024-04-22 00:00:00';\n"
+    - "Input (Table `proj.dataset.orders` clustered by `order_id` (INT64)):\n\
+        SELECT \n\
+          order_value \n\
+        FROM \n\
+          `proj.dataset.orders` \n\
+        WHERE \n\
+            CAST(order_id AS STRING) = '12345';\n\
+      Output:\n\
+          Potential anti-pattern: Function 'CAST' used on clustering key 'order_id' of table 'proj.dataset.orders' within a predicate ($equal). This often prevents cluster pruning. Consider applying functions to constants/parameters instead (e.g., `key = FUNC(value)` instead of `FUNC(key) = value`).\n\
+          Rewrite Suggestion:\n\
+          SELECT \n\
+            order_value \n\
+          FROM \n\
+            `proj.dataset.orders` \n\
+          WHERE \n\
+            order_id = 12345; -- Or CAST('12345' AS INT64)\n"
+  - name: ClusteringColumnComparisonCheck
+    description: |
+      You know that comparing columns directly can sometimes be less efficient than comparing columns to constants or parameters, especially in join conditions or filters.
+      This anti-pattern identifies predicates (in `WHERE` or `JOIN ON` clauses) that directly compare a clustering key column from one table
+      against a clustering key column from another table (or the same table). While sometimes necessary for the query logic, such direct comparisons
+      between clustered columns might limit the query planner's ability to fully utilize cluster pruning or choose the most optimal join strategies.
+    examples:
+    - "Input (Table `proj.dataset.users` clustered by `user_id`, Table `proj.dataset.activity` clustered by `user_id`):\n\
+        SELECT\n\
+          u.user_name, a.activity_type\n\
+        FROM\n\
+          `proj.dataset.users` u\n\
+        JOIN\n\
+          `proj.dataset.activity` a ON u.user_id = a.user_id;\n\
+      Output:\n\
+        Potential anti-pattern: Comparison ($equal) between two clustering keys: 'proj.dataset.users.user_id' and 'proj.dataset.activity.user_id'. Comparing clustering keys directly against each other can be inefficient and may hinder cluster pruning.\n\
+        Consider if pre-filtering one side based on other criteria is possible before the join."
+    - "Input (Table `proj.dataset.events` clustered by `event_date`, `session_id`):\n\
+        SELECT event_name FROM `proj.dataset.events` WHERE event_date = session_id;\n\
+      Output:\n\
+        Potential anti-pattern: Comparison ($equal) between two clustering keys: 'proj.dataset.events.event_date' and 'proj.dataset.events.session_id'. Comparing clustering keys directly against each other can be inefficient and may hinder cluster pruning.\n\
+        Verify if this comparison logic is intended."
+  - name: ClusteringOrderCheck
+    description: |
+      You know that for tables with multiple clustering keys (e.g., CLUSTER BY keyA, keyB, keyC), maximum performance benefits are achieved
+      when filter predicates (especially equality) are applied sequentially on a prefix of these keys, in the defined order.
+      This anti-pattern occurs when filter predicates reference clustering keys using equality, but skip one or more keys in the prefix order.
+      For instance, filtering on `keyA` and `keyC` without an equality filter on `keyB` prevents optimal pruning based on `keyC`.
+    examples:
+    - "Input (Table `proj.dataset.sales` clustered by `region`, `product_category`, `sale_date`):\n\
+        SELECT \n\
+          SUM(amount) \n\
+        FROM \n\
+          `proj.dataset.sales` \n\
+        WHERE \n\
+          region = 'West' \n\
+          AND sale_date = '2024-04-21'; -- Skips 'product_category'\n\
+      Output:\n\
+        Table: proj.dataset.sales is clustered by [region, product_category, sale_date]. Filters using keys [region, sale_date] might not optimally use clustering because key 'product_category' is missing from the filter predicate prefix. For best performance, filter sequentially on clustering keys.\n\
+        Consider adding an equality filter for `product_category` if appropriate, or understand that pruning on `sale_date` will be less effective."
+    - "Input (Table `proj.dataset.sales` clustered by `region`, `product_category`, `sale_date`):\n\
+        SELECT \n\
+          SUM(amount) \n\
+        FROM \n\
+          `proj.dataset.sales` \n\
+        WHERE \n\
+            product_category = 'Electronics' \n\
+            AND region = 'West'; -- Keys present, but potentially suboptimal predicate order\n\
+      Output:\n\
+        Table: proj.dataset.sales is clustered by [region, product_category, sale_date]. Filters using keys [product_category, region] might not optimally use clustering because key 'region' is missing from the filter predicate prefix. For best performance, filter sequentially on clustering keys.\n\
+        (Note: While BQ planner might reorder, explicitly filtering `region` first aligns better with clustering)."

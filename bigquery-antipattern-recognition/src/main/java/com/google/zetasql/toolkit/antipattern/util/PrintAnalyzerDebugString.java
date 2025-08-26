@@ -29,44 +29,12 @@ public class PrintAnalyzerDebugString {
     BigQueryAPIResourceProvider resourceProvider = BigQueryAPIResourceProvider.build(service);
     BigQueryCatalog catalog = new BigQueryCatalog(processingProject, resourceProvider);
 
-    //what about a view
-    String query = "CREATE TABLE mydataset.example \n"
-        + "(\n"
-        +  "x INT64, \n"
-        +  "y STRING \n"
-        + "); \n"
-        + "CREATE TEMP TABLE my_temp_table AS \n"
-        + "SELECT  \n"
-        + "  product_id, \n"
-        + "  SUM(quantity) AS total_quantity_sold\n"
-        + "FROM\n"
-        + "  UNNEST([ \n"
-        + "      STRUCT(1 AS product_id, 78 AS quantity),\n"
-        + "      STRUCT(2 AS product_id, 18 AS quantity),\n"
-        + "      STRUCT(3 AS product_id, 95 AS quantity),\n"
-        + "      STRUCT(4 AS product_id, 67 AS quantity),\n"
-        + "      STRUCT(5 AS product_id, 50 AS quantity)\n"
-        + "  ]) \n"
-        + "GROUP BY \n"
-        + "  product_id; \n"
-        + "DROP TABLE Example; \n"
-
-        + "SELECT * \n"
-        + "FROM \n"
-        + "  my_temp_table \n"
-        + "WHERE \n"
-        + "  total_quantity_sold > 100;\n\n"
-
-        + "SELECT  \n"
-        + "  t1.station_id,\n"
-        + "  COUNT(1) num_trips_started\n"
-        + "FROM\n"
-        + "  `bigquery-public-data.austin_bikeshare.bikeshare_stations` t1\n"
-        + "JOIN\n"
-        + "  `bigquery-public-data.austin_bikeshare.bikeshare_trips` t2 ON t1.station_id = t2.start_station_id\n"
-        + "GROUP BY\n"
-        + "  t1.station_id\n"
-        + ";";
+    String query = "SELECT  \n"
+    + "wiki,\n"
+    + "FROM\n"
+    + "  `bigquery-public-data.wikipedia.pageviews_2025`\n"
+    + "WHERE wiki='123' and title='abc'"
+    + ";";
 
     catalog.addAllTablesUsedInQuery(query, options);
     Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);

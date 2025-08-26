@@ -550,6 +550,83 @@ Output:
 Persistent table dropped: Table my_dataset.table defined at line 1 is dropped. Consider converting to temporary.
 ```
 
+## Anti Pattern 12: Clustering Keys Not Used in Query
+Identifies queries reading from clustered tables where none of the clustering keys are used in `WHERE`, `JOIN ON`, or `GROUP BY` clauses. This indicates the table's clustering is not being leveraged for performance gains (via data pruning) by this specific query.
+Example:
+```
+-- Assume proj.data.events is clustered by (event_date, user_id)
+SELECT
+  session_id,
+  event_name
+FROM
+  `proj.data.events`
+WHERE
+  source_system = 'SystemA'; -- Filtering on non-clustering key
+```
+
+Ouput:
+```
+ClusteringKeysUsedCheck: Table: proj.data.events is clustered by [event_date, user_id], but these keys were not referenced in WHERE, JOIN ON, or GROUP BY clauses. Clustering might not provide significant benefits for this query.
+
+```
+
+## Anti Pattern 13: Function Applied to Clustering Key in Predicate
+Detects predicates where functions (like `CAST`, `DATE`, `SUBSTR`) are applied directly to a clustering key column before comparison (e.g., `DATE(cluster_ts) = '...'`). This prevents BigQuery from using clustering to prune data efficiently; apply functions to the constant/parameter side instead.
+
+Example:
+```
+-- Assume proj.data.logs is clustered by log_timestamp (TIMESTAMP)
+SELECT
+  message
+FROM
+  `proj.data.logs`
+WHERE
+   DATE(log_timestamp) = '2025-04-21'; -- Function on clustering 
+```
+Ouput:
+```
+FunctionOnClusteringKeyCheck: Potential anti-pattern: Function 'DATE' used on clustering key 'log_timestamp' of table 'proj.data.logs' within a predicate ($equal). This often prevents cluster pruning. Consider applying functions to constants/parameters instead (e.g., `key = FUNC(value)` instead of `FUNC(key) = value`).
+
+```
+
+## Anti Pattern 14: Direct Comparison Between Clustering Keys
+Flags direct comparisons between two columns where both are clustering keys (e.g., `tableA.cluster_key = tableB.cluster_key`), often found in `WHERE` or `JOIN ON` clauses. This pattern can be inefficient and may hinder optimal cluster pruning or join performance.
+
+Example:
+```
+-- Assume proj.data.t1 clustered by k1, proj.data.t2 clustered by k2
+SELECT
+  t1.value
+FROM
+  `proj.data.t1` AS t1
+JOIN
+  `proj.data.t2` AS t2 ON t1.k1 = t2.k2; -- Comparing two clustering keys
+```
+Ouput:
+```
+ClusteringColumnComparisonCheck: Potential anti-pattern: Comparison ($equal) between two clustering keys: 'proj.data.t1.k1' and 'proj.data.t2.k2'. Comparing clustering keys directly against each other can be inefficient and may hinder cluster pruning.
+
+```
+
+## Anti Pattern 15: Suboptimal Clustering Key Filter Order
+For multi-column clustering, this identifies queries where equality filter predicates skip one or more keys in the defined prefix order (e.g., filtering the first and third key but not the second). This prevents optimal data pruning based on the skipped key and subsequent keys in the clustering definition.
+
+Example:
+```
+-- Assume proj.data.sales clustered by (region, product_category, sale_date)
+SELECT
+  SUM(amount)
+FROM
+  `proj.data.sales`
+WHERE
+  region = 'West'
+  AND sale_date = '2025-04-21'; -- Skips product_category in the prefix order
+```
+Ouput:
+```
+ClusteringOrderCheck: Table: proj.data.sales is clustered by [region, product_category, sale_date]. Filters using keys [region, sale_date] might not optimally use clustering because key 'product_category' is missing from the filter predicate prefix. For best performance, filter sequentially on clustering keys using equality predicates (e.g., filter 'region' first).
+```
+
 ## License
 
 ```text
