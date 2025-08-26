@@ -44,9 +44,9 @@ limitations under the License.
             <scope>test</scope>
         </dependency>
         <dependency>
-            <artifactId>zetasql-toolkit-core</artifactId>
+            <artifactId>zetasql-toolkit-bigquery</artifactId>
             <groupId>com.google.zetasql.toolkit</groupId>
-            <version>0.3.3</version>
+            <version>0.5.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -91,7 +91,7 @@ limitations under the License.
         <dependency>
             <groupId>com.google.zetasql</groupId>
             <artifactId>zetasql-client</artifactId>
-            <version>2023.04.1</version>
+            <version>2024.03.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
@@ -143,7 +143,7 @@ limitations under the License.
             <dependency>
                 <groupId>com.google.cloud</groupId>
                 <artifactId>libraries-bom</artifactId>
-                <version>26.15.0</version>
+                <version>26.43.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
