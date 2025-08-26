@@ -40,7 +40,7 @@ The following dialects are supported by the SQL translator:
 To run the tool use the [cloud shell](https://cloud.google.com/shell/docs/launching-cloud-shell#launch_from_the) terminal. It has all the 
 pre-requisites.
 
-Build utility
+Build utility in [Cloud Shell](https://cloud.google.com/shell/docs/launching-cloud-shell)
 ```
 # in cloud shell terminal
 
