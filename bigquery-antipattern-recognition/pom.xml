@@ -161,7 +161,7 @@ limitations under the License.
                         </mainClass>
                     </container>
                     <from>
-                        <image>openjdk:11</image>
+                        <image>eclipse-temurin:11-jre</image>
                     </from>
                     <to>
                         <image>bigquery-antipattern-recognition</image>
